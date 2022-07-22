@@ -294,6 +294,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
         _actuatorIdIndex.resize(_mjModel->nu,-1);
         for (size_t i=0;i<_allJoints.size();i++)
         {
+            _allJoints[i].object=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
             int mjId=mj_name2id(_mjModel,mjOBJ_JOINT,_allJoints[i].name.c_str());
             _allJoints[i].mjId=mjId;
             mjId=mj_name2id(_mjModel,mjOBJ_ACTUATOR,(_allJoints[i].name+"act").c_str());
@@ -302,6 +303,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
         }
         for (size_t i=0;i<_allForceSensors.size();i++)
         {
+            _allForceSensors[i].object=(CXSceneObject*)_simGetObject(_allForceSensors[i].objectHandle);
             int mjId=mj_name2id(_mjModel,mjOBJ_SENSOR,(_allForceSensors[i].name+"force").c_str());
             _allForceSensors[i].mjId=mjId;
             mjId=mj_name2id(_mjModel,mjOBJ_SENSOR,(_allForceSensors[i].name+"torque").c_str());
@@ -309,6 +311,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
         }
         for (size_t i=0;i<_allShapes.size();i++)
         {
+            _allShapes[i].object=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
             int mjId=mj_name2id(_mjModel,mjOBJ_BODY,_allShapes[i].name.c_str());
             _allShapes[i].mjId=mjId;
             if (_allShapes[i].shapeIsStatic)
@@ -318,6 +321,31 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
                 else
                     _allShapes[i].mjId2=_allShapes[i].mjId;
             }
+            else
+            {
+                if (_allShapes[i].shapeIsFree)
+                { // handle initial velocity for free bodies:
+                    int nvadr=_mjModel->body_dofadr[_allShapes[i].mjId];
+                    C3Vector v;
+                    _simGetInitialDynamicVelocity(_allShapes[i].object,v.data);
+                    if (v.getLength()>0.0f)
+                    {
+                        _mjData->qvel[nvadr+0]=v(0);
+                        _mjData->qvel[nvadr+1]=v(1);
+                        _mjData->qvel[nvadr+2]=v(2);
+                        _simSetInitialDynamicVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
+                    }
+                    _simGetInitialDynamicAngVelocity(_allShapes[i].object,v.data);
+                    if (v.getLength()>0.0f)
+                    {
+                        _mjData->qvel[nvadr+3]=v(0);
+                        _mjData->qvel[nvadr+4]=v(1);
+                        _mjData->qvel[nvadr+5]=v(2);
+                        _simSetInitialDynamicAngVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
+                    }
+                }
+            }
+
         }
         mjcb_contactfilter=_contactCallback;
         mjcb_control=_controlCallback;
@@ -792,7 +820,7 @@ void CRigidBodyContainerDyn::_addInertiaElement(CXmlSer* xmlDoc,float mass,const
 
 float CRigidBodyContainerDyn::computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness)
 { // returns the diagonal mass-less inertia, for a density of 1000
-    // Errors are silent here
+    // Errors are silent here. Function can be reentrant (max. 1 time)
     mju_user_warning=nullptr;
     mju_user_error=nullptr;
 
