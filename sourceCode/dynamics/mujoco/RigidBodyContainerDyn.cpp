@@ -314,38 +314,32 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
             _allShapes[i].object=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
             int mjId=mj_name2id(_mjModel,mjOBJ_BODY,_allShapes[i].name.c_str());
             _allShapes[i].mjId=mjId;
-            if (_allShapes[i].shapeIsStatic)
-            {
-                if (_allShapes[i].shapeIsKinematic) // in this case we effectively have 2 Mujoco bodies linked via a weld
-                    _allShapes[i].mjId2=mj_name2id(_mjModel,mjOBJ_BODY,(_allShapes[i].name+"staticCounterpart").c_str());
-                else
-                    _allShapes[i].mjId2=_allShapes[i].mjId;
-            }
-            else
-            {
-                if (_allShapes[i].shapeIsFree)
-                { // handle initial velocity for free bodies:
-                    int nvadr=_mjModel->body_dofadr[_allShapes[i].mjId];
-                    C3Vector v;
-                    _simGetInitialDynamicVelocity(_allShapes[i].object,v.data);
-                    if (v.getLength()>0.0f)
-                    {
-                        _mjData->qvel[nvadr+0]=v(0);
-                        _mjData->qvel[nvadr+1]=v(1);
-                        _mjData->qvel[nvadr+2]=v(2);
-                        _simSetInitialDynamicVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
-                    }
-                    _simGetInitialDynamicAngVelocity(_allShapes[i].object,v.data);
-                    if (v.getLength()>0.0f)
-                    {
-                        _mjData->qvel[nvadr+3]=v(0);
-                        _mjData->qvel[nvadr+4]=v(1);
-                        _mjData->qvel[nvadr+5]=v(2);
-                        _simSetInitialDynamicAngVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
-                    }
+            _allShapes[i].mjId2=mjId;
+            if (_allShapes[i].shapeMode==shapeModes::kinematicMode)
+                _allShapes[i].mjId2=mj_name2id(_mjModel,mjOBJ_BODY,(_allShapes[i].name+"staticCounterpart").c_str());
+            if (_allShapes[i].shapeMode==shapeModes::freeMode)
+            { // handle initial velocity for free bodies:
+                mjId=mj_name2id(_mjModel,mjOBJ_JOINT,(_allShapes[i].name+"freejoint").c_str());
+                _allShapes[i].mjId2=mjId;
+                int nvadr=_mjModel->body_dofadr[_allShapes[i].mjId];
+                C3Vector v;
+                _simGetInitialDynamicVelocity(_allShapes[i].object,v.data);
+                if (v.getLength()>0.0f)
+                {
+                    _mjData->qvel[nvadr+0]=v(0);
+                    _mjData->qvel[nvadr+1]=v(1);
+                    _mjData->qvel[nvadr+2]=v(2);
+                    _simSetInitialDynamicVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
+                }
+                _simGetInitialDynamicAngVelocity(_allShapes[i].object,v.data);
+                if (v.getLength()>0.0f)
+                {
+                    _mjData->qvel[nvadr+3]=v(0);
+                    _mjData->qvel[nvadr+4]=v(1);
+                    _mjData->qvel[nvadr+5]=v(2);
+                    _simSetInitialDynamicAngVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
                 }
             }
-
         }
         mjcb_contactfilter=_contactCallback;
         mjcb_control=_controlCallback;
@@ -548,21 +542,16 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
     int parentType=-1;
     if (parent!=nullptr)
         parentType=_simGetObjectType(parent);
-    bool isStatic=false;
-    bool isKinematic=false;
-//    bool hasStaticCounterpart=false;
-    bool isFree=(parent==nullptr);
     int flag=0;
     std::string objectName(_getObjectName(object));
 
-    SMujocoItem g;
+    SMjShape g;
     g.objectHandle=objectHandle;
     g.name=objectName;
-    g.shapeIsFree=isFree; // free shape (static or no parent constraint)
-    g.shapeIsStatic=false;
-    g.shapeIsKinematic=false;
-
-
+    if (parent==nullptr)
+        g.shapeMode=shapeModes::freeMode; // might also be staticMode or kinematicMode. Decided further down
+    else
+        g.shapeMode=shapeModes::attachedMode;
 
     if (_simGetObjectType(object)==sim_object_dummy_type)
     { // loop closure of type: shape1 --> joint/fsensor --> dummy1 -- dummy2 <-- shape2
@@ -581,14 +570,13 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
         {
             if ( forceStatic||(_simIsShapeDynamicallyStatic(object)!=0) )
             { // we have a static shape.
-                g.shapeIsStatic=true;
                 int kin;
                 simGetObjectInt32Param(objectHandle,sim_shapeintparam_kinematic,&kin);
                 if (kin==0)
-                    isStatic=true;
+                    g.shapeMode=shapeModes::staticMode;
                 else
                 { // The object is static AND kinematic (specific to Mujoco plugin): we need to add 2 bodies welded together: mocap and non-mocap
-                    isKinematic=true;
+                    g.shapeMode=shapeModes::kinematicMode;
                     if (xmlDoc!=nullptr)
                     {
                         info->staticWelds.push_back(object);
@@ -605,8 +593,8 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 }
             }
         }
-        if (!g.shapeIsStatic)
-            flag=flag|2;
+        if (g.shapeMode>=shapeModes::freeMode)
+            flag=flag|2; // free or attached shapes
         if ( (!forceNonRespondable)&&_simIsShapeDynamicallyRespondable(object) )
             flag=flag|1;
     }
@@ -632,7 +620,6 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
             CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geom);
             _simGetLocalInertiaFrame(geomInfo,g.shapeComTr.X.data,g.shapeComTr.Q.data);
 
-            g.shapeIsKinematic=isKinematic;
             _allShapes.push_back(g);
             _simSetDynamicSimulationIconCode(object,sim_dynamicsimicon_objectisdynamicallysimulated);
             _simSetDynamicObjectFlagForVisualization(object,flag);
@@ -649,12 +636,12 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
 
         if (parent==nullptr)
         { // static or free shapes.
-            if (isStatic)
+            if (g.shapeMode==shapeModes::staticMode)
                 xmlDoc->setAttr("mocap",true);
             else
             {
-                xmlDoc->pushNewNode("joint");
-                xmlDoc->setAttr("type","free");
+                xmlDoc->pushNewNode("freejoint");
+                xmlDoc->setAttr("name",(objectName+"freejoint").c_str());
                 xmlDoc->popNode();
             }
         }
@@ -683,7 +670,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 xmlDoc->pushNewNode("joint");
                 xmlDoc->setAttr("name",parentName.c_str());
 
-                SMujocoItem gjoint;
+                SMjJoint gjoint;
 
                 if (jt==sim_joint_spherical_subtype)
                 {
@@ -723,7 +710,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
         { // dyn. shape attached to force sensor
             std::string parentName(_getObjectName(parent));
 
-            SMujocoItem gfsensor;
+            SMjForceSensor gfsensor;
             gfsensor.objectHandle=_simGetObjectID(parent);
             gfsensor.name=parentName;
             _allForceSensors.push_back(gfsensor);
@@ -780,7 +767,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
         {
             if (!_addMeshes(object,xmlDoc,info,&_allGeoms))
                 _simMakeDynamicAnnouncement(sim_announce_containsnonpurenonconvexshapes);
-            if (!isStatic)
+            if (g.shapeMode!=shapeModes::staticMode)
             {
                 C7Vector tr,itr;
                 C3Vector im;
@@ -795,13 +782,12 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 float mass=_simGetLocalInertiaInfo(object,itr.X.data,itr.Q.data,im.data);
 
                 mass/=float(info->massDividers[object]); // the mass is possibly shared with a loop closure of type shape1 --> joint/fsensor --> dummy1(becomes aux. body) -- dummy2 <-- shape2
-                if (isKinematic)
+                if (g.shapeMode==shapeModes::kinematicMode)
                 {
                     mass=1000.0f; // todo (allow this as a param)
                     im=C3Vector(1,1,1); // todo (allow this as a param)
                 }
                 tr=tr*itr;
-//                _addInertiaElement(xmlDoc,mass,tr,im*mass);
                 _addInertiaElement(xmlDoc,mass,tr,im);
             }
         }
@@ -839,8 +825,7 @@ float CRigidBodyContainerDyn::computeInertia(int shapeHandle,C7Vector& tr,C3Vect
     _simGetObjectCumulativeTransformation(shape,shapeTr.X.data,shapeTr.Q.data,1);
     xmlDoc->setPosAttr("pos",shapeTr.X.data);
     xmlDoc->setQuatAttr("quat",shapeTr.Q.data);
-    xmlDoc->pushNewNode("joint");
-    xmlDoc->setAttr("type","free");
+    xmlDoc->pushNewNode("freejoint");
     xmlDoc->popNode();
 
     SInfo info;
@@ -896,7 +881,7 @@ float CRigidBodyContainerDyn::computeInertia(int shapeHandle,C7Vector& tr,C3Vect
 }
 
 
-bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMujocoItem>* geoms)
+bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms)
 { // retVal==false: display a warning if using non-pure non-convex shapes
     bool retVal=true;
     CXGeomProxy* geom=(CXGeomProxy*)_simGetGeomProxyFromShape(object); // even non respondable shapes have a geom
@@ -916,7 +901,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
         std::string nm(_getObjectName(object)+std::to_string(i));
         xmlDoc->setAttr("name",nm.c_str());
 
-        SMujocoItem g;
+        SMjGeom g;
         g.objectHandle=_simGetObjectID(object);
         g.name=nm;
         if (geoms!=nullptr)
@@ -1199,11 +1184,10 @@ void CRigidBodyContainerDyn::_controlCallback(const mjModel* m,mjData* d)
 
 void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
 {
-//    printf(".");
     for (size_t i=0;i<_allShapes.size();i++)
     {
         CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
-        if ( (shape!=nullptr)&&(!_allShapes[i].shapeIsStatic) )
+        if ( (shape!=nullptr)&&(_allShapes[i].shapeMode>=shapeModes::freeMode) )
         {
             int bodyId=_allShapes[i].mjId;
             C3Vector vf,vt;
@@ -1218,7 +1202,7 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
     }
 
     // Joints:
-    std::vector<SMujocoItem*> jointMujocoItems;
+    std::vector<SMjJoint*> jointMujocoItems;
     std::vector<int> jointOrders;
     for (size_t i=0;i<_allJoints.size();i++)
     {
@@ -1266,7 +1250,7 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
     mju_copy(_mjDataCopy->qacc_warmstart,d->qacc_warmstart,m->nv);
     for (size_t i=0;i<jointMujocoItems.size();i++)
     {
-        SMujocoItem* mujocoItem=jointMujocoItems[i];
+        SMjJoint* mujocoItem=jointMujocoItems[i];
         if (mujocoItem->actMode==1)
             _mjDataCopy->ctrl[mujocoItem->mjId2]=mujocoItem->jointCtrlForceToApply;
         else
@@ -1280,7 +1264,7 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
     // Now apply joint forces/torques:
     for (size_t i=0;i<jointMujocoItems.size();i++)
     {
-        SMujocoItem* mujocoItem=jointMujocoItems[i];
+        SMjJoint* mujocoItem=jointMujocoItems[i];
         if (mujocoItem->actMode==1)
             d->ctrl[mujocoItem->mjId2]=mujocoItem->jointCtrlForceToApply;
         if (mujocoItem->actMode==2)
@@ -1298,7 +1282,7 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
     _firstCtrlPass=false;
 }
 
-void CRigidBodyContainerDyn::_handleMotorControl(SMujocoItem* mujocoItem,int passCnt,int totalPasses)
+void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem,int passCnt,int totalPasses)
 {
     CXSceneObject* joint=mujocoItem->object;
     int ctrlMode=_simGetJointDynCtrlMode(joint);
@@ -1430,7 +1414,7 @@ bool CRigidBodyContainerDyn::_updateWorldFromCoppeliaSim()
 {
     for (size_t i=0;i<_allShapes.size();i++)
     {
-        if (_allShapes[i].shapeIsStatic)
+        if (_allShapes[i].shapeMode<=shapeModes::kinematicMode)
         { // prepare for static shape motion interpol.
             int bodyId=_mjModel->body_mocapid[_allShapes[i].mjId2];
             _allShapes[i].staticShapeStart.X=C3Vector(_mjData->mocap_pos[3*bodyId+0],_mjData->mocap_pos[3*bodyId+1],_mjData->mocap_pos[3*bodyId+2]);
@@ -1448,7 +1432,7 @@ void CRigidBodyContainerDyn::_handleKinematicBodies_step(float t,float cumulated
 {
     for (size_t i=0;i<_allShapes.size();i++)
     {
-        if (_allShapes[i].shapeIsStatic)
+        if (_allShapes[i].shapeMode<=shapeModes::kinematicMode)
         {
             CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
             if (shape!=nullptr)
@@ -1476,15 +1460,12 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
         if (shape!=nullptr)
         {
             int bodyId=_allShapes[i].mjId;
-            if (!_allShapes[i].shapeIsStatic)
+            if (_allShapes[i].shapeMode==shapeModes::freeMode)
             {
-                if (_allShapes[i].shapeIsFree)
-                {
-                    C7Vector tr;
-                    tr.X=C3Vector(_mjData->xpos[3*bodyId+0],_mjData->xpos[3*bodyId+1],_mjData->xpos[3*bodyId+2]);
-                    tr.Q=C4Vector(_mjData->xquat[4*bodyId+0],_mjData->xquat[4*bodyId+1],_mjData->xquat[4*bodyId+2],_mjData->xquat[4*bodyId+3]);
-                    _simDynReportObjectCumulativeTransformation(shape,tr.X.data,tr.Q.data,simulationTime);
-                }
+                C7Vector tr;
+                tr.X=C3Vector(_mjData->xpos[3*bodyId+0],_mjData->xpos[3*bodyId+1],_mjData->xpos[3*bodyId+2]);
+                tr.Q=C4Vector(_mjData->xquat[4*bodyId+0],_mjData->xquat[4*bodyId+1],_mjData->xquat[4*bodyId+2],_mjData->xquat[4*bodyId+3]);
+                _simDynReportObjectCumulativeTransformation(shape,tr.X.data,tr.Q.data,simulationTime);
             }
 
             C3Vector av(_mjData->cvel[6*bodyId+0],_mjData->cvel[6*bodyId+1],_mjData->cvel[6*bodyId+2]);

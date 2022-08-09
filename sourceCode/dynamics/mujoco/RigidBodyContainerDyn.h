@@ -4,25 +4,53 @@
 #include "xmlser.h"
 #include <mujoco/mujoco.h>
 
-struct SMujocoItem
+enum shapeModes{staticMode=0,kinematicMode=1,freeMode=2,attachedMode=3};
+
+struct SMjShape
 {
     int objectHandle;
+    std::string name;
     CXSceneObject* object;
 
-    int mjId; // geom, body, joint, forceSensor(force)
-    int mjId2; // body(static counterpart), actuator, forceSensor(torque)
+    int mjId; // body
+    int mjId2; // body (static counterpart, if applies), or freejoint (if shape in free mode)
+    shapeModes shapeMode;
+    C7Vector shapeComTr; // Shape's com transf rel to shape frame
+    C7Vector staticShapeStart;
+    C7Vector staticShapeGoal;
+};
+
+struct SMjGeom
+{
+    int objectHandle;
+    std::string name;
+
+    int mjId; // geom
+};
+
+struct SMjJoint
+{
+    int objectHandle;
+    std::string name;
+    CXSceneObject* object;
+
+    int mjId; // joint
+    int mjId2; // actuator
     int actMode; // 0=free, 1=force/torque, 2=mixed(force/vel, using inverse dyn.)
     int jointType;
     float jointCtrlDv;
     float jointCtrlForceToApply;
     C4Vector initialBallQuat;
-    std::string name; // geom, body, joint, but also coppeliaSim object's name
-    bool shapeIsFree; // i.e. static and/or parent not dynamic
-    bool shapeIsStatic;
-    bool shapeIsKinematic;
-    C7Vector shapeComTr; // Shape's com transf rel to shape frame
-    C7Vector staticShapeStart;
-    C7Vector staticShapeGoal;
+};
+
+struct SMjForceSensor
+{
+    int objectHandle;
+    std::string name;
+    CXSceneObject* object;
+
+    int mjId; // forceSensor(force)
+    int mjId2; // forceSensor(torque)
 };
 
 struct SHfield
@@ -61,7 +89,7 @@ public:
 
 protected:
     static std::string _getObjectName(CXSceneObject* object);
-    static bool _addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMujocoItem>* geoms);
+    static bool _addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms);
     std::string _buildMujocoWorld(float timeStep);
     bool _addObjectBranch(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
     void _addShape(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
@@ -69,7 +97,7 @@ protected:
 
     int _handleContact(const mjModel* m,mjData* d,int geom1,int geom2);
     void _handleControl(const mjModel* m,mjData* d);
-    void _handleMotorControl(SMujocoItem* mujocoItem,int passCnt,int totalPasses);
+    void _handleMotorControl(SMjJoint* mujocoItem,int passCnt,int totalPasses);
     void _handleContactPoints(int dynPass);
     dynReal _getAngleMinusAlpha(dynReal angle,dynReal alpha);
 
@@ -89,10 +117,10 @@ protected:
     mjData* _mjData;
     mjData* _mjDataCopy;
 
-    std::vector<SMujocoItem> _allGeoms;
-    std::vector<SMujocoItem> _allJoints;
-    std::vector<SMujocoItem> _allForceSensors;
-    std::vector<SMujocoItem> _allShapes;
+    std::vector<SMjGeom> _allGeoms;
+    std::vector<SMjJoint> _allJoints; // not freejoints
+    std::vector<SMjForceSensor> _allForceSensors;
+    std::vector<SMjShape> _allShapes;
     std::vector<int> _geomIdIndex;
     std::vector<int> _actuatorIdIndex;
 
