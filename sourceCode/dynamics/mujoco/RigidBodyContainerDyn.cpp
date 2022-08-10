@@ -5,8 +5,8 @@
 #include "simLib.h"
 #include "4X4Matrix.h"
 #include <filesystem>
-#include<iostream>
-#include<fstream>
+#include <iostream>
+#include <fstream>
 
 bool CRigidBodyContainerDyn::_simulationHalted=false;
 
@@ -102,6 +102,12 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     xmlDoc->setAttr("dir",-1.0,-1.0,-1.0);
     xmlDoc->setAttr("diffuse",1,1,1);
     xmlDoc->popNode();
+
+    CParticleDyn::xmlDoc=xmlDoc;
+    CParticleDyn::allGeoms=&_allGeoms;
+
+    _particleCont->addParticlesIfNeeded();
+    _particleCont->removeKilledParticles();
 
     SInfo info;
     info.folder=dir;
@@ -283,6 +289,8 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
         _mjData=mj_makeData(_mjModel);
         _mjDataCopy=mj_makeData(_mjModel);
 
+        CParticleDyn::mjModel=_mjModel;
+        CParticleDyn::mjData=_mjData;
 
         _geomIdIndex.resize(_mjModel->ngeom,-1);
         for (size_t i=0;i<_allGeoms.size();i++)
@@ -291,7 +299,6 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
             _allGeoms[i].mjId=mjId;
             _geomIdIndex[mjId]=i;
         }
-        _actuatorIdIndex.resize(_mjModel->nu,-1);
         for (size_t i=0;i<_allJoints.size();i++)
         {
             _allJoints[i].object=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
@@ -299,7 +306,6 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
             _allJoints[i].mjId=mjId;
             mjId=mj_name2id(_mjModel,mjOBJ_ACTUATOR,(_allJoints[i].name+"act").c_str());
             _allJoints[i].mjId2=mjId;
-            _actuatorIdIndex[mjId]=i;
         }
         for (size_t i=0;i<_allForceSensors.size();i++)
         {
@@ -1143,14 +1149,45 @@ int CRigidBodyContainerDyn::_contactCallback(const mjModel* m,mjData* d,int geom
 int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,int geom2)
 {
     int retVal=1; // ignore this contact
-    int shape1Handle=_allGeoms[_geomIdIndex[geom1]].objectHandle;
-    int shape2Handle=_allGeoms[_geomIdIndex[geom2]].objectHandle;
+    SMjGeom* gm1=&_allGeoms[_geomIdIndex[geom1]];
+    SMjGeom* gm2=&_allGeoms[_geomIdIndex[geom2]];
+    int shape1Handle=gm1->objectHandle;
+    int shape2Handle=gm2->objectHandle;
     if ( (shape1Handle>=0)&&(shape2Handle>=0) )
     {
         CXSceneObject* shapeA=(CXSceneObject*)_simGetObject(shape1Handle);
         CXSceneObject* shapeB=(CXSceneObject*)_simGetObject(shape2Handle);
-        if ( (shapeA!=nullptr)&&(shapeB!=nullptr) )
-        {
+        bool canCollide=false;
+        if ( (shapeA==nullptr)||(shapeB==nullptr) )
+        { // particle-shape or particle-particle
+            if ( (shapeA==nullptr)&&(shapeB==nullptr) )
+            { // particle-particle
+                canCollide=(gm1->particleParticleRespondable&&gm2->particleParticleRespondable);
+            }
+            else
+            { // particle-shape
+                unsigned int collFA=0;
+                canCollide=true;
+                if (shapeA!=nullptr)
+                {
+                    collFA=_simGetDynamicCollisionMask(shapeA);
+                    canCollide=_simIsShapeDynamicallyRespondable(shapeA)!=0;
+                }
+                else
+                    collFA=gm1->particleShapeRespondableMask;
+                unsigned int collFB=0;
+                if (shapeB!=nullptr)
+                {
+                    collFB=_simGetDynamicCollisionMask(shapeB);
+                    canCollide=_simIsShapeDynamicallyRespondable(shapeB)!=0;
+                }
+                else
+                    collFB=gm2->particleShapeRespondableMask;
+                canCollide=(canCollide&&(collFA&collFB&0xff00)); // we are global
+            }
+        }
+        else
+        { // shape-shape
             unsigned int collFA=_simGetDynamicCollisionMask(shapeA);
             unsigned int collFB=_simGetDynamicCollisionMask(shapeB);
             bool canCollide=(_simIsShapeDynamicallyRespondable(shapeA)&&_simIsShapeDynamicallyRespondable(shapeB));
@@ -1162,16 +1199,17 @@ int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,
                     canCollide=(collFA&collFB&0x00ff); // we are local
                 else
                     canCollide=(collFA&collFB&0xff00); // we are global
-                if (canCollide)
-                {
-                    int dataInt[3]={0,0,0};
-                    float dataFloat[14]={1.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
-
-                    int customHandleRes=_simHandleCustomContact(shape1Handle,shape2Handle,sim_physics_mujoco,dataInt,dataFloat);
-                    if (customHandleRes!=0)
-                        retVal=0; // should collide
-                }
             }
+        }
+
+        if (canCollide)
+        {
+            int dataInt[3]={0,0,0};
+            float dataFloat[14]={1.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+
+            int customHandleRes=_simHandleCustomContact(shape1Handle,shape2Handle,sim_physics_mujoco,dataInt,dataFloat);
+            if (customHandleRes!=0)
+                retVal=0; // should collide
         }
     }
     return(retVal);
@@ -1200,6 +1238,10 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
             d->xfrc_applied[6*bodyId+5]=vt(2);
         }
     }
+
+    C3Vector gravity;
+    _simGetGravity(gravity.data);
+    _particleCont->handleAntiGravityForces_andFluidFrictionForces(gravity);
 
     // Joints:
     std::vector<SMjJoint*> jointMujocoItems;
@@ -1425,6 +1467,7 @@ bool CRigidBodyContainerDyn::_updateWorldFromCoppeliaSim()
                 _simGetObjectCumulativeTransformation(shape,_allShapes[i].staticShapeGoal.X.data,_allShapes[i].staticShapeGoal.Q.data,false);
         }
     }
+
     return(true);
 }
 
@@ -1519,6 +1562,7 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
             _simAddForceSensorCumulativeForcesAndTorques(forceSens,f,t,totalPassesCount,simulationTime);
         }
     }
+    _particleCont->updateParticlesPosition(simulationTime);
 }
 
 bool CRigidBodyContainerDyn::isDynamicContentAvailable()

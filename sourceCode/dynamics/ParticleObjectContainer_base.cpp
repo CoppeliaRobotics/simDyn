@@ -32,10 +32,6 @@ CParticleObject_base* CParticleObjectContainer_base::getObject(int objectId,bool
 
 int CParticleObjectContainer_base::addObject(CParticleObject_base* it)
 {
-#ifdef INCLUDE_MUJOCO_CODE
-    if (CRigidBodyContainerDyn::getDynWorld()->isDynamicContentAvailable())
-        return(-1); // not allowed to modify the world once built!
-#endif
     int retVal=nextParticleObjectId++;
     _allParticleObjects[retVal]=it;
     it->setObjectId(retVal);
@@ -46,10 +42,6 @@ int CParticleObjectContainer_base::addObject(CParticleObject_base* it)
 
 void CParticleObjectContainer_base::removeAllObjects()
 {
-#ifdef INCLUDE_MUJOCO_CODE
-    if (CRigidBodyContainerDyn::getDynWorld()->isDynamicContentAvailable())
-        return; // not allowed to modify the world once built!
-#endif
     auto it=_allParticleObjects.begin();
     while (it!=_allParticleObjects.end())
     {
@@ -61,10 +53,6 @@ void CParticleObjectContainer_base::removeAllObjects()
 
 void CParticleObjectContainer_base::removeObject(int objectId)
 {
-#ifdef INCLUDE_MUJOCO_CODE
-    if (CRigidBodyContainerDyn::getDynWorld()->isDynamicContentAvailable())
-        return; // not allowed to modify the world once built!
-#endif
     auto it=_allParticleObjects.find(objectId);
     if (it!=_allParticleObjects.end())
         it->second->flagForDestruction();
@@ -136,10 +124,6 @@ void CParticleObjectContainer_base::removeKilledParticles()
 
 void CParticleObjectContainer_base::removeAllParticles()
 {
-#ifdef INCLUDE_MUJOCO_CODE
-    if (CRigidBodyContainerDyn::getDynWorld()->isDynamicContentAvailable())
-        return; // not allowed to modify the world once built!
-#endif
     std::vector<int> toRemove;
     auto it=_allParticleObjects.begin();
     while (it!=_allParticleObjects.end())

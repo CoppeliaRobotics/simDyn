@@ -1,6 +1,10 @@
 #pragma once
 
 #include "ParticleDyn_base.h"
+#include "xmlser.h"
+#include <mujoco/mujoco.h>
+
+struct SMjGeom;
 
 class CParticleDyn : public CParticleDyn_base
 {
@@ -12,4 +16,16 @@ public:
     void handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,float linearFluidFrictionCoeff,float quadraticFluidFrictionCoeff,float linearAirFrictionCoeff,float quadraticAirFrictionCoeff);
     void updatePosition();
     void removeFromEngine();
+
+    size_t _indexInAllGeoms;
+    std::string _name;
+    bool _initVelSet;
+    int _body_mjId;
+    int _geom_mjId;
+
+
+    static CXmlSer* xmlDoc;
+    static std::vector<SMjGeom>* allGeoms;
+    static mjModel* mjModel;
+    static mjData* mjData;
 };

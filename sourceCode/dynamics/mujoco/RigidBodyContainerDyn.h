@@ -22,8 +22,10 @@ struct SMjShape
 
 struct SMjGeom
 {
-    int objectHandle;
-    std::string name;
+    int objectHandle; // shape or particle handle
+    std::string name; // shape or particle name
+    int particleShapeRespondableMask; // for particles only
+    bool particleParticleRespondable; // for particles only
 
     int mjId; // geom
 };
@@ -117,14 +119,12 @@ protected:
     mjData* _mjData;
     mjData* _mjDataCopy;
 
-    std::vector<SMjGeom> _allGeoms;
+    std::vector<SMjGeom> _allGeoms; // shape and particles
     std::vector<SMjJoint> _allJoints; // not freejoints
     std::vector<SMjForceSensor> _allForceSensors;
     std::vector<SMjShape> _allShapes;
     std::vector<int> _geomIdIndex;
-    std::vector<int> _actuatorIdIndex;
 
-    bool _allViaForceCtrl;
     bool _firstDynPass;
     bool _firstCtrlPass;
     int _currentPass;
