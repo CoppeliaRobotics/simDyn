@@ -896,6 +896,22 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
     if ((_simGetPurePrimitiveType(geomInfo)==sim_primitiveshape_none)&&(_simIsGeomWrapConvex(geomInfo)==0)&&_simIsShapeDynamicallyRespondable(object)&&(_simGetTreeDynamicProperty(object)&sim_objdynprop_respondable))
         retVal=false;
 
+    double friction[3];
+    friction[0]=simGetEngineFloatParam(sim_mujoco_body_friction1,-1,object,nullptr);
+    friction[1]=simGetEngineFloatParam(sim_mujoco_body_friction2,-1,object,nullptr);
+    friction[2]=simGetEngineFloatParam(sim_mujoco_body_friction3,-1,object,nullptr);
+    double solref[2];
+    solref[0]=simGetEngineFloatParam(sim_mujoco_body_solref1,-1,object,nullptr);
+    solref[1]=simGetEngineFloatParam(sim_mujoco_body_solref2,-1,object,nullptr);
+    double solimp[5];
+    solimp[0]=simGetEngineFloatParam(sim_mujoco_body_solimp1,-1,object,nullptr);
+    solimp[1]=simGetEngineFloatParam(sim_mujoco_body_solimp2,-1,object,nullptr);
+    solimp[2]=simGetEngineFloatParam(sim_mujoco_body_solimp3,-1,object,nullptr);
+    solimp[3]=simGetEngineFloatParam(sim_mujoco_body_solimp4,-1,object,nullptr);
+    solimp[4]=simGetEngineFloatParam(sim_mujoco_body_solimp5,-1,object,nullptr);
+    double solmix=simGetEngineFloatParam(sim_mujoco_body_solmix,-1,object,nullptr);
+    int condim=simGetEngineInt32Param(sim_mujoco_body_condim,-1,object,nullptr);
+
     int componentListSize=_simGetGeometricCount(geomInfo);
     CXGeometric** componentList=new CXGeometric*[componentListSize];
     _simGetAllGeometrics(geomInfo,(simVoid**)componentList);
@@ -904,6 +920,11 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
     for (int i=0;i<componentListSize;i++)
     {
         xmlDoc->pushNewNode("geom");
+        xmlDoc->setAttr("friction",friction,3);
+        xmlDoc->setAttr("solref",solref,2);
+        xmlDoc->setAttr("solimp",solimp,5);
+        xmlDoc->setAttr("solmix",solmix);
+        xmlDoc->setAttr("condim",condim);
         std::string nm(_getObjectName(object)+std::to_string(i));
         xmlDoc->setAttr("name",nm.c_str());
 
@@ -1190,7 +1211,7 @@ int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,
         { // shape-shape
             unsigned int collFA=_simGetDynamicCollisionMask(shapeA);
             unsigned int collFB=_simGetDynamicCollisionMask(shapeB);
-            bool canCollide=(_simIsShapeDynamicallyRespondable(shapeA)&&_simIsShapeDynamicallyRespondable(shapeB));
+            canCollide=(_simIsShapeDynamicallyRespondable(shapeA)&&_simIsShapeDynamicallyRespondable(shapeB));
             if (canCollide)
             {
                 CXSceneObject* lastPA=(CXSceneObject*)_simGetLastParentForLocalGlobalCollidable(shapeA);
