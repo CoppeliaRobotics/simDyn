@@ -235,6 +235,19 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
                 xmlDoc->setAttr("relpose",v,7);
                 xmlDoc->popNode();
             }
+            for (size_t i=0;i<_allJoints.size();i++)
+            {
+                if (_allJoints[i].dependencyJointHandle!=-1)
+                {
+                    CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
+                    CXSceneObject* depJoint=(CXSceneObject*)_simGetObject(_allJoints[i].dependencyJointHandle);
+                    xmlDoc->pushNewNode("joint");
+                    xmlDoc->setAttr("joint1",_getObjectName(joint).c_str());
+                    xmlDoc->setAttr("joint2",_getObjectName(depJoint).c_str());
+                    xmlDoc->setAttr("polycoef",_allJoints[i].polycoef,5);
+                    xmlDoc->popNode();
+                }
+            }
             xmlDoc->popNode();
 
             xmlDoc->pushNewNode("sensor");
@@ -674,6 +687,36 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 C7Vector jointPose;
                 _simGetObjectCumulativeTransformation(parent,jointPose.X.data,jointPose.Q.data,1);
                 xmlDoc->pushNewNode("joint");
+                double solrefLimit[2];
+                double solrefFriction[2];
+                double springdamper[2];
+                for (size_t j=0;j<2;j++)
+                {
+                    solrefLimit[j]=simGetEngineFloatParam(sim_mujoco_joint_solreflimit1+j,-1,parent,nullptr);
+                    solrefFriction[j]=simGetEngineFloatParam(sim_mujoco_joint_solreffriction1+j,-1,parent,nullptr);
+                    springdamper[j]=simGetEngineFloatParam(sim_mujoco_joint_springdamper1+j,-1,parent,nullptr);
+                }
+                double solimpLimit[5];
+                double solimpFriction[5];
+                for (size_t j=0;j<5;j++)
+                {
+                    solimpLimit[j]=simGetEngineFloatParam(sim_mujoco_joint_solimplimit1+j,-1,parent,nullptr);
+                    solimpFriction[j]=simGetEngineFloatParam(sim_mujoco_joint_solimpfriction1+j,-1,parent,nullptr);
+                }
+                double stiffness=simGetEngineFloatParam(sim_mujoco_joint_stiffness,-1,parent,nullptr);
+                double damping=simGetEngineFloatParam(sim_mujoco_joint_damping,-1,parent,nullptr);
+                double springref=simGetEngineFloatParam(sim_mujoco_joint_springref,-1,parent,nullptr);
+                double armature=simGetEngineFloatParam(sim_mujoco_joint_armature,-1,parent,nullptr);
+                double margin=simGetEngineFloatParam(sim_mujoco_joint_margin,-1,parent,nullptr);
+                xmlDoc->setAttr("solreflimit",solrefLimit,2);
+                xmlDoc->setAttr("solimplimit",solimpLimit,5);
+                xmlDoc->setAttr("solreffriction",solrefFriction,2);
+                xmlDoc->setAttr("solimpfriction",solimpFriction,5);
+                xmlDoc->setAttr("stiffness",stiffness);
+                xmlDoc->setAttr("damping",damping);
+                xmlDoc->setAttr("springref",springref);
+                xmlDoc->setAttr("armature",armature);
+                xmlDoc->setAttr("margin",margin);
                 xmlDoc->setAttr("name",parentName.c_str());
 
                 SMjJoint gjoint;
@@ -684,6 +727,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                     float p[7];
                     simGetObjectChildPose(_simGetObjectID(parent),p);
                     gjoint.initialBallQuat=C4Vector(p+3,true);
+                    gjoint.dependencyJointHandle=-1;
                 }
                 else
                 {
@@ -697,6 +741,12 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                     if (limited)
                         xmlDoc->setAttr("range",minp,minp+rangep);
                     xmlDoc->setAttr("ref",_simGetJointPosition(parent));
+                    gjoint.dependencyJointHandle=simGetEngineInt32Param(sim_mujoco_joint_dependentobjectid,-1,parent,nullptr);
+                    if (gjoint.dependencyJointHandle!=-1)
+                    {
+                        for (size_t j=0;j<5;j++)
+                            gjoint.polycoef[j]=simGetEngineFloatParam(sim_mujoco_joint_polycoef1+j,-1,parent,nullptr);
+                    }
                 }
                 xmlDoc->setPosAttr("pos",jointPose.X.data);
                 C4X4Matrix m(jointPose);

@@ -43,6 +43,8 @@ struct SMjJoint
     float jointCtrlDv;
     float jointCtrlForceToApply;
     C4Vector initialBallQuat;
+    int dependencyJointHandle;
+    double polycoef[5];
 };
 
 struct SMjForceSensor
