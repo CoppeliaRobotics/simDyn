@@ -130,4 +130,5 @@ protected:
     bool _firstDynPass;
     bool _firstCtrlPass;
     int _currentPass;
+    int _overrideKinematicFlag;
 };

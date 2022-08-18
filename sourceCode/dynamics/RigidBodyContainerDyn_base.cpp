@@ -325,8 +325,8 @@ bool CRigidBodyContainerDyn_base::isDynamicContentAvailable()
 
 void CRigidBodyContainerDyn_base::handleDynamics(float dt,float simulationTime)
 {
-    int engP[]={sim_bullet_global_stepsize,sim_ode_global_stepsize,sim_vortex_global_stepsize,sim_newton_global_stepsize,sim_mujoco_global_stepsize};
-    float maxDynStep=simGetEngineFloatParam(engP[_engine],-1,nullptr,nullptr);
+    float maxDynStep;
+    simGetFloatParam(sim_floatparam_physicstimestep,&maxDynStep);
 
     _dynamicsCalculationPasses=int((dt/maxDynStep)+0.5f);
     if (_dynamicsCalculationPasses<1)

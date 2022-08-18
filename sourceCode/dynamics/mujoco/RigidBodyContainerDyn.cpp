@@ -41,6 +41,7 @@ std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int i
 
 std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
 {
+    _overrideKinematicFlag=simGetEngineInt32Param(sim_mujoco_global_overridekin,-1,nullptr,nullptr);
     char* _dir=simGetStringParam(sim_stringparam_mujocodir);
     std::string mjFile(_dir);
     std::string dir(_dir);
@@ -52,14 +53,15 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     xmlDoc->pushNewNode("compiler");
     xmlDoc->setAttr("coordinate","global");
     xmlDoc->setAttr("angle","radian");
-    xmlDoc->setAttr("balanceinertia",true); // TODO
-    xmlDoc->setAttr("boundmass",0.0); // TODO
-    xmlDoc->setAttr("boundinertia",0.000001); // TODO
+    xmlDoc->setAttr("usethread",bool(simGetEngineBoolParam(sim_mujoco_global_multithreaded,-1,nullptr,nullptr)));
+    xmlDoc->setAttr("balanceinertia",bool(simGetEngineBoolParam(sim_mujoco_global_balanceinertias,-1,nullptr,nullptr)));
+    xmlDoc->setAttr("boundmass",simGetEngineFloatParam(sim_mujoco_global_boundmass,-1,nullptr,nullptr));
+    xmlDoc->setAttr("boundinertia",simGetEngineFloatParam(sim_mujoco_global_boundinertia,-1,nullptr,nullptr));
     xmlDoc->popNode();
 
     xmlDoc->pushNewNode("size");
-    xmlDoc->setAttr("njmax",1000); // TODO
-    xmlDoc->setAttr("nconmax",500); // TODO
+    xmlDoc->setAttr("njmax",simGetEngineInt32Param(sim_mujoco_global_njmax,-1,nullptr,nullptr));
+    xmlDoc->setAttr("nconmax",simGetEngineInt32Param(sim_mujoco_global_nconmax,-1,nullptr,nullptr));
     xmlDoc->popNode();
 
     xmlDoc->pushNewNode("default");
@@ -70,24 +72,36 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
 
     xmlDoc->pushNewNode("option");
     xmlDoc->setAttr("timestep",timeStep);
-    // TODO: option to compute all inertias from geoms and mass
-    xmlDoc->setAttr("impratio",1.0); // TODO
-    xmlDoc->setAttr("wind",0.0,0.0,0.0); // TODO
-    xmlDoc->setAttr("density",0.0); // TODO
-    xmlDoc->setAttr("viscosity",0.0); // TODO
-  //  xmlDoc->setAttr("o_solref",0.0); // TODO
-    //  xmlDoc->setAttr("o_solimp",0.0); // TODO
-    xmlDoc->setAttr("integrator","Euler"); // TODO
-    xmlDoc->setAttr("cone","pyramidal"); // TODO
-    xmlDoc->setAttr("solver","Newton"); // TODO
-    xmlDoc->setAttr("iterations",100); // TODO
+    xmlDoc->setAttr("impratio",simGetEngineFloatParam(sim_mujoco_global_impratio,-1,nullptr,nullptr));
+    double w[5];
+    for (size_t i=0;i<3;i++)
+        w[i]=simGetEngineFloatParam(sim_mujoco_global_wind1+i,-1,nullptr,nullptr);
+    xmlDoc->setAttr("wind",w,3);
+    xmlDoc->setAttr("density",simGetEngineFloatParam(sim_mujoco_global_density,-1,nullptr,nullptr));
+    xmlDoc->setAttr("viscosity",simGetEngineFloatParam(sim_mujoco_global_viscosity,-1,nullptr,nullptr));
+    xmlDoc->setAttr("o_margin",simGetEngineFloatParam(sim_mujoco_global_overridemargin,-1,nullptr,nullptr));
+    for (size_t i=0;i<2;i++)
+        w[i]=simGetEngineFloatParam(sim_mujoco_global_overridesolref1+i,-1,nullptr,nullptr);
+    xmlDoc->setAttr("o_solref",w,2);
+    for (size_t i=0;i<2;i++)
+        w[i]=simGetEngineFloatParam(sim_mujoco_global_overridesolimp1+i,-1,nullptr,nullptr);
+    xmlDoc->setAttr("o_solimp",w,5);
+    const char* integrator[]={"Euler","RK4","implicit"};
+    xmlDoc->setAttr("integrator",integrator[simGetEngineInt32Param(sim_mujoco_global_integrator,-1,nullptr,nullptr)]);
+    const char* cone[]={"pyramidal","elliptic"};
+    xmlDoc->setAttr("cone",cone[simGetEngineInt32Param(sim_mujoco_global_cone,-1,nullptr,nullptr)]);
+    const char* solver[]={"PGS","CG","Newton"};
+    xmlDoc->setAttr("solver",solver[simGetEngineInt32Param(sim_mujoco_global_solver,-1,nullptr,nullptr)]);
+    xmlDoc->setAttr("iterations",simGetEngineInt32Param(sim_mujoco_global_iterations,-1,nullptr,nullptr));
     C3Vector gravity;
     _simGetGravity(gravity.data);
     xmlDoc->setAttr("gravity",gravity(0),gravity(1),gravity(2));
     xmlDoc->pushNewNode("flag");
     xmlDoc->setAttr("filterparent","disable");
     xmlDoc->setAttr("fwdinv","disable");
-    xmlDoc->setAttr("multiccd","disable"); //TODO
+    const char* disableEnable[]={"disable","enable"};
+    xmlDoc->setAttr("multiccd",disableEnable[simGetEngineBoolParam(sim_mujoco_global_multiccd,-1,nullptr,nullptr)]);
+    xmlDoc->setAttr("override",disableEnable[simGetEngineBoolParam(sim_mujoco_global_overridecontacts,-1,nullptr,nullptr)]);
     xmlDoc->popNode();
     xmlDoc->popNode();
 
@@ -591,6 +605,10 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
             { // we have a static shape.
                 int kin;
                 simGetObjectInt32Param(objectHandle,sim_shapeintparam_kinematic,&kin);
+                if (_overrideKinematicFlag==1)
+                    kin=0;
+                if (_overrideKinematicFlag==2)
+                    kin=1;
                 if (kin==0)
                     g.shapeMode=shapeModes::staticMode;
                 else
@@ -840,8 +858,9 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 mass/=float(info->massDividers[object]); // the mass is possibly shared with a loop closure of type shape1 --> joint/fsensor --> dummy1(becomes aux. body) -- dummy2 <-- shape2
                 if (g.shapeMode==shapeModes::kinematicMode)
                 {
-                    mass=1000.0f; // todo (allow this as a param)
-                    im=C3Vector(1,1,1); // todo (allow this as a param)
+                    mass=simGetEngineFloatParam(sim_mujoco_global_kinmass,-1,nullptr,nullptr);
+                    float inertia=simGetEngineFloatParam(sim_mujoco_global_kininertia,-1,nullptr,nullptr);
+                    im=C3Vector(inertia,inertia,inertia);
                 }
                 tr=tr*itr;
                 _addInertiaElement(xmlDoc,mass,tr,im);
@@ -935,7 +954,6 @@ float CRigidBodyContainerDyn::computeInertia(int shapeHandle,C7Vector& tr,C3Vect
     mju_user_warning=_warningCallback;
     return(mass);
 }
-
 
 bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms)
 { // retVal==false: display a warning if using non-pure non-convex shapes
@@ -1169,7 +1187,9 @@ void CRigidBodyContainerDyn::handleDynamics(float dt,float simulationTime)
 {
     if (!_simulationHalted)
     {
-        float maxDynStep=simGetEngineFloatParam(sim_mujoco_global_stepsize,-1,nullptr,nullptr);
+        float maxDynStep;
+        simGetFloatParam(sim_floatparam_physicstimestep,&maxDynStep);
+
         _dynamicsCalculationPasses=int((dt/maxDynStep)+0.5f);
         if (_dynamicsCalculationPasses<1)
             _dynamicsCalculationPasses=1;
