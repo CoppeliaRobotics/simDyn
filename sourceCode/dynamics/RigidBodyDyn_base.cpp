@@ -19,10 +19,13 @@ void CRigidBodyDyn_base::init(CXShape* shape,bool forceStatic,bool forceNonRespo
     _collisionShapeDyn=new CCollShapeDyn();
     bool willBeStatic=(_simIsShapeDynamicallyStatic(shape) || forceStatic);
     CXGeomProxy* geom=(CXGeomProxy*)_simGetGeomProxyFromShape(shape);
-    CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geom);
-    _simGetLocalInertiaFrame(geomInfo,_localInertiaFrame_scaled.X.data,_localInertiaFrame_scaled.Q.data);
-    _localInertiaFrame_scaled.X*=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn(); // ********** SCALING
+
+    _mass_scaled=_simGetLocalInertiaInfo(shape,_localInertiaFrame_scaled.X.data,_localInertiaFrame_scaled.Q.data,_diagonalInertia_scaled.data);
+    _mass_scaled*=CRigidBodyContainerDyn::getDynWorld()->getMassScalingFactorDyn();
+    _localInertiaFrame_scaled.X*=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     _inverseLocalInertiaFrame_scaled=_localInertiaFrame_scaled.getInverse();
+    _diagonalInertia_scaled*=_mass_scaled;
+    _diagonalInertia_scaled*=CRigidBodyContainerDyn::getDynWorld()->getMasslessInertiaScalingFactorDyn();
 
     _collisionShapeDyn->init(shape,geom,willBeStatic,_inverseLocalInertiaFrame_scaled); // even non-respondable shapes have a collision object
 

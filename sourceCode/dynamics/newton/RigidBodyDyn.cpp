@@ -33,7 +33,7 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
     CXGeomProxy* geomData = (CXGeomProxy*)_simGetGeomProxyFromShape(shape);
     CXGeomWrap* geomInfo = (CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
 
-    float mass = _isStatic ? 0.0f : _simGetMass(geomInfo);
+    float mass = _isStatic ? 0.0f : _mass_scaled;
 
     _setNewtonParameters(shape);
 
@@ -68,11 +68,8 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
         // this function will set a full inertia matrix with origin at the center of the collision shape
         NewtonBodySetMassProperties(_newtonBody, mass,((CCollShapeDyn*)_collisionShapeDyn)->getNewtonCollision());
 
-        C3Vector im;
-        _simGetPrincipalMomentOfInertia(geomInfo,im.data);
-        im*=mass;
         // here inertia will be set to the principal axis, but the origin is still at the center of collision shape.
-        NewtonBodySetMassMatrix(_newtonBody,mass,im(0),im(1),im(2));
+        NewtonBodySetMassMatrix(_newtonBody,mass,_diagonalInertia_scaled(0),_diagonalInertia_scaled(1),_diagonalInertia_scaled(2));
 
         // Here we simply need to reset the COM to the origin of the rigid body:
         C3Vector com;

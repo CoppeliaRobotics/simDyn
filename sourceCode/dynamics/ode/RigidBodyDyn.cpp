@@ -20,8 +20,6 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
 
     float linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     float linVelScaling=CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn();
-    float massScaling=CRigidBodyContainerDyn::getDynWorld()->getMassScalingFactorDyn();
-    float masslessInertiaScaling=CRigidBodyContainerDyn::getDynWorld()->getMasslessInertiaScalingFactorDyn();
 
     C7Vector cumulPart1_scaled;
     _simGetObjectCumulativeTransformation(shape,cumulPart1_scaled.X.data,cumulPart1_scaled.Q.data,true);
@@ -31,18 +29,13 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
     C7Vector tr(cumulPart1_scaled*_localInertiaFrame_scaled);
     CXGeomProxy* geomData=(CXGeomProxy*)_simGetGeomProxyFromShape(shape);
     CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
-    float mass=_simGetMass(geomInfo)*massScaling; // ********** SCALING
+    float mass=_mass_scaled;
 
     dMass m;
     dMassSetZero(&m);
 
     if (!_isStatic)
-    {
-        C3Vector im;
-        _simGetPrincipalMomentOfInertia(geomInfo,im.data);
-        im*=masslessInertiaScaling; // ********** SCALING
-        dMassSetParameters(&m,mass,0.0f,0.0f,0.0f,im(0)*mass,im(1)*mass,im(2)*mass,0.0f,0.0f,0.0f);
-    }
+        dMassSetParameters(&m,mass,0.0f,0.0f,0.0f,_diagonalInertia_scaled(0),_diagonalInertia_scaled(1),_diagonalInertia_scaled(2),0.0f,0.0f,0.0f);
 
     _odeRigidBody=dBodyCreate(odeWorld);
     if (!_isStatic)

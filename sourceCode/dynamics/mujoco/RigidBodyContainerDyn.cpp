@@ -653,9 +653,8 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
         if (xmlDoc!=nullptr)
         {
             xmlDoc->setAttr("name",objectName.c_str());
-            CXGeomProxy* geom=(CXGeomProxy*)_simGetGeomProxyFromShape(object);
-            CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geom);
-            _simGetLocalInertiaFrame(geomInfo,g.shapeComTr.X.data,g.shapeComTr.Q.data);
+            C3Vector im;
+            _simGetLocalInertiaInfo(object,g.shapeComTr.X.data,g.shapeComTr.Q.data,im.data);
 
             _allShapes.push_back(g);
             _simSetDynamicSimulationIconCode(object,sim_dynamicsimicon_objectisdynamicallysimulated);
@@ -811,30 +810,17 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
             _simGetDummyLinkType(object,&linkedDummyHandle);
             CXDummy* linkedDummy=(CXDummy*)_simGetObject(linkedDummyHandle);
             CXSceneObject* linkedDummyParent=(CXSceneObject*)_simGetParentObject(linkedDummy);
-            CXGeomProxy* geom=(CXGeomProxy*)_simGetGeomProxyFromShape(linkedDummyParent);
-            CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geom);
-            float mass=_simGetMass(geomInfo);
-            mass/=float(info->massDividers[linkedDummyParent]);
             C7Vector tr,trinv,itr,dum1Tr;
+            C3Vector im;
             _simGetObjectCumulativeTransformation(object,dum1Tr.X.data,dum1Tr.Q.data,true);
             _simGetObjectCumulativeTransformation(linkedDummyParent,tr.X.data,tr.Q.data,true);
             _simGetObjectCumulativeTransformation(linkedDummy,trinv.X.data,trinv.Q.data,true);
             trinv.inverse();
             tr=trinv*tr;
             tr=dum1Tr*tr;
-            _simGetLocalInertiaFrame(geomInfo,itr.X.data,itr.Q.data);
+            float mass=_simGetLocalInertiaInfo(linkedDummyParent,itr.X.data,itr.Q.data,im.data);
+            mass/=float(info->massDividers[linkedDummyParent]);
             tr=tr*itr;
-            C3Vector im;
-            _simGetPrincipalMomentOfInertia(geomInfo,im.data);
-
-            /*
-            xmlDoc->pushNewNode("geom");
-            xmlDoc->setAttr("type","sphere");
-            xmlDoc->setAttr("size",0.01);
-            xmlDoc->setPosAttr("pos",geomPose.X.data);
-            xmlDoc->setQuatAttr("quat",geomPose.Q.data);
-            xmlDoc->popNode();
-            */
             _addInertiaElement(xmlDoc,mass,tr,im*mass);
         }
         else
@@ -846,13 +832,6 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 C7Vector tr,itr;
                 C3Vector im;
                 _simGetObjectCumulativeTransformation(object,tr.X.data,tr.Q.data,true);
-/*
-                CXGeomProxy* geom=(CXGeomProxy*)_simGetGeomProxyFromShape(object);
-                CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geom);
-                _simGetLocalInertiaFrame(geomInfo,itr.X.data,itr.Q.data);
-                _simGetPrincipalMomentOfInertia(geomInfo,im.data);
-                float mass=_simGetMass(geomInfo);
-*/
                 float mass=_simGetLocalInertiaInfo(object,itr.X.data,itr.Q.data,im.data);
 
                 mass/=float(info->massDividers[object]); // the mass is possibly shared with a loop closure of type shape1 --> joint/fsensor --> dummy1(becomes aux. body) -- dummy2 <-- shape2

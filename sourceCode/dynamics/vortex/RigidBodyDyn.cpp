@@ -207,7 +207,7 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
     C7Vector tr(cumulPart1_scaled*_localInertiaFrame_scaled);
     CXGeomProxy* geomData=(CXGeomProxy*)_simGetGeomProxyFromShape(shape);
     CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
-    float mass=_simGetMass(geomInfo);
+    float mass=_mass_scaled;
 
     _vortexRigidBody = new Vx::VxPart(mass);
     vortexWorld->addPart(_vortexRigidBody);
@@ -215,12 +215,10 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
     if (!_isStatic)
     {
         _vortexRigidBody->setControl(Vx::VxPart::kControlDynamic);
-        C3Vector im;
-        _simGetPrincipalMomentOfInertia(geomInfo,im.data);
 
         Vx::VxMassProperties mp;
         mp.setMass(mass);
-        Vx::VxReal33 inertia = { {im(0)*mass, 0, 0}, {0, im(1)*mass, 0}, {0, 0, im(2)*mass} };
+        Vx::VxReal33 inertia = { {_diagonalInertia_scaled(0), 0, 0}, {0, _diagonalInertia_scaled(1), 0}, {0, 0, _diagonalInertia_scaled(2)} };
         mp.setInertiaTensorLocal(inertia);
         mp.setCOMPositionLocal(Vx::VxVector3(0,0,0));
         _vortexRigidBody->setMassProperties(mp);

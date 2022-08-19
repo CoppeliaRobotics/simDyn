@@ -42,6 +42,8 @@ protected:
     // Scaled:
     C7Vector _localInertiaFrame_scaled;
     C7Vector _inverseLocalInertiaFrame_scaled;
+    C3Vector _diagonalInertia_scaled; // includes mass!
+    float _mass_scaled;
 
     C7Vector _localTransformation_old; // for old, "parent follows" functionality
 };
