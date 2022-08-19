@@ -149,6 +149,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
         info.meshFiles.clear();
         info.loopClosures.clear();
         info.staticWelds.clear();
+        info.tendons.clear();
         int orphanListSize=_simGetObjectListSize(-1);
         for (int i=0;i<orphanListSize;i++)
         {
@@ -192,6 +193,59 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
             }
 
             xmlDoc->popNode();
+
+
+            xmlDoc->pushNewNode("tendon");
+            for (size_t i=0;i<info.tendons.size();i++)
+            {
+                CXSceneObject* dummy1=info.tendons[i];
+                int dummy1Handle=_simGetObjectID(dummy1);
+                int dummy2Handle=-1;
+                _simGetDummyLinkType(dummy1,&dummy2Handle);
+                CXSceneObject* dummy2=(CXSceneObject*)_simGetObject(dummy2Handle);
+                if (dummy1Handle<dummy2Handle)
+                { // make sure to not have 2 identical tendons!
+                    xmlDoc->pushNewNode("spatial");
+                    double solrefLimit[2];
+                    double range[2];
+                    for (size_t j=0;j<2;j++)
+                    {
+                        solrefLimit[j]=simGetEngineFloatParam(sim_mujoco_dummy_solreflimit1+j,-1,dummy1,nullptr);
+                        range[j]=simGetEngineFloatParam(sim_mujoco_dummy_range1+j,-1,dummy1,nullptr);
+                    }
+                    double solimpLimit[5];
+                    for (size_t j=0;j<5;j++)
+                    {
+                        solimpLimit[j]=simGetEngineFloatParam(sim_mujoco_dummy_solimplimit1+j,-1,dummy1,nullptr);
+                    }
+                    double stiffness=simGetEngineFloatParam(sim_mujoco_dummy_stiffness,-1,dummy1,nullptr);
+                    double damping=simGetEngineFloatParam(sim_mujoco_dummy_damping,-1,dummy1,nullptr);
+                    double springlength=simGetEngineFloatParam(sim_mujoco_dummy_springlength,-1,dummy1,nullptr);
+                    double margin=simGetEngineFloatParam(sim_mujoco_dummy_margin,-1,dummy1,nullptr);
+                    bool limited=simGetEngineBoolParam(sim_mujoco_dummy_limited,-1,dummy1,nullptr);
+
+                    xmlDoc->setAttr("limited",limited);
+                    xmlDoc->setAttr("range",range,2);
+                    xmlDoc->setAttr("solreflimit",solrefLimit,2);
+                    xmlDoc->setAttr("solimplimit",solimpLimit,5);
+                    xmlDoc->setAttr("margin",margin);
+                    xmlDoc->setAttr("springlength",springlength);
+                    xmlDoc->setAttr("stiffness",stiffness);
+                    xmlDoc->setAttr("damping",damping);
+
+                    xmlDoc->pushNewNode("site");
+                    xmlDoc->setAttr("site",_getObjectName(dummy1).c_str());
+                    xmlDoc->popNode(); // site
+
+                    xmlDoc->pushNewNode("site");
+                    xmlDoc->setAttr("site",_getObjectName(dummy2).c_str());
+                    xmlDoc->popNode(); // site
+
+                    xmlDoc->popNode(); // spatial
+                }
+            }
+            xmlDoc->popNode(); // tendon
+
 
             xmlDoc->pushNewNode("equality");
             for (size_t i=0;i<info.loopClosures.size();i++)
@@ -486,23 +540,40 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
         if (objType==sim_object_dummy_type)
         {
             int childrenCount;
-            CXSceneObject** childrenPointer=(CXSceneObject**)_simGetObjectChildren(object,&childrenCount);
+            _simGetObjectChildren(object,&childrenCount);
             if ( (parent!=nullptr)&&(_simGetObjectType(parent)==sim_object_shape_type)&&(childrenCount==0)&&(dynProp&sim_objdynprop_dynamic) )
             { // parent is shape, and dummy has no child
                 int linkedDummyHandle=-1;
                 int linkType=_simGetDummyLinkType(object,&linkedDummyHandle);
-                if ( (linkType==sim_dummy_linktype_dynamics_loop_closure)&&(linkedDummyHandle!=-1) )
-                { // the dummy is linked to another dummy via a dyn. overlap constr.
+                if (linkedDummyHandle!=-1)
+                { // there is a linked dummy
                     CXDummy* linkedDummy=(CXDummy*)_simGetObject(linkedDummyHandle);
                     CXSceneObject* linkedDummyParent=(CXSceneObject*)_simGetParentObject(linkedDummy);
-                    if ( (linkedDummyParent!=nullptr)&&(_simGetObjectType(linkedDummyParent)==sim_object_shape_type) )
-                    { // the linked dummy's parent is a shape
+                    _simGetObjectChildren(linkedDummy,&childrenCount);
+                    if ( (linkedDummyParent!=nullptr)&&(_simGetObjectType(linkedDummyParent)==sim_object_shape_type)&&(childrenCount==0) )
+                    { // linked dummy has a shape parent, and no children on its own
                         if ( _simIsShapeDynamicallyRespondable(linkedDummyParent)||(_simIsShapeDynamicallyStatic(linkedDummyParent)==0) )
                         { // the linked dummy's parent is dyn. or respondable
                             if ( _simGetTreeDynamicProperty(linkedDummyParent)&(sim_objdynprop_dynamic|sim_objdynprop_respondable) )
                             {
-                                info->loopClosures.push_back(object); // this means a shape --> dummy -- dummy <-- shape loop closure
-                                if (xmlDoc!=nullptr)
+                                if (linkType==sim_dummylink_dynloopclosure)
+                                    info->loopClosures.push_back(object); // this means a shape --> dummy -- dummy <-- shape loopClosure
+                                if (linkType==sim_dummylink_dyntendon)
+                                {
+                                    info->tendons.push_back(object); // this means a shape --> dummy -- dummy <-- shape tendon
+                                    if (xmlDoc!=nullptr)
+                                    {
+                                        xmlDoc->pushNewNode("site");
+                                        xmlDoc->setAttr("name",_getObjectName(object).c_str());
+                                        float pos[3];
+                                        float quat[4];
+                                        _simGetObjectCumulativeTransformation(object,pos,quat,1);
+                                        xmlDoc->setPosAttr("pos",pos);
+                                        xmlDoc->setQuatAttr("quat",quat);
+                                        xmlDoc->popNode();
+                                    }
+                                }
+                                if ( (xmlDoc!=nullptr)&&((linkType==sim_dummylink_dynloopclosure)||(linkType==sim_dummylink_dyntendon)) )
                                 {
                                     _simSetDynamicSimulationIconCode(object,sim_dynamicsimicon_objectisdynamicallysimulated);
                                     _simSetDynamicObjectFlagForVisualization(object,64);
@@ -521,7 +592,7 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
             { // child is a dummy
                 int linkedDummyHandle=-1;
                 int linkType=_simGetDummyLinkType(child,&linkedDummyHandle);
-                if ( (linkType==sim_dummy_linktype_dynamics_loop_closure)&&(linkedDummyHandle!=-1) )
+                if ( (linkType==sim_dummylink_dynloopclosure)&&(linkedDummyHandle!=-1) )
                 { // the dummy is linked to another dummy via a dyn. overlap constr.
                     CXDummy* linkedDummy=(CXDummy*)_simGetObject(linkedDummyHandle);
                     CXSceneObject* linkedDummyParent=(CXSceneObject*)_simGetParentObject(linkedDummy);

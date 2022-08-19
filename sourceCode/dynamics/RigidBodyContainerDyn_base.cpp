@@ -316,7 +316,7 @@ bool CRigidBodyContainerDyn_base::isDynamicContentAvailable()
     auto it=_allRigidBodies.begin();
     while (it!=_allRigidBodies.end())
     {
-        if (!it->second->isStatic());
+        if (!it->second->isStatic())
             return(true);
         ++it;
     }
@@ -406,7 +406,7 @@ void CRigidBodyContainerDyn_base::handleDynamics(float dt,float simulationTime)
         int linkedDummyHandle=-1;
         int linkType=_simGetDummyLinkType(it,&linkedDummyHandle);
         int flag=0;
-        if ( (linkType==sim_dummy_linktype_dynamics_loop_closure)&&(linkedDummyHandle!=-1) )
+        if ( (linkType==sim_dummylink_dynloopclosure)&&(linkedDummyHandle!=-1) )
         {
             CConstraintDyn* c=_getConstraintFromObjectHandle(_simGetObjectID(it),linkedDummyHandle);
             if (c!=nullptr)
@@ -556,7 +556,7 @@ void CRigidBodyContainerDyn_base::_updateConstraintsFromJointsAndForceSensors()
                                     {
                                         int dummyBChildListSize;
                                         _simGetObjectChildren(dummyB,&dummyBChildListSize);
-                                        if ((dummyALinkType==sim_dummy_linktype_dynamics_loop_closure)&&(dummyBChildListSize==0))
+                                        if ((dummyALinkType==sim_dummylink_dynloopclosure)&&(dummyBChildListSize==0))
                                         {
                                             CXSceneObject* dummyBParent=(CXSceneObject*)_simGetParentObject(dummyB);
                                             int childDummyBID=constraint->getDummyBHandle();
@@ -626,7 +626,7 @@ void CRigidBodyContainerDyn_base::_updateConstraintsFromDummies()
                         _simGetObjectChildren(dummyA,&dummyAChildListSize);
                         int dummyBChildListSize;
                         _simGetObjectChildren(dummyB,&dummyBChildListSize);
-                        if ((dummyLinkType==sim_dummy_linktype_dynamics_loop_closure)&&(dummyAChildListSize==0)&&(dummyBChildListSize==0) )
+                        if ((dummyLinkType==sim_dummylink_dynloopclosure)&&(dummyAChildListSize==0)&&(dummyBChildListSize==0) )
                         {
                             CXShape* shapeB=(CXShape*)_simGetParentObject(dummyB);
                             if (shapeB!=nullptr)
@@ -654,7 +654,7 @@ void CRigidBodyContainerDyn_base::_updateConstraintsFromDummies()
         int dummyHandle=_simGetObjectID(dummy);
         int linkedDummyHandle;
         int linkType=_simGetDummyLinkType(dummy,&linkedDummyHandle);
-        if ( (linkType==sim_dummy_linktype_dynamics_loop_closure)&&(dummyHandle<linkedDummyHandle) )
+        if ( (linkType==sim_dummylink_dynloopclosure)&&(dummyHandle<linkedDummyHandle) )
             _addConstraintFromLinkedDummies(dummy,(CXDummy*)_simGetObject(linkedDummyHandle));
         _simSetDynamicsFullRefreshFlag(dummy,false);
     }
@@ -700,7 +700,7 @@ bool CRigidBodyContainerDyn_base::_addConstraintFromJointOrForceSensor(CXSceneOb
                     int dummyALinkedDummyId;
                     int dummyALinkType=_simGetDummyLinkType(dummyA,&dummyALinkedDummyId);
                     CXDummy* dummyB=(CXDummy*)_simGetObject(dummyALinkedDummyId);
-                    if ( (dummyB!=nullptr)&&(dummyALinkType==sim_dummy_linktype_dynamics_loop_closure) )
+                    if ( (dummyB!=nullptr)&&(dummyALinkType==sim_dummylink_dynloopclosure) )
                     {
                         int dummyAChildListSize,dummyBChildListSize;
                         _simGetObjectChildren(dummyA,&dummyAChildListSize);
@@ -876,7 +876,7 @@ void CRigidBodyContainerDyn_base::_getShapesToConsiderAsRigidBodies(std::set<CXS
                     int linkedDummyHandle;
                     int dummyLinkType=_simGetDummyLinkType(dummyA,&linkedDummyHandle);
                     CXDummy* dummyB=(CXDummy*)_simGetObject(linkedDummyHandle);
-                    if ( (dummyB!=nullptr)&&(dummyLinkType==sim_dummy_linktype_dynamics_loop_closure) )
+                    if ( (dummyB!=nullptr)&&(dummyLinkType==sim_dummylink_dynloopclosure) )
                     {
                         _simGetObjectChildren(dummyB,&itChildListSize);
                         if (itChildListSize==0)

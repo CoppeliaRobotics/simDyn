@@ -71,6 +71,7 @@ struct SInfo
     std::vector<std::string> meshFiles;
     std::vector<SHfield> heightfieldFiles;
     std::vector<CXSceneObject*> loopClosures;
+    std::vector<CXSceneObject*> tendons;
     std::vector<CXSceneObject*> staticWelds;
     std::map<CXSceneObject*,int> massDividers;
     std::string folder;
