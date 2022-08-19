@@ -654,6 +654,8 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/mujoco/ConstraintDyn.cpp
     sourceCode/dynamics/mujoco/RigidBodyContainerDyn.cpp
     sourceCode/dynamics/mujoco/ParticleDyn.cpp
+    sourceCode/dynamics/mujoco/xmlser.cpp
+    sourceCode/dynamics/mujoco/tinyxml2.cpp
 )
 if(DOUBLE_PRECISION)
     target_compile_definitions(simExtMujoco PRIVATE dynReal=double)
