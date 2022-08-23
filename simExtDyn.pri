@@ -63,6 +63,7 @@ INCLUDEPATH += "sourceCode/dynamics"
 INCLUDEPATH += "../../coppeliaSimLib/sourceCode/interfaces"
 INCLUDEPATH += "../simMath"
 INCLUDEPATH += "../include"
+INCLUDEPATH += "../include/stack"
 INCLUDEPATH += "../common"
 
 BULLET_2_78_ENGINE {
@@ -238,6 +239,22 @@ SOURCES += ../common/simLib.cpp \
     ../simMath/4X4Matrix.cpp \
     ../simMath/4X4FullMatrix.cpp \
     ../simMath/MyMath.cpp \
+
+HEADERS += ../include/stack/stackBool.h \
+    ../include/stack/stackNull.h \
+    ../include/stack/stackNumber.h \
+    ../include/stack/stackString.h \
+    ../include/stack/stackArray.h \
+    ../include/stack/stackMap.h \
+    ../include/stack/stackObject.h \
+
+SOURCES += ../common/stack/stackBool.cpp \
+    ../common/stack/stackNull.cpp \
+    ../common/stack/stackNumber.cpp \
+    ../common/stack/stackString.cpp \
+    ../common/stack/stackArray.cpp \
+    ../common/stack/stackMap.cpp \
+    ../common/stack/stackObject.cpp \
 
 HEADERS += sourceCode/dynamics/CollShapeDyn_base.h \
     sourceCode/dynamics/ConstraintDyn_base.h \

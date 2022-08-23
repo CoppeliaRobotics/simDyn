@@ -9,10 +9,35 @@ CXmlSer::CXmlSer(const char* filename)
     setAttr("model","coppeliaSim");
 }
 
-
 CXmlSer::~CXmlSer()
 {
-    _document.SaveFile(_filename.c_str(),false);
+    if (_xml.size()==0)
+        _document.SaveFile(_filename.c_str(),false);
+    else
+    {
+        FILE* f=std::fopen(_filename.c_str(),"wb");
+        if (f!=nullptr)
+        {
+            std::fwrite(_xml.c_str(),1,_xml.size(),f);
+            std::fclose(f);
+        }
+    }
+}
+
+std::string CXmlSer::getString()
+{
+    if (_xml.size()==0)
+    {
+        sim::tinyxml2::XMLPrinter printer;
+        _document.Print(&printer);
+        _xml=printer.CStr();
+    }
+    return(_xml);
+}
+
+void CXmlSer::setString(const char* str)
+{
+    _xml=str;
 }
 
 xmlNode* CXmlSer::_createNode(const char* name)

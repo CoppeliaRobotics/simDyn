@@ -78,6 +78,15 @@ struct SInfo
     bool inertiaCalcRobust; // e.g. for meshes without volume, so that inertia can be computed
 };
 
+struct SInject
+{
+    std::string xml;
+    int shapeHandle;
+    std::string element;
+    std::string prefix;
+    std::string xmlDummyString;
+};
+
 class CRigidBodyContainerDyn : public CRigidBodyContainerDyn_base
 {
 public:
@@ -91,10 +100,12 @@ public:
     bool isDynamicContentAvailable();
 
     static float computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness=false);
+    static void injectXml(const char* xml,int shapeHandle,const char* element,const char* prefix);
 
 protected:
     static std::string _getObjectName(CXSceneObject* object);
     static bool _addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms);
+    void _addInjections(CXmlSer* xmlDoc,int objectHandle,const char* currentElement);
     std::string _buildMujocoWorld(float timeStep);
     bool _addObjectBranch(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
     void _addShape(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
@@ -117,6 +128,7 @@ protected:
     void _handleKinematicBodies_step(float t,float cumulatedTimeStep);
 
     static bool _simulationHalted;
+    static std::vector<SInject> _xmlInjections;
 
     mjModel* _mjModel;
     mjData* _mjData;

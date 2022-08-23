@@ -3,6 +3,8 @@
 #include "simLib.h"
 #include <iostream>
 #include <cstdio>
+#include "stackArray.h"
+#include "stackMap.h"
 
 #ifdef _WIN32
 #include <direct.h>
@@ -13,6 +15,36 @@
 #endif
 
 static LIBRARY simLib;
+
+#ifdef INCLUDE_MUJOCO_CODE
+#define LUA_MUJOCOINJECTXML_COMMAND "simMujoco.injectXML"
+void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
+{
+    int stack=p->stackID;
+    CStackArray inArguments;
+    inArguments.buildFromStack(stack);
+    if ( (inArguments.getSize()>=2)&&inArguments.isString(0)&&inArguments.isMap(1) )
+    { // we expect 2 arguments: an xml string and an info map
+        std::string xml(inArguments.getString(0));
+        CStackMap* map=inArguments.getMap(1);
+        if ( (map->isNumber("shapeHandle"))||(map->isString("element")) )
+        {
+              int shapeHandle=map->getInt("shapeHandle");
+              std::string element(map->getString("element"));
+              std::string prefix(map->getString("prefix"));
+              CRigidBodyContainerDyn::injectXml(xml.c_str(),shapeHandle,element.c_str(),prefix.c_str());
+        }
+        else
+            simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"info map should contain either shapeHandle(int) or element(string).");
+    }
+    else
+        simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"Not enough arguments or wrong arguments.");
+
+    CStackArray outArguments;
+    outArguments.buildOntoStack(stack);
+}
+#endif
+
 
 SIM_DLLEXPORT unsigned char simStart(void* reservedPointer,int reservedInt)
 {
@@ -45,6 +77,10 @@ SIM_DLLEXPORT unsigned char simStart(void* reservedPointer,int reservedInt)
          unloadSimLibrary(simLib);
          return(0);
     }
+
+#ifdef INCLUDE_MUJOCO_CODE
+    simRegisterScriptCallbackFunction("simMujoco.injectXML@Mujoco","simMujoco.injectXML(string xml,map info)",LUA_MUJOCOINJECTXML_CALLBACK);
+#endif
 
     return(DYNAMICS_PLUGIN_VERSION);
 }

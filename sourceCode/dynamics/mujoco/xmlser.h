@@ -10,8 +10,10 @@ class CXmlSer
 {
 public:
     CXmlSer(const char* filename);
-
+    CXmlSer();
     virtual ~CXmlSer();
+
+
 
     void pushNewNode(const char* name);
     void popNode();
@@ -35,6 +37,9 @@ public:
     void setPosAttr(const char* name,const float value[3]);
     void setQuatAttr(const char* name,const float value[4]);
 
+    std::string getString();
+    void setString(const char* str);
+
     xmlNode* currentNode;
     
 private:
@@ -44,4 +49,5 @@ private:
     sim::tinyxml2::XMLDocument _document;
     std::vector<xmlNode*> _nodes;
     std::string _filename;
+    std::string _xml;
 };
