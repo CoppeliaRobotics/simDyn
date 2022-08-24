@@ -23,24 +23,83 @@ void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
     int stack=p->stackID;
     CStackArray inArguments;
     inArguments.buildFromStack(stack);
+    if ( (inArguments.getSize()>=2)&&inArguments.isString(0)&&inArguments.isString(1) )
+    { // we expect 2 arguments: an xml string and an element name
+        std::string xml(inArguments.getString(0));
+        std::string element(inArguments.getString(1));
+        CRigidBodyContainerDyn::injectXml(xml.c_str(),element.c_str());
+    }
+    else
+        simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"Not enough arguments or wrong arguments.");
+
+    CStackArray outArguments;
+    outArguments.buildOntoStack(stack);
+}
+
+#define LUA_MUJOCOCOMPOSITE_COMMAND "simMujoco.composite"
+void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
+{
+    int stack=p->stackID;
+    CStackArray inArguments;
+    inArguments.buildFromStack(stack);
     if ( (inArguments.getSize()>=2)&&inArguments.isString(0)&&inArguments.isMap(1) )
     { // we expect 2 arguments: an xml string and an info map
         std::string xml(inArguments.getString(0));
         CStackMap* map=inArguments.getMap(1);
         if ( (map->isNumber("shapeHandle"))||(map->isString("element")) )
         {
-              int shapeHandle=map->getInt("shapeHandle");
-              std::string element(map->getString("element"));
-              std::string prefix(map->getString("prefix"));
-              CRigidBodyContainerDyn::injectXml(xml.c_str(),shapeHandle,element.c_str(),prefix.c_str());
+            if ( (map->isString("prefix"))&&(map->isArray("count"))&&(map->isString("type"))&&(map->isNumber("respondableMask")) )
+            {
+                int shapeHandle=map->getInt("shapeHandle");
+                std::string element(map->getString("element"));
+                std::string prefix(map->getString("prefix"));
+                std::string type(map->getString("type"));
+                int respondableMask=map->getInt("respondableMask");
+                size_t c[3]={1,1,1};
+                CStackArray* arr=map->getArray("count");
+                for (size_t i=0;i<std::min<size_t>(3,arr->getSize());i++)
+                    c[i]=size_t(arr->getInt(i));
+                // We do not support particles via composites, since they can't be named, thus, they can't be identified later on as particles
+                if ( /*(type=="particle")||*/(type=="grid")||(type=="rope")||(type=="loop")||(type=="cloth")||(type=="box")||(type=="cylinder")||(type=="ellipsoid") )
+                    CRigidBodyContainerDyn::injectCompositeXml(xml.c_str(),shapeHandle,element.c_str(),prefix.c_str(),c,type.c_str(),respondableMask);
+                else
+                    simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"invalid composite type.");
+            }
+            else
+                simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"info map does not contain all required items.");
         }
         else
-            simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"info map should contain either shapeHandle(int) or element(string).");
+            simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"info map should contain either shapeHandle(int) or element(string).");
     }
     else
-        simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"Not enough arguments or wrong arguments.");
+        simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"Not enough arguments or wrong arguments.");
 
     CStackArray outArguments;
+    outArguments.buildOntoStack(stack);
+}
+
+#define LUA_MUJOCOGETCOMPOSITEPOSES_COMMAND "simMujoco.getCompositePoses"
+void LUA_MUJOCOGETCOMPOSITEPOSES_CALLBACK(SScriptCallBack* p)
+{
+    int stack=p->stackID;
+    std::vector<double> poses;
+    CStackArray inArguments;
+    inArguments.buildFromStack(stack);
+    if ( (inArguments.getSize()>=1)&&inArguments.isString(0) )
+    { // we expect 1 argument: a prefix string
+        std::string prefix(inArguments.getString(0));
+        CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
+        if (dynWorld!=nullptr)
+            dynWorld->getCompositePoses(prefix.c_str(),poses);
+    }
+    else
+        simSetLastError(LUA_MUJOCOGETCOMPOSITEPOSES_COMMAND,"Not enough arguments or wrong arguments.");
+
+    CStackArray outArguments;
+    CStackArray* arr=new CStackArray();
+    if (poses.size()>0)
+        arr->setDoubleArray(&poses[0],poses.size());
+    outArguments.pushArray(arr);
     outArguments.buildOntoStack(stack);
 }
 #endif
@@ -79,7 +138,9 @@ SIM_DLLEXPORT unsigned char simStart(void* reservedPointer,int reservedInt)
     }
 
 #ifdef INCLUDE_MUJOCO_CODE
-    simRegisterScriptCallbackFunction("simMujoco.injectXML@Mujoco","simMujoco.injectXML(string xml,map info)",LUA_MUJOCOINJECTXML_CALLBACK);
+    simRegisterScriptCallbackFunction("simMujoco.injectXML@Mujoco","simMujoco.injectXML(string xml,string element)",LUA_MUJOCOINJECTXML_CALLBACK);
+    simRegisterScriptCallbackFunction("simMujoco.composite@Mujoco","simMujoco.composite(string xml,map info)",LUA_MUJOCOCOMPOSITE_CALLBACK);
+    simRegisterScriptCallbackFunction("simMujoco.getCompositePoses@Mujoco","simMujoco.getCompositePoses(string prefix)",LUA_MUJOCOGETCOMPOSITEPOSES_CALLBACK);
 #endif
 
     return(DYNAMICS_PLUGIN_VERSION);

@@ -8,7 +8,7 @@ enum shapeModes{staticMode=0,kinematicMode=1,freeMode=2,attachedMode=3};
 
 struct SMjShape
 {
-    int objectHandle;
+    int objectHandle; // shape. All particles are -2, all composites are -3
     std::string name;
     CXSceneObject* object;
 
@@ -18,14 +18,17 @@ struct SMjShape
     C7Vector shapeComTr; // Shape's com transf rel to shape frame
     C7Vector staticShapeStart;
     C7Vector staticShapeGoal;
+    int type; // 0=shape, 1=particle, 2=composite, 3=dummyShape (in loop closures of type shape1 --> joint/fsensor --> dummy1 -- dummy2 <-- shape2)
 };
 
 struct SMjGeom
 {
-    int objectHandle; // shape or particle handle
-    std::string name; // shape or particle name
-    int particleShapeRespondableMask; // for particles only
+    int objectHandle; // shape. All particles are -2, all composites are -3
+    std::string name; // shape, particle or composite name
+    std::string prefix; // composite prefix
+    int respondableMask; // for particles and composites only
     bool particleParticleRespondable; // for particles only
+    int type; // 0=shape, 1=particle, 2=composite
 
     int mjId; // geom
 };
@@ -45,6 +48,8 @@ struct SMjJoint
     C4Vector initialBallQuat;
     int dependencyJointHandle;
     double polycoef[5];
+
+    int type; // 0=CoppeliaSim joint, 2=composite
 };
 
 struct SMjForceSensor
@@ -81,10 +86,20 @@ struct SInfo
 struct SInject
 {
     std::string xml;
+    std::string element;
+    std::string xmlDummyString;
+};
+
+struct SCompositeInject
+{
+    std::string xml;
     int shapeHandle;
     std::string element;
+    std::string type;
+    int respondableMask; // global
     std::string prefix;
     std::string xmlDummyString;
+    size_t count[3];
 };
 
 class CRigidBodyContainerDyn : public CRigidBodyContainerDyn_base
@@ -99,13 +114,16 @@ public:
     std::string getEngineInfo() const;
     bool isDynamicContentAvailable();
 
+    void getCompositePoses(const char* prefix,std::vector<double>& poses) const;
     static float computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness=false);
-    static void injectXml(const char* xml,int shapeHandle,const char* element,const char* prefix);
+    static void injectXml(const char* xml,const char* element);
+    static void injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask);
 
 protected:
     static std::string _getObjectName(CXSceneObject* object);
     static bool _addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms);
-    void _addInjections(CXmlSer* xmlDoc,int objectHandle,const char* currentElement);
+    void _addInjections(CXmlSer* xmlDoc,const char* currentElement);
+    void _addComposites(CXmlSer* xmlDoc,int shapeHandle,const char* currentElement);
     std::string _buildMujocoWorld(float timeStep);
     bool _addObjectBranch(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
     void _addShape(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
@@ -129,12 +147,13 @@ protected:
 
     static bool _simulationHalted;
     static std::vector<SInject> _xmlInjections;
+    static std::vector<SCompositeInject> _xmlCompositeInjections;
 
     mjModel* _mjModel;
     mjData* _mjData;
     mjData* _mjDataCopy;
 
-    std::vector<SMjGeom> _allGeoms; // shape and particles
+    std::vector<SMjGeom> _allGeoms; // shape, particles and composites
     std::vector<SMjJoint> _allJoints; // not freejoints
     std::vector<SMjForceSensor> _allForceSensors;
     std::vector<SMjShape> _allShapes;

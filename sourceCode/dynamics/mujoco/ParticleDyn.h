@@ -5,6 +5,7 @@
 #include <mujoco/mujoco.h>
 
 struct SMjGeom;
+struct SMjShape;
 
 class CParticleDyn : public CParticleDyn_base
 {
@@ -26,6 +27,7 @@ public:
 
     static CXmlSer* xmlDoc;
     static std::vector<SMjGeom>* allGeoms;
+    static std::vector<SMjShape>* allShapes;
     static mjModel* mjModel;
     static mjData* mjData;
 };

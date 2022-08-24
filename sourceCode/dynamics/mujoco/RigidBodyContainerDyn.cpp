@@ -12,6 +12,7 @@ const bool useGlobalCoords=false; // global coords are easier, but composites re
 
 bool CRigidBodyContainerDyn::_simulationHalted=false;
 std::vector<SInject> CRigidBodyContainerDyn::_xmlInjections;
+std::vector<SCompositeInject> CRigidBodyContainerDyn::_xmlCompositeInjections;
 
 CRigidBodyContainerDyn::CRigidBodyContainerDyn()
 {
@@ -35,6 +36,7 @@ CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
     mj_deleteData(_mjData);
     mj_deleteModel(_mjModel);
     _xmlInjections.clear();
+    _xmlCompositeInjections.clear();
 }
 
 std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int intParams[20])
@@ -54,6 +56,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     std::filesystem::create_directory(mjFile.c_str());
     mjFile+="/coppeliaSim.xml";
     CXmlSer* xmlDoc=new CXmlSer(mjFile.c_str());
+    _addInjections(xmlDoc,"mujoco");
     xmlDoc->pushNewNode("compiler");
     if (useGlobalCoords)
         xmlDoc->setAttr("coordinate","global");
@@ -64,11 +67,11 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     xmlDoc->setAttr("balanceinertia",bool(simGetEngineBoolParam(sim_mujoco_global_balanceinertias,-1,nullptr,nullptr)));
     xmlDoc->setAttr("boundmass",simGetEngineFloatParam(sim_mujoco_global_boundmass,-1,nullptr,nullptr));
     xmlDoc->setAttr("boundinertia",simGetEngineFloatParam(sim_mujoco_global_boundinertia,-1,nullptr,nullptr));
-    _addInjections(xmlDoc,-1,"compiler");
+    _addInjections(xmlDoc,"compiler");
     xmlDoc->popNode();
 
     xmlDoc->pushNewNode("visual");
-    _addInjections(xmlDoc,-1,"visual");
+    _addInjections(xmlDoc,"visual");
     xmlDoc->popNode();
 
     xmlDoc->pushNewNode("size");
@@ -80,7 +83,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     xmlDoc->pushNewNode("geom");
     xmlDoc->setAttr("rgba",0.8,0.6,0.4,1.0);
     xmlDoc->popNode();
-    _addInjections(xmlDoc,-1,"default");
+    _addInjections(xmlDoc,"default");
     xmlDoc->popNode();
 
     xmlDoc->pushNewNode("option");
@@ -119,7 +122,8 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     xmlDoc->popNode();
 
     xmlDoc->pushNewNode("worldbody");
-    _addInjections(xmlDoc,-1,"worldbody");
+    _addInjections(xmlDoc,"worldbody");
+    _addComposites(xmlDoc,-1,"worldbody"); // for mujoco ropes
     xmlDoc->pushNewNode("light");
     xmlDoc->setAttr("pos",0.0,0.0,2.0);
     xmlDoc->setAttr("dir",0.0,-1.0,-1.0);
@@ -133,6 +137,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
 
     CParticleDyn::xmlDoc=xmlDoc;
     CParticleDyn::allGeoms=&_allGeoms;
+    CParticleDyn::allShapes=&_allShapes;
 
     _particleCont->addParticlesIfNeeded();
     _particleCont->removeKilledParticles();
@@ -182,7 +187,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
             xmlDoc->popNode();
 
             xmlDoc->pushNewNode("asset");
-            _addInjections(xmlDoc,-1,"asset");
+            _addInjections(xmlDoc,"asset");
             xmlDoc->pushNewNode("texture");
             xmlDoc->setAttr("type","skybox");
             xmlDoc->setAttr("builtin","gradient");
@@ -210,7 +215,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
 
 
             xmlDoc->pushNewNode("tendon");
-            _addInjections(xmlDoc,-1,"tendon");
+            _addInjections(xmlDoc,"tendon");
             for (size_t i=0;i<info.tendons.size();i++)
             {
                 CXSceneObject* dummy1=info.tendons[i];
@@ -263,7 +268,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
 
 
             xmlDoc->pushNewNode("equality");
-            _addInjections(xmlDoc,-1,"equality");
+            _addInjections(xmlDoc,"equality");
             for (size_t i=0;i<info.loopClosures.size();i++)
             {
                 CXSceneObject* dummy1=info.loopClosures[i];
@@ -348,7 +353,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
             xmlDoc->popNode(); // sensor
 
             xmlDoc->pushNewNode("actuator");
-            _addInjections(xmlDoc,-1,"actuator");
+            _addInjections(xmlDoc,"actuator");
             for (size_t i=0;i<_allJoints.size();i++)
             {
                 CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
@@ -389,6 +394,24 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
         }
         xmlDoc->setString(xml.c_str());
     }
+    if (_xmlCompositeInjections.size()>0)
+    {
+        std::string xml(xmlDoc->getString());
+        for (size_t i=0;i<_xmlCompositeInjections.size();i++)
+        {
+            std::string s(_xmlCompositeInjections[i].xmlDummyString);
+            if (s.size()>0)
+            {
+                std::size_t p1=xml.find(s);
+                if (p1!=std::string::npos)
+                {
+                    std::size_t p2=xml.find(s,p1+1);
+                    xml.replace(p1-1,p2-p1+s.size()+2,_xmlCompositeInjections[i].xml);
+                }
+            }
+        }
+        xmlDoc->setString(xml.c_str());
+    }
     delete xmlDoc; // saves the file
 
     std::string retVal;
@@ -404,11 +427,19 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
         CParticleDyn::mjData=_mjData;
 
         _geomIdIndex.resize(_mjModel->ngeom,-1);
-        for (size_t i=0;i<_allGeoms.size();i++)
-        {
+        for (int i=0;i<int(_allGeoms.size());i++)
+        { // _allGeoms might contain non-existing geoms from composites (e.g. for a m*n*o box we create m*n*o items in _allGeoms, for simplicity purpose)
             int mjId=mj_name2id(_mjModel,mjOBJ_GEOM,_allGeoms[i].name.c_str());
-            _allGeoms[i].mjId=mjId;
-            _geomIdIndex[mjId]=i;
+            if (mjId>=0)
+            {
+                _allGeoms[i].mjId=mjId;
+                _geomIdIndex[mjId]=i;
+            }
+            else
+            {
+                _allGeoms.erase(_allGeoms.begin()+i);
+                i--;
+            }
         }
         for (size_t i=0;i<_allJoints.size();i++)
         {
@@ -428,33 +459,36 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
         }
         for (size_t i=0;i<_allShapes.size();i++)
         {
-            _allShapes[i].object=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
             int mjId=mj_name2id(_mjModel,mjOBJ_BODY,_allShapes[i].name.c_str());
             _allShapes[i].mjId=mjId;
             _allShapes[i].mjId2=mjId;
-            if (_allShapes[i].shapeMode==shapeModes::kinematicMode)
-                _allShapes[i].mjId2=mj_name2id(_mjModel,mjOBJ_BODY,(_allShapes[i].name+"staticCounterpart").c_str());
-            if (_allShapes[i].shapeMode==shapeModes::freeMode)
-            { // handle initial velocity for free bodies:
-                mjId=mj_name2id(_mjModel,mjOBJ_JOINT,(_allShapes[i].name+"freejoint").c_str());
-                _allShapes[i].mjId2=mjId;
-                int nvadr=_mjModel->body_dofadr[_allShapes[i].mjId];
-                C3Vector v;
-                _simGetInitialDynamicVelocity(_allShapes[i].object,v.data);
-                if (v.getLength()>0.0f)
-                {
-                    _mjData->qvel[nvadr+0]=v(0);
-                    _mjData->qvel[nvadr+1]=v(1);
-                    _mjData->qvel[nvadr+2]=v(2);
-                    _simSetInitialDynamicVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
-                }
-                _simGetInitialDynamicAngVelocity(_allShapes[i].object,v.data);
-                if (v.getLength()>0.0f)
-                {
-                    _mjData->qvel[nvadr+3]=v(0);
-                    _mjData->qvel[nvadr+4]=v(1);
-                    _mjData->qvel[nvadr+5]=v(2);
-                    _simSetInitialDynamicAngVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
+            if (_allShapes[i].type==0)
+            {
+                _allShapes[i].object=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
+                if (_allShapes[i].shapeMode==shapeModes::kinematicMode)
+                    _allShapes[i].mjId2=mj_name2id(_mjModel,mjOBJ_BODY,(_allShapes[i].name+"staticCounterpart").c_str());
+                if (_allShapes[i].shapeMode==shapeModes::freeMode)
+                { // handle initial velocity for free bodies:
+                    mjId=mj_name2id(_mjModel,mjOBJ_JOINT,(_allShapes[i].name+"freejoint").c_str());
+                    _allShapes[i].mjId2=mjId;
+                    int nvadr=_mjModel->body_dofadr[_allShapes[i].mjId];
+                    C3Vector v;
+                    _simGetInitialDynamicVelocity(_allShapes[i].object,v.data);
+                    if (v.getLength()>0.0f)
+                    {
+                        _mjData->qvel[nvadr+0]=v(0);
+                        _mjData->qvel[nvadr+1]=v(1);
+                        _mjData->qvel[nvadr+2]=v(2);
+                        _simSetInitialDynamicVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
+                    }
+                    _simGetInitialDynamicAngVelocity(_allShapes[i].object,v.data);
+                    if (v.getLength()>0.0f)
+                    {
+                        _mjData->qvel[nvadr+3]=v(0);
+                        _mjData->qvel[nvadr+4]=v(1);
+                        _mjData->qvel[nvadr+5]=v(2);
+                        _simSetInitialDynamicAngVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
+                    }
                 }
             }
         }
@@ -468,30 +502,117 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     return(retVal);
 }
 
-void CRigidBodyContainerDyn::_addInjections(CXmlSer* xmlDoc,int objectHandle,const char* currentElement)
+void CRigidBodyContainerDyn::getCompositePoses(const char* prefix,std::vector<double>& poses) const
 {
-    for (size_t i=0;i<_xmlInjections.size();i++)
+    for (size_t i=0;i<_allGeoms.size();i++)
     {
-        if (_xmlInjections[i].xmlDummyString.size()==0)
+        const SMjGeom* geom=&_allGeoms[i];
+        if ( (geom->type==2)&&(geom->prefix==prefix) )
         {
-            std::string ds;
-            if (objectHandle!=-1)
+            int bodyId=_mjModel->geom_bodyid[geom->mjId];
+            poses.push_back(_mjData->xpos[3*bodyId+0]);
+            poses.push_back(_mjData->xpos[3*bodyId+1]);
+            poses.push_back(_mjData->xpos[3*bodyId+2]);
+            poses.push_back(_mjData->xquat[4*bodyId+1]);
+            poses.push_back(_mjData->xquat[4*bodyId+2]);
+            poses.push_back(_mjData->xquat[4*bodyId+3]);
+            poses.push_back(_mjData->xquat[4*bodyId+0]);
+        }
+    }
+}
+
+void CRigidBodyContainerDyn::_addInjections(CXmlSer* xmlDoc,const char* currentElement)
+{
+    for (size_t inj=0;inj<_xmlInjections.size();inj++)
+    {
+        if (_xmlInjections[inj].xmlDummyString.size()==0)
+        {
+            if (_xmlInjections[inj].element==currentElement)
             {
-                if (_xmlInjections[i].shapeHandle==objectHandle)
-                    ds=std::string("__xmlObjectInject__")+std::to_string(objectHandle);
-            }
-            else
-            {
-                if (_xmlInjections[i].element==currentElement)
-                    ds=std::string("__xmlInject__")+std::to_string(i);
-            }
-            if (ds.size()!=0)
-            {
+                std::string ds(std::string("__xmlInject__")+std::to_string(inj));
                 xmlDoc->pushNewNode(ds.c_str());
                 xmlDoc->pushNewNode("dummy");
                 xmlDoc->popNode();
                 xmlDoc->popNode();
-                _xmlInjections[i].xmlDummyString=ds;
+                _xmlInjections[inj].xmlDummyString=ds;
+            }
+        }
+    }
+}
+
+void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,const char* currentElement)
+{
+    for (size_t inj=0;inj<_xmlCompositeInjections.size();inj++)
+    {
+        SCompositeInject* comp=&_xmlCompositeInjections[inj];
+        if (comp->xmlDummyString.size()==0)
+        {
+            std::string ds;
+            if (shapeHandle!=-1)
+            {
+                if (comp->shapeHandle==shapeHandle)
+                    ds=std::string("__xmlCompShapeInject__")+std::to_string(shapeHandle);
+            }
+            else
+            {
+                if (comp->element==currentElement)
+                    ds=std::string("__xmlCompInject__")+std::to_string(inj);
+            }
+            if (ds.size()>0)
+            {
+                if ( (comp->type=="box")||(comp->type=="cylinder")||(comp->type=="ellipsoid") )
+                {
+                    for (size_t i=0;i<comp->count[0];i++)
+                    {
+                        for (size_t j=0;j<comp->count[1];j++)
+                        {
+                            for (size_t k=0;k<comp->count[2];k++)
+                            {
+                                SMjGeom g;
+                                g.name=comp->prefix+"G"+std::to_string(i)+"_"+std::to_string(j)+"_"+std::to_string(k);
+                                g.objectHandle=-3;
+                                g.prefix=comp->prefix;
+                                g.type=2;
+                                g.respondableMask=comp->respondableMask;
+                                _allGeoms.push_back(g);
+                            }
+                        }
+                    }
+                }
+                if ( (comp->type=="grid")||(comp->type=="cloth") )
+                {
+                    for (size_t i=0;i<comp->count[0];i++)
+                    {
+                        for (size_t j=0;j<comp->count[1];j++)
+                        {
+                            SMjGeom g;
+                            g.name=comp->prefix+"G"+std::to_string(i)+"_"+std::to_string(j);
+                            g.objectHandle=-3;
+                            g.prefix=comp->prefix;
+                            g.type=2;
+                            g.respondableMask=comp->respondableMask;
+                            _allGeoms.push_back(g);
+                        }
+                    }
+                }
+                if ( (comp->type=="rope")||(comp->type=="loop") )
+                {
+                    for (size_t i=0;i<comp->count[0];i++)
+                    {
+                        SMjGeom g;
+                        g.name=comp->prefix+"G"+std::to_string(i)+"_0";
+                        g.objectHandle=-3;
+                        g.prefix=comp->prefix;
+                        g.type=2;
+                        g.respondableMask=comp->respondableMask;
+                        _allGeoms.push_back(g);
+                    }
+                }
+                xmlDoc->pushNewNode(ds.c_str());
+                xmlDoc->pushNewNode("dummy");
+                xmlDoc->popNode();
+                xmlDoc->popNode();
+                comp->xmlDummyString=ds;
             }
         }
     }
@@ -735,6 +856,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
 
     if (_simGetObjectType(object)==sim_object_dummy_type)
     { // loop closure of type: shape1 --> joint/fsensor --> dummy1 -- dummy2 <-- shape2
+        g.type=3; // dummyShape
         if (xmlDoc==nullptr)
         { // We already know that dummy2 has a shape as parent, and the link type is overlap constr.
             int linkedDummyHandle=-1;
@@ -746,6 +868,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
     }
     else
     {
+        g.type=0; // shape
         if (parent==nullptr)
         {
             if ( forceStatic||(_simIsShapeDynamicallyStatic(object)!=0) )
@@ -801,7 +924,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
     { // we have a shape
         if (xmlDoc!=nullptr)
         {
-            _addInjections(xmlDoc,objectHandle,"");
+            _addComposites(xmlDoc,objectHandle,"");
             xmlDoc->setAttr("name",objectName.c_str());
             _allShapes.push_back(g);
             _simSetDynamicSimulationIconCode(object,sim_dynamicsimicon_objectisdynamicallysimulated);
@@ -920,6 +1043,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 xmlDoc->setAttr("name",jointName.c_str());
 
                 SMjJoint gjoint;
+                gjoint.type=0; // CoppeliaSim joint
 
                 if (jt==sim_joint_spherical_subtype)
                 {
@@ -1200,6 +1324,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
         xmlDoc->setAttr("name",nm.c_str());
 
         SMjGeom g;
+        g.type=0; // shape
         g.objectHandle=_simGetObjectID(object);
         g.name=nm;
         if (geoms!=nullptr)
@@ -1443,45 +1568,46 @@ int CRigidBodyContainerDyn::_contactCallback(const mjModel* m,mjData* d,int geom
 int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,int geom2)
 {
     int retVal=1; // ignore this contact
-    SMjGeom* gm1=&_allGeoms[_geomIdIndex[geom1]];
-    SMjGeom* gm2=&_allGeoms[_geomIdIndex[geom2]];
-    int shape1Handle=gm1->objectHandle;
-    int shape2Handle=gm2->objectHandle;
-    if ( (shape1Handle>=0)&&(shape2Handle>=0) )
+    int ind1=_geomIdIndex[geom1];
+    int ind2=_geomIdIndex[geom2];
+    if ( (ind1>=0)&&(ind2>=0) )
     {
-        CXSceneObject* shapeA=(CXSceneObject*)_simGetObject(shape1Handle);
-        CXSceneObject* shapeB=(CXSceneObject*)_simGetObject(shape2Handle);
+        SMjGeom* gm1=&_allGeoms[ind1];
+        SMjGeom* gm2=&_allGeoms[ind2];
+        int body1Handle=gm1->objectHandle;
+        int body2Handle=gm2->objectHandle;
         bool canCollide=false;
-        if ( (shapeA==nullptr)||(shapeB==nullptr) )
-        { // particle-shape or particle-particle
-            if ( (shapeA==nullptr)&&(shapeB==nullptr) )
-            { // particle-particle
-                canCollide=(gm1->particleParticleRespondable&&gm2->particleParticleRespondable);
+        if ( (gm1->type==1)&&(gm2->type==1) )
+        { // particle-particle
+            canCollide=(gm1->particleParticleRespondable&&gm2->particleParticleRespondable);
+        }
+        if ( ((gm1->type==0)&&(gm2->type>0))||((gm1->type>0)&&(gm2->type==0)) )
+        { // shape-particle or shape-composite
+            unsigned int collFA=0;
+            canCollide=true;
+            if (gm1->type==0)
+            {
+                CXSceneObject* shapeA=(CXSceneObject*)_simGetObject(body1Handle);
+                collFA=_simGetDynamicCollisionMask(shapeA);
+                canCollide=_simIsShapeDynamicallyRespondable(shapeA)!=0;
             }
             else
-            { // particle-shape
-                unsigned int collFA=0;
-                canCollide=true;
-                if (shapeA!=nullptr)
-                {
-                    collFA=_simGetDynamicCollisionMask(shapeA);
-                    canCollide=_simIsShapeDynamicallyRespondable(shapeA)!=0;
-                }
-                else
-                    collFA=gm1->particleShapeRespondableMask;
-                unsigned int collFB=0;
-                if (shapeB!=nullptr)
-                {
-                    collFB=_simGetDynamicCollisionMask(shapeB);
-                    canCollide=_simIsShapeDynamicallyRespondable(shapeB)!=0;
-                }
-                else
-                    collFB=gm2->particleShapeRespondableMask;
-                canCollide=(canCollide&&(collFA&collFB&0xff00)); // we are global
+                collFA=gm1->respondableMask;
+            unsigned int collFB=0;
+            if (gm2->type==0)
+            {
+                CXSceneObject* shapeB=(CXSceneObject*)_simGetObject(body2Handle);
+                collFB=_simGetDynamicCollisionMask(shapeB);
+                canCollide=_simIsShapeDynamicallyRespondable(shapeB)!=0;
             }
+            else
+                collFB=gm2->respondableMask;
+            canCollide=(canCollide&&(collFA&collFB&0xff00)); // we are global
         }
-        else
+        if ( (gm1->type==0)&&(gm2->type==0) )
         { // shape-shape
+            CXSceneObject* shapeA=(CXSceneObject*)_simGetObject(body1Handle);
+            CXSceneObject* shapeB=(CXSceneObject*)_simGetObject(body2Handle);
             unsigned int collFA=_simGetDynamicCollisionMask(shapeA);
             unsigned int collFB=_simGetDynamicCollisionMask(shapeB);
             canCollide=(_simIsShapeDynamicallyRespondable(shapeA)&&_simIsShapeDynamicallyRespondable(shapeB));
@@ -1495,13 +1621,12 @@ int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,
                     canCollide=(collFA&collFB&0xff00); // we are global
             }
         }
-
         if (canCollide)
         {
             int dataInt[3]={0,0,0};
             float dataFloat[14]={1.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
 
-            int customHandleRes=_simHandleCustomContact(shape1Handle,shape2Handle,sim_physics_mujoco,dataInt,dataFloat);
+            int customHandleRes=_simHandleCustomContact(body1Handle,body2Handle,sim_physics_mujoco,dataInt,dataFloat);
             if (customHandleRes!=0)
                 retVal=0; // should collide
         }
@@ -1518,18 +1643,21 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
 {
     for (size_t i=0;i<_allShapes.size();i++)
     {
-        CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
-        if ( (shape!=nullptr)&&(_allShapes[i].shapeMode>=shapeModes::freeMode) )
-        {
-            int bodyId=_allShapes[i].mjId;
-            C3Vector vf,vt;
-            _simGetAdditionalForceAndTorque(shape,vf.data,vt.data);
-            d->xfrc_applied[6*bodyId+0]=vf(0);
-            d->xfrc_applied[6*bodyId+1]=vf(1);
-            d->xfrc_applied[6*bodyId+2]=vf(2);
-            d->xfrc_applied[6*bodyId+3]=vt(0);
-            d->xfrc_applied[6*bodyId+4]=vt(1);
-            d->xfrc_applied[6*bodyId+5]=vt(2);
+        if (_allShapes[i].type==0)
+        { // exclude shapes that do not exist in CoppeliaSim
+            CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
+            if ( (shape!=nullptr)&&(_allShapes[i].shapeMode>=shapeModes::freeMode) )
+            {
+                int bodyId=_allShapes[i].mjId;
+                C3Vector vf,vt;
+                _simGetAdditionalForceAndTorque(shape,vf.data,vt.data);
+                d->xfrc_applied[6*bodyId+0]=vf(0);
+                d->xfrc_applied[6*bodyId+1]=vf(1);
+                d->xfrc_applied[6*bodyId+2]=vf(2);
+                d->xfrc_applied[6*bodyId+3]=vt(0);
+                d->xfrc_applied[6*bodyId+4]=vt(1);
+                d->xfrc_applied[6*bodyId+5]=vt(2);
+            }
         }
     }
 
@@ -1542,15 +1670,18 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
     std::vector<int> jointOrders;
     for (size_t i=0;i<_allJoints.size();i++)
     {
-        CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
-        if ( (joint!=nullptr)&&(_allJoints[i].actMode>0)&&(_allJoints[i].jointType!=sim_joint_spherical_subtype) )
-        {
-            _allJoints[i].object=joint;
-            jointMujocoItems.push_back(&_allJoints[i]);
-            if (_simGetJointDynCtrlMode(joint)==sim_jointdynctrl_callback)
-                jointOrders.push_back(_simGetJointCallbackCallOrder(joint));
-            else
-                jointOrders.push_back(sim_scriptexecorder_normal);
+        if (_allJoints[i].type==0)
+        { // exclude joints from composites
+            CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
+            if ( (joint!=nullptr)&&(_allJoints[i].actMode>0)&&(_allJoints[i].jointType!=sim_joint_spherical_subtype) )
+            {
+                _allJoints[i].object=joint;
+                jointMujocoItems.push_back(&_allJoints[i]);
+                if (_simGetJointDynCtrlMode(joint)==sim_jointdynctrl_callback)
+                    jointOrders.push_back(_simGetJointCallbackCallOrder(joint));
+                else
+                    jointOrders.push_back(sim_scriptexecorder_normal);
+            }
         }
     }
 
@@ -1710,8 +1841,14 @@ void CRigidBodyContainerDyn::_handleContactPoints(int dynPass)
 
         SContactInfo ci;
         ci.subPassNumber=dynPass;
-        ci.objectID1=(unsigned long long)_allGeoms[_geomIdIndex[_mjData->contact[i].geom1]].objectHandle;
-        ci.objectID2=(unsigned long long)_allGeoms[_geomIdIndex[_mjData->contact[i].geom2]].objectHandle;
+        ci.objectID1=-1; // unknown item
+        ci.objectID2=-1; // unknown item
+        int ind1=_geomIdIndex[_mjData->contact[i].geom1];
+        int ind2=_geomIdIndex[_mjData->contact[i].geom2];
+        if (ind1>=0)
+            ci.objectID1=_allGeoms[ind1].objectHandle;
+        if (ind2>=0)
+            ci.objectID2=_allGeoms[ind2].objectHandle;
         ci.position=pos;
 
         // _mjData->contact[i].frame is a transposed rotation matrix. Axis X is the contact normal vector
@@ -1750,15 +1887,18 @@ bool CRigidBodyContainerDyn::_updateWorldFromCoppeliaSim()
 {
     for (size_t i=0;i<_allShapes.size();i++)
     {
-        if (_allShapes[i].shapeMode<=shapeModes::kinematicMode)
-        { // prepare for static shape motion interpol.
-            int bodyId=_mjModel->body_mocapid[_allShapes[i].mjId2];
-            _allShapes[i].staticShapeStart.X=C3Vector(_mjData->mocap_pos[3*bodyId+0],_mjData->mocap_pos[3*bodyId+1],_mjData->mocap_pos[3*bodyId+2]);
-            _allShapes[i].staticShapeStart.Q=C4Vector(_mjData->mocap_quat[4*bodyId+0],_mjData->mocap_quat[4*bodyId+1],_mjData->mocap_quat[4*bodyId+2],_mjData->mocap_quat[4*bodyId+3]);
-            _allShapes[i].staticShapeGoal=_allShapes[i].staticShapeStart;
-            CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
-            if (shape!=nullptr)
-                _simGetObjectCumulativeTransformation(shape,_allShapes[i].staticShapeGoal.X.data,_allShapes[i].staticShapeGoal.Q.data,false);
+        if (_allShapes[i].type==0)
+        { // only shapes that exist in CoppeliaSim
+            if (_allShapes[i].shapeMode<=shapeModes::kinematicMode)
+            { // prepare for static shape motion interpol.
+                int bodyId=_mjModel->body_mocapid[_allShapes[i].mjId2];
+                _allShapes[i].staticShapeStart.X=C3Vector(_mjData->mocap_pos[3*bodyId+0],_mjData->mocap_pos[3*bodyId+1],_mjData->mocap_pos[3*bodyId+2]);
+                _allShapes[i].staticShapeStart.Q=C4Vector(_mjData->mocap_quat[4*bodyId+0],_mjData->mocap_quat[4*bodyId+1],_mjData->mocap_quat[4*bodyId+2],_mjData->mocap_quat[4*bodyId+3]);
+                _allShapes[i].staticShapeGoal=_allShapes[i].staticShapeStart;
+                CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
+                if (shape!=nullptr)
+                    _simGetObjectCumulativeTransformation(shape,_allShapes[i].staticShapeGoal.X.data,_allShapes[i].staticShapeGoal.Q.data,false);
+            }
         }
     }
 
@@ -1769,21 +1909,24 @@ void CRigidBodyContainerDyn::_handleKinematicBodies_step(float t,float cumulated
 {
     for (size_t i=0;i<_allShapes.size();i++)
     {
-        if (_allShapes[i].shapeMode<=shapeModes::kinematicMode)
-        {
-            CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
-            if (shape!=nullptr)
+        if (_allShapes[i].type==0)
+        { // only shapes that exist in CoppeliaSim
+            if (_allShapes[i].shapeMode<=shapeModes::kinematicMode)
             {
-                int bodyId=_mjModel->body_mocapid[_allShapes[i].mjId2];
-                C7Vector tr;
-                tr.buildInterpolation(_allShapes[i].staticShapeStart,_allShapes[i].staticShapeGoal,t);
-                _mjData->mocap_pos[3*bodyId+0]=tr.X(0);
-                _mjData->mocap_pos[3*bodyId+1]=tr.X(1);
-                _mjData->mocap_pos[3*bodyId+2]=tr.X(2);
-                _mjData->mocap_quat[4*bodyId+0]=tr.Q(0);
-                _mjData->mocap_quat[4*bodyId+1]=tr.Q(1);
-                _mjData->mocap_quat[4*bodyId+2]=tr.Q(2);
-                _mjData->mocap_quat[4*bodyId+3]=tr.Q(3);
+                CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
+                if (shape!=nullptr)
+                {
+                    int bodyId=_mjModel->body_mocapid[_allShapes[i].mjId2];
+                    C7Vector tr;
+                    tr.buildInterpolation(_allShapes[i].staticShapeStart,_allShapes[i].staticShapeGoal,t);
+                    _mjData->mocap_pos[3*bodyId+0]=tr.X(0);
+                    _mjData->mocap_pos[3*bodyId+1]=tr.X(1);
+                    _mjData->mocap_pos[3*bodyId+2]=tr.X(2);
+                    _mjData->mocap_quat[4*bodyId+0]=tr.Q(0);
+                    _mjData->mocap_quat[4*bodyId+1]=tr.Q(1);
+                    _mjData->mocap_quat[4*bodyId+2]=tr.Q(2);
+                    _mjData->mocap_quat[4*bodyId+3]=tr.Q(3);
+                }
             }
         }
     }
@@ -1793,50 +1936,56 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
 {
     for (size_t i=0;i<_allShapes.size();i++)
     { // objectHandle should be ordered so that each object's ancestor comes before
-        CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
-        if (shape!=nullptr)
-        {
-            int bodyId=_allShapes[i].mjId;
-            if (_allShapes[i].shapeMode==shapeModes::freeMode)
+        if (_allShapes[i].type==0)
+        { // only shapes that exist in CoppeliaSim
+            CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
+            if (shape!=nullptr)
             {
-                C7Vector tr;
-                tr.X=C3Vector(_mjData->xpos[3*bodyId+0],_mjData->xpos[3*bodyId+1],_mjData->xpos[3*bodyId+2]);
-                tr.Q=C4Vector(_mjData->xquat[4*bodyId+0],_mjData->xquat[4*bodyId+1],_mjData->xquat[4*bodyId+2],_mjData->xquat[4*bodyId+3]);
-                _simDynReportObjectCumulativeTransformation(shape,tr.X.data,tr.Q.data,simulationTime);
-            }
+                int bodyId=_allShapes[i].mjId;
+                if (_allShapes[i].shapeMode==shapeModes::freeMode)
+                {
+                    C7Vector tr;
+                    tr.X=C3Vector(_mjData->xpos[3*bodyId+0],_mjData->xpos[3*bodyId+1],_mjData->xpos[3*bodyId+2]);
+                    tr.Q=C4Vector(_mjData->xquat[4*bodyId+0],_mjData->xquat[4*bodyId+1],_mjData->xquat[4*bodyId+2],_mjData->xquat[4*bodyId+3]);
+                    _simDynReportObjectCumulativeTransformation(shape,tr.X.data,tr.Q.data,simulationTime);
+                }
 
-            C3Vector av(_mjData->cvel[6*bodyId+0],_mjData->cvel[6*bodyId+1],_mjData->cvel[6*bodyId+2]);
-            C3Vector lv(_mjData->cvel[6*bodyId+3],_mjData->cvel[6*bodyId+4],_mjData->cvel[6*bodyId+5]);
-            // Above is COM vel.
-            C4Vector q(_allShapes[i].shapeComTr.Q);
-            av=q*av;
-            lv=q*lv;
-            _simSetShapeDynamicVelocity(shape,lv.data,av.data,simulationTime);
+                C3Vector av(_mjData->cvel[6*bodyId+0],_mjData->cvel[6*bodyId+1],_mjData->cvel[6*bodyId+2]);
+                C3Vector lv(_mjData->cvel[6*bodyId+3],_mjData->cvel[6*bodyId+4],_mjData->cvel[6*bodyId+5]);
+                // Above is COM vel.
+                C4Vector q(_allShapes[i].shapeComTr.Q);
+                av=q*av;
+                lv=q*lv;
+                _simSetShapeDynamicVelocity(shape,lv.data,av.data,simulationTime);
+            }
         }
     }
 
     for (size_t i=0;i<_allJoints.size();i++)
     {
-        CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
-        if (joint!=nullptr)
-        {
-            int padr=_mjModel->jnt_qposadr[_allJoints[i].mjId];
-            int vadr=_mjModel->jnt_dofadr[_allJoints[i].mjId];
-            if (_allJoints[i].jointType==sim_joint_spherical_subtype)
+        if (_allJoints[i].type==0)
+        { // only joints that exist in CoppeliaSim
+            CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
+            if (joint!=nullptr)
             {
-                C4Vector q(_mjData->qpos[padr+0],_mjData->qpos[padr+1],_mjData->qpos[padr+2],_mjData->qpos[padr+3]);
-                q=_allJoints[i].initialBallQuat*q;
-                q.normalize();
-                _simSetJointSphericalTransformation(joint,q.data,simulationTime);
-            }
-            else
-            {
-                _simSetJointPosition(joint,_mjData->qpos[padr]);
-                int totalPassesCount=0;
-                if (currentPass==totalPasses-1)
-                    totalPassesCount=totalPasses;
-                _simAddJointCumulativeForcesOrTorques(joint,-_mjData->actuator_force[_allJoints[i].mjId2],totalPassesCount,simulationTime);
-                //  _simSetJointVelocity(joint,_mjData->qvel[vadr]);
+                int padr=_mjModel->jnt_qposadr[_allJoints[i].mjId];
+                int vadr=_mjModel->jnt_dofadr[_allJoints[i].mjId];
+                if (_allJoints[i].jointType==sim_joint_spherical_subtype)
+                {
+                    C4Vector q(_mjData->qpos[padr+0],_mjData->qpos[padr+1],_mjData->qpos[padr+2],_mjData->qpos[padr+3]);
+                    q=_allJoints[i].initialBallQuat*q;
+                    q.normalize();
+                    _simSetJointSphericalTransformation(joint,q.data,simulationTime);
+                }
+                else
+                {
+                    _simSetJointPosition(joint,_mjData->qpos[padr]);
+                    int totalPassesCount=0;
+                    if (currentPass==totalPasses-1)
+                        totalPassesCount=totalPasses;
+                    _simAddJointCumulativeForcesOrTorques(joint,-_mjData->actuator_force[_allJoints[i].mjId2],totalPassesCount,simulationTime);
+                    //  _simSetJointVelocity(joint,_mjData->qvel[vadr]);
+                }
             }
         }
     }
@@ -1869,12 +2018,24 @@ void CRigidBodyContainerDyn::_stepDynamics(float dt,int pass)
     mj_step(_mjModel,_mjData);
 }
 
-void CRigidBodyContainerDyn::injectXml(const char* xml,int shapeHandle,const char* element,const char* prefix)
+void CRigidBodyContainerDyn::injectXml(const char* xml,const char* element)
 {
     SInject inf;
+    inf.xml=xml;
+    inf.element=element;
+    _xmlInjections.push_back(inf);
+}
+
+void CRigidBodyContainerDyn::injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask)
+{
+    SCompositeInject inf;
     inf.xml=xml;
     inf.shapeHandle=shapeHandle;
     inf.element=element;
     inf.prefix=prefix;
-    _xmlInjections.push_back(inf);
+    inf.type=type;
+    inf.respondableMask=respondableMask;
+    for (size_t i=0;i<3;i++)
+        inf.count[i]=count[i];
+    _xmlCompositeInjections.push_back(inf);
 }

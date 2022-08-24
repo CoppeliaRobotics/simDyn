@@ -4,6 +4,7 @@
 
 CXmlSer* CParticleDyn::xmlDoc=nullptr;
 std::vector<SMjGeom>* CParticleDyn::allGeoms=nullptr;
+std::vector<SMjShape>* CParticleDyn::allShapes=nullptr;
 mjModel* CParticleDyn::mjModel=nullptr;
 mjData* CParticleDyn::mjData=nullptr;
 
@@ -36,6 +37,9 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     xmlDoc->setAttr("size",_size*0.5f);
     xmlDoc->setAttr("density",_massOverVolume);
     xmlDoc->setPosAttr("pos",_currentPosition.data);
+    // Following 2 for frictionless contacts:
+ //   xmlDoc->setAttr("condim",1);
+ //   xmlDoc->setAttr("priority",1);
     xmlDoc->popNode();
 
     xmlDoc->pushNewNode("freejoint");
@@ -44,15 +48,23 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
 
     xmlDoc->popNode();
 
+
+    SMjShape s;
+    s.objectHandle=-2;//CRigidBodyContainerDyn::getDynWorld()->getDynamicParticlesIdStart()+_uniqueID;
+    s.name=_name;
+    s.type=1; // particle
+    allShapes->push_back(s);
+
     SMjGeom g;
-    g.objectHandle=CRigidBodyContainerDyn::getDynWorld()->getDynamicParticlesIdStart()+_uniqueID;
+    g.type=1; // particle
+    g.objectHandle=-2;//CRigidBodyContainerDyn::getDynWorld()->getDynamicParticlesIdStart()+_uniqueID;
     g.name=_name;
-    g.particleShapeRespondableMask=0;
+    g.respondableMask=0;
     g.particleParticleRespondable=(_objectType&sim_particle_particlerespondable);
     if (_objectType&sim_particle_respondable1to4)
-        g.particleShapeRespondableMask|=0x0f00;
+        g.respondableMask|=0x0f00;
     if (_objectType&sim_particle_respondable5to8)
-        g.particleShapeRespondableMask|=0xf000;
+        g.respondableMask|=0xf000;
     _indexInAllGeoms=int(allGeoms->size());
     allGeoms->push_back(g);
     return(true);
@@ -131,7 +143,7 @@ void CParticleDyn::removeFromEngine()
     if (_initializationState==1)
     {
         allGeoms->at(_indexInAllGeoms).particleParticleRespondable=false;
-        allGeoms->at(_indexInAllGeoms).particleShapeRespondableMask=0;
+        allGeoms->at(_indexInAllGeoms).respondableMask=0;
         _initializationState=2;
     }
 }
