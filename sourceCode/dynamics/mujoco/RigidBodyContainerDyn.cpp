@@ -462,7 +462,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
             int mjId=mj_name2id(_mjModel,mjOBJ_BODY,_allShapes[i].name.c_str());
             _allShapes[i].mjId=mjId;
             _allShapes[i].mjId2=mjId;
-            if (_allShapes[i].type==0)
+            if (_allShapes[i].itemType==shapeItem)
             {
                 _allShapes[i].object=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
                 if (_allShapes[i].shapeMode==shapeModes::kinematicMode)
@@ -507,7 +507,7 @@ void CRigidBodyContainerDyn::getCompositePoses(const char* prefix,std::vector<do
     for (size_t i=0;i<_allGeoms.size();i++)
     {
         const SMjGeom* geom=&_allGeoms[i];
-        if ( (geom->type==2)&&(geom->prefix==prefix) )
+        if ( (geom->itemType==compositeItem)&&(geom->prefix==prefix) )
         {
             int bodyId=_mjModel->geom_bodyid[geom->mjId];
             poses.push_back(_mjData->xpos[3*bodyId+0]);
@@ -572,7 +572,7 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
                                 g.name=comp->prefix+"G"+std::to_string(i)+"_"+std::to_string(j)+"_"+std::to_string(k);
                                 g.objectHandle=-3;
                                 g.prefix=comp->prefix;
-                                g.type=2;
+                                g.itemType=compositeItem;
                                 g.respondableMask=comp->respondableMask;
                                 _allGeoms.push_back(g);
                             }
@@ -589,7 +589,7 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
                             g.name=comp->prefix+"G"+std::to_string(i)+"_"+std::to_string(j);
                             g.objectHandle=-3;
                             g.prefix=comp->prefix;
-                            g.type=2;
+                            g.itemType=compositeItem;
                             g.respondableMask=comp->respondableMask;
                             _allGeoms.push_back(g);
                         }
@@ -603,7 +603,7 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
                         g.name=comp->prefix+"G"+std::to_string(i)+"_0";
                         g.objectHandle=-3;
                         g.prefix=comp->prefix;
-                        g.type=2;
+                        g.itemType=compositeItem;
                         g.respondableMask=comp->respondableMask;
                         _allGeoms.push_back(g);
                     }
@@ -856,7 +856,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
 
     if (_simGetObjectType(object)==sim_object_dummy_type)
     { // loop closure of type: shape1 --> joint/fsensor --> dummy1 -- dummy2 <-- shape2
-        g.type=3; // dummyShape
+        g.itemType=dummyShapeItem;
         if (xmlDoc==nullptr)
         { // We already know that dummy2 has a shape as parent, and the link type is overlap constr.
             int linkedDummyHandle=-1;
@@ -868,7 +868,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
     }
     else
     {
-        g.type=0; // shape
+        g.itemType=shapeItem;
         if (parent==nullptr)
         {
             if ( forceStatic||(_simIsShapeDynamicallyStatic(object)!=0) )
@@ -1324,7 +1324,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
         xmlDoc->setAttr("name",nm.c_str());
 
         SMjGeom g;
-        g.type=0; // shape
+        g.itemType=shapeItem;
         g.objectHandle=_simGetObjectID(object);
         g.name=nm;
         if (geoms!=nullptr)
@@ -1577,15 +1577,15 @@ int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,
         int body1Handle=gm1->objectHandle;
         int body2Handle=gm2->objectHandle;
         bool canCollide=false;
-        if ( (gm1->type==1)&&(gm2->type==1) )
+        if ( (gm1->itemType==particleItem)&&(gm2->itemType==particleItem) )
         { // particle-particle
             canCollide=(gm1->particleParticleRespondable&&gm2->particleParticleRespondable);
         }
-        if ( ((gm1->type==0)&&(gm2->type>0))||((gm1->type>0)&&(gm2->type==0)) )
+        if ( ((gm1->itemType==shapeItem)&&(gm2->itemType>shapeItem))||((gm1->itemType>shapeItem)&&(gm2->itemType==shapeItem)) )
         { // shape-particle or shape-composite
             unsigned int collFA=0;
             canCollide=true;
-            if (gm1->type==0)
+            if (gm1->itemType==shapeItem)
             {
                 CXSceneObject* shapeA=(CXSceneObject*)_simGetObject(body1Handle);
                 collFA=_simGetDynamicCollisionMask(shapeA);
@@ -1594,7 +1594,7 @@ int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,
             else
                 collFA=gm1->respondableMask;
             unsigned int collFB=0;
-            if (gm2->type==0)
+            if (gm2->itemType==shapeItem)
             {
                 CXSceneObject* shapeB=(CXSceneObject*)_simGetObject(body2Handle);
                 collFB=_simGetDynamicCollisionMask(shapeB);
@@ -1604,7 +1604,7 @@ int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,
                 collFB=gm2->respondableMask;
             canCollide=(canCollide&&(collFA&collFB&0xff00)); // we are global
         }
-        if ( (gm1->type==0)&&(gm2->type==0) )
+        if ( (gm1->itemType==shapeItem)&&(gm2->itemType==shapeItem) )
         { // shape-shape
             CXSceneObject* shapeA=(CXSceneObject*)_simGetObject(body1Handle);
             CXSceneObject* shapeB=(CXSceneObject*)_simGetObject(body2Handle);
@@ -1643,7 +1643,7 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
 {
     for (size_t i=0;i<_allShapes.size();i++)
     {
-        if (_allShapes[i].type==0)
+        if (_allShapes[i].itemType==shapeItem)
         { // exclude shapes that do not exist in CoppeliaSim
             CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
             if ( (shape!=nullptr)&&(_allShapes[i].shapeMode>=shapeModes::freeMode) )
@@ -1887,7 +1887,7 @@ bool CRigidBodyContainerDyn::_updateWorldFromCoppeliaSim()
 {
     for (size_t i=0;i<_allShapes.size();i++)
     {
-        if (_allShapes[i].type==0)
+        if (_allShapes[i].itemType==shapeItem)
         { // only shapes that exist in CoppeliaSim
             if (_allShapes[i].shapeMode<=shapeModes::kinematicMode)
             { // prepare for static shape motion interpol.
@@ -1909,7 +1909,7 @@ void CRigidBodyContainerDyn::_handleKinematicBodies_step(float t,float cumulated
 {
     for (size_t i=0;i<_allShapes.size();i++)
     {
-        if (_allShapes[i].type==0)
+        if (_allShapes[i].itemType==shapeItem)
         { // only shapes that exist in CoppeliaSim
             if (_allShapes[i].shapeMode<=shapeModes::kinematicMode)
             {
@@ -1936,7 +1936,7 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
 {
     for (size_t i=0;i<_allShapes.size();i++)
     { // objectHandle should be ordered so that each object's ancestor comes before
-        if (_allShapes[i].type==0)
+        if (_allShapes[i].itemType==shapeItem)
         { // only shapes that exist in CoppeliaSim
             CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
             if (shape!=nullptr)

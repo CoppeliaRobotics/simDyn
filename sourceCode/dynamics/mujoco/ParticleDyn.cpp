@@ -36,14 +36,26 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     xmlDoc->setAttr("type","sphere");
     xmlDoc->setAttr("size",_size*0.5f);
     xmlDoc->setAttr("density",_massOverVolume);
-    xmlDoc->setPosAttr("pos",_currentPosition.data);
+    xmlDoc->setAttr("pos",0.0,0.0,0.0);
     // Following 2 for frictionless contacts:
- //   xmlDoc->setAttr("condim",1);
- //   xmlDoc->setAttr("priority",1);
+    xmlDoc->setAttr("condim",1);
+    xmlDoc->setAttr("priority",1);
     xmlDoc->popNode();
 
-    xmlDoc->pushNewNode("freejoint");
-    xmlDoc->setAttr("name",_name.c_str());
+    xmlDoc->pushNewNode("joint");
+    xmlDoc->setAttr("name",(_name+"1").c_str());
+    xmlDoc->setAttr("type","slide");
+    xmlDoc->setAttr("axis",1.0,0.0,0.0);
+    xmlDoc->popNode();
+    xmlDoc->pushNewNode("joint");
+    xmlDoc->setAttr("name",(_name+"2").c_str());
+    xmlDoc->setAttr("type","slide");
+    xmlDoc->setAttr("axis",0.0,1.0,0.0);
+    xmlDoc->popNode();
+    xmlDoc->pushNewNode("joint");
+    xmlDoc->setAttr("name",(_name+"3").c_str());
+    xmlDoc->setAttr("type","slide");
+    xmlDoc->setAttr("axis",0.0,0.0,1.0);
     xmlDoc->popNode();
 
     xmlDoc->popNode();
@@ -52,11 +64,11 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     SMjShape s;
     s.objectHandle=-2;//CRigidBodyContainerDyn::getDynWorld()->getDynamicParticlesIdStart()+_uniqueID;
     s.name=_name;
-    s.type=1; // particle
+    s.itemType=particleItem;
     allShapes->push_back(s);
 
     SMjGeom g;
-    g.type=1; // particle
+    g.itemType=particleItem;
     g.objectHandle=-2;//CRigidBodyContainerDyn::getDynWorld()->getDynamicParticlesIdStart()+_uniqueID;
     g.name=_name;
     g.respondableMask=0;

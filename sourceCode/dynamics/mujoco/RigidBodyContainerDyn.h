@@ -6,6 +6,8 @@
 
 enum shapeModes{staticMode=0,kinematicMode=1,freeMode=2,attachedMode=3};
 
+enum itemTypes{shapeItem=0,particleItem=1,compositeItem=2,dummyShapeItem=3};
+
 struct SMjShape
 {
     int objectHandle; // shape. All particles are -2, all composites are -3
@@ -18,7 +20,7 @@ struct SMjShape
     C7Vector shapeComTr; // Shape's com transf rel to shape frame
     C7Vector staticShapeStart;
     C7Vector staticShapeGoal;
-    int type; // 0=shape, 1=particle, 2=composite, 3=dummyShape (in loop closures of type shape1 --> joint/fsensor --> dummy1 -- dummy2 <-- shape2)
+    itemTypes itemType;
 };
 
 struct SMjGeom
@@ -28,7 +30,7 @@ struct SMjGeom
     std::string prefix; // composite prefix
     int respondableMask; // for particles and composites only
     bool particleParticleRespondable; // for particles only
-    int type; // 0=shape, 1=particle, 2=composite
+    itemTypes itemType;
 
     int mjId; // geom
 };
