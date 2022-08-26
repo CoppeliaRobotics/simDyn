@@ -585,6 +585,8 @@ std::string CRigidBodyContainerDyn::getCompositeInfo(const char* prefix,int what
                 size_t centerGeom=0;
                 if ( (composite->type=="box")||(composite->type=="cylinder")||(composite->type=="ellipsoide") )
                     centerGeom=1;
+                else
+                    what=2; // only boxes, cylinders and ellipsoides can be grown since they have a center
                 for (size_t fb=0;fb<2;fb++)
                 {
                     // +- x faces:
@@ -1099,6 +1101,11 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                     kin=0;
                 if (_overrideKinematicFlag==2)
                     kin=1;
+
+                CXGeomProxy* geom=(CXGeomProxy*)_simGetGeomProxyFromShape(object);
+                CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geom);
+                if (_simGetPurePrimitiveType(geomInfo)==sim_primitiveshape_heightfield)
+                    kin=0;
                 if (kin==0)
                     g.shapeMode=shapeModes::staticMode;
                 else
