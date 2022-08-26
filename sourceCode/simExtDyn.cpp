@@ -58,24 +58,29 @@ void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
                 int shapeHandle=map->getInt("shapeHandle");
                 std::string element(map->getString("element"));
                 std::string prefix(map->getString("prefix"));
-                std::string type(map->getString("type"));
-                int respondableMask=0xffff;
-                if ( (type=="box")||(type=="cylinder")||(type=="ellipsoide") )
-                     respondableMask=0xff00;   // do not collide with other composite elements
-                if (map->isNumber("respondableMask"))
-                    respondableMask=map->getInt("respondableMask");
-                double grow=0.0;
-                if (map->isNumber("grow"))
-                    grow=map->getDouble("grow");
-                size_t c[3]={1,1,1};
-                CStackArray* arr=map->getArray("count");
-                for (size_t i=0;i<std::min<size_t>(3,arr->getSize());i++)
-                    c[i]=size_t(arr->getInt(i));
-                // We do not support particles via composites, since they can't be named, thus, they can't be identified later on as particles
-                if ( /*(type=="particle")||*/(type=="grid")||(type=="rope")||(type=="loop")||(type=="cloth")||(type=="box")||(type=="cylinder")||(type=="ellipsoid") )
-                    CRigidBodyContainerDyn::injectCompositeXml(xml.c_str(),shapeHandle,element.c_str(),prefix.c_str(),c,type.c_str(),respondableMask,grow);
+                if (CRigidBodyContainerDyn::getCompositeIndexFromPrefix(prefix.c_str())==-1)
+                {
+                    std::string type(map->getString("type"));
+                    int respondableMask=0xffff;
+                    if ( (type=="box")||(type=="cylinder")||(type=="ellipsoide") )
+                         respondableMask=0xff00;   // do not collide with other composite elements
+                    if (map->isNumber("respondableMask"))
+                        respondableMask=map->getInt("respondableMask");
+                    double grow=0.0;
+                    if (map->isNumber("grow"))
+                        grow=map->getDouble("grow");
+                    size_t c[3]={1,1,1};
+                    CStackArray* arr=map->getArray("count");
+                    for (size_t i=0;i<std::min<size_t>(3,arr->getSize());i++)
+                        c[i]=size_t(arr->getInt(i));
+                    // We do not support particles via composites, since they can't be named, thus, they can't be identified later on as particles
+                    if ( /*(type=="particle")||*/(type=="grid")||(type=="rope")||(type=="loop")||(type=="cloth")||(type=="box")||(type=="cylinder")||(type=="ellipsoid") )
+                        CRigidBodyContainerDyn::injectCompositeXml(xml.c_str(),shapeHandle,element.c_str(),prefix.c_str(),c,type.c_str(),respondableMask,grow);
+                    else
+                        simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"invalid composite type.");
+                }
                 else
-                    simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"invalid composite type.");
+                    simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"invalid prefix.");
             }
             else
                 simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"info map does not contain all required items.");
@@ -96,7 +101,7 @@ void LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK(SScriptCallBack* p)
     int stack=p->stackID;
     std::vector<double> info;
     std::string type;
-    int count[3]={0.0,0.0,0.0};
+    int count[3]={0,0,0};
     CStackArray inArguments;
     inArguments.buildFromStack(stack);
     if ( (inArguments.getSize()>=2)&&inArguments.isString(0)&&inArguments.isNumber(1) )
@@ -119,7 +124,7 @@ void LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK(SScriptCallBack* p)
     map->setString("type",type);
     CStackArray* countArray=new CStackArray();
     for (size_t i=0;i<3;i++)
-        countArray->pushFloat(count[i]);
+        countArray->pushInt(count[i]);
     map->setArray("count",countArray);
     outArguments.pushMap(map);
     outArguments.buildOntoStack(stack);

@@ -437,14 +437,8 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
             {
                 if (_allGeoms[i].prefix!=lastCompositePrefix)
                 {
-                    for (size_t j=0;j<_xmlCompositeInjections.size();j++)
-                    {
-                        if (_xmlCompositeInjections[j].prefix==_allGeoms[i].prefix)
-                        {
-                            lastCompositePrefix=_allGeoms[i].prefix;
-                            lastCompositeIndex=j;
-                        }
-                    }
+                    lastCompositeIndex=getCompositeIndexFromPrefix(_allGeoms[i].prefix.c_str());
+                    lastCompositePrefix=_allGeoms[i].prefix;
                 }
                 _xmlCompositeInjections[lastCompositeIndex].mjIds.push_back(mjId);
             }
@@ -525,17 +519,10 @@ std::string CRigidBodyContainerDyn::getCompositeInfo(const char* prefix,int what
     std::string retVal;
     if (_mjData!=nullptr)
     {
-        SCompositeInject* composite=nullptr;
-        for (size_t i=0;i<_xmlCompositeInjections.size();i++)
+        int compIndex=getCompositeIndexFromPrefix(prefix);
+        if (compIndex!=-1)
         {
-            if (_xmlCompositeInjections[i].prefix==prefix)
-            {
-                composite=&_xmlCompositeInjections[i];
-                break;
-            }
-        }
-        if (composite!=nullptr)
-        {
+            SCompositeInject* composite=&_xmlCompositeInjections[compIndex];
             count[0]=composite->count[0];
             count[1]=composite->count[1];
             count[2]=composite->count[2];
@@ -594,11 +581,14 @@ std::string CRigidBodyContainerDyn::getCompositeInfo(const char* prefix,int what
                     }
                 }
 
-                // Box, cylinder and ellipsoid:
+                // Box, cylinder, ellipsoid and grids:
+                size_t centerGeom=0;
+                if ( (composite->type=="box")||(composite->type=="cylinder")||(composite->type=="ellipsoide") )
+                    centerGeom=1;
                 for (size_t fb=0;fb<2;fb++)
                 {
                     // +- x faces:
-                    size_t off=3+3*(count[0]-1)*count[1]*count[2]*fb; // first 3 is to skip the center geom
+                    size_t off=centerGeom*3+3*(count[0]-1)*count[1]*count[2]*fb;
                     for (size_t y=0;y<count[1]-1;y++)
                     {
                         for (size_t z=0;z<count[2]-1;z++)
@@ -641,7 +631,7 @@ std::string CRigidBodyContainerDyn::getCompositeInfo(const char* prefix,int what
                     }
 
                     // +- y faces:
-                    off=3+(3*count[2]*(count[1]-1))*fb; // first 3 is to skip the center geom
+                    off=centerGeom*3+(3*count[2]*(count[1]-1))*fb;
                     size_t soff=count[2]*count[1];
                     for (size_t x=0;x<count[0]-1;x++)
                     {
@@ -684,7 +674,7 @@ std::string CRigidBodyContainerDyn::getCompositeInfo(const char* prefix,int what
                         }
                     }
                     // +- z faces:
-                    off=3+3*(count[2]-1)*fb; // first 3 is to skip the center geom
+                    off=centerGeom*3+3*(count[2]-1)*fb;
                     soff=count[2]*count[1];
                     for (size_t x=0;x<count[0]-1;x++)
                     {
@@ -773,7 +763,7 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
             if (shapeHandle!=-1)
             {
                 if (comp->shapeHandle==shapeHandle)
-                    ds=std::string("__xmlCompShapeInject__")+std::to_string(shapeHandle);
+                    ds=std::string("__xmlCompShapeInject__")+std::to_string(shapeHandle)+"_"+std::to_string(inj);
             }
             else
             {
@@ -2269,4 +2259,18 @@ void CRigidBodyContainerDyn::injectCompositeXml(const char* xml,int shapeHandle,
     for (size_t i=0;i<3;i++)
         inf.count[i]=count[i];
     _xmlCompositeInjections.push_back(inf);
+}
+
+int CRigidBodyContainerDyn::getCompositeIndexFromPrefix(const char* prefix)
+{
+    int index=-1;
+    for (size_t i=0;i<_xmlCompositeInjections.size();i++)
+    {
+        if (_xmlCompositeInjections[i].prefix==prefix)
+        {
+            index=i;
+            break;
+        }
+    }
+    return(index);
 }

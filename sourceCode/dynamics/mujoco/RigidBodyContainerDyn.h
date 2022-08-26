@@ -122,6 +122,7 @@ public:
     static float computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness=false);
     static void injectXml(const char* xml,const char* element,int objectHandle);
     static void injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow);
+    static int getCompositeIndexFromPrefix(const char* prefix);
 
 protected:
     static std::string _getObjectName(CXSceneObject* object);
