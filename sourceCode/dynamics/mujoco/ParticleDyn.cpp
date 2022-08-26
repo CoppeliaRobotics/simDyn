@@ -72,7 +72,8 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     g.objectHandle=-2;//CRigidBodyContainerDyn::getDynWorld()->getDynamicParticlesIdStart()+_uniqueID;
     g.name=_name;
     g.respondableMask=0;
-    g.particleParticleRespondable=(_objectType&sim_particle_particlerespondable);
+    if (_objectType&sim_particle_particlerespondable)
+        g.respondableMask|=0x00ff;
     if (_objectType&sim_particle_respondable1to4)
         g.respondableMask|=0x0f00;
     if (_objectType&sim_particle_respondable5to8)
@@ -154,7 +155,6 @@ void CParticleDyn::removeFromEngine()
 {
     if (_initializationState==1)
     {
-        allGeoms->at(_indexInAllGeoms).particleParticleRespondable=false;
         allGeoms->at(_indexInAllGeoms).respondableMask=0;
         _initializationState=2;
     }

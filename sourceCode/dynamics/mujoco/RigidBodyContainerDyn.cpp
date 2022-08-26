@@ -77,6 +77,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     xmlDoc->pushNewNode("size");
     xmlDoc->setAttr("njmax",simGetEngineInt32Param(sim_mujoco_global_njmax,-1,nullptr,nullptr));
     xmlDoc->setAttr("nconmax",simGetEngineInt32Param(sim_mujoco_global_nconmax,-1,nullptr,nullptr));
+    xmlDoc->setAttr("nstack",simGetEngineInt32Param(sim_mujoco_global_nstack,-1,nullptr,nullptr));
     xmlDoc->popNode();
 
     xmlDoc->pushNewNode("default");
@@ -427,9 +428,26 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
         CParticleDyn::mjData=_mjData;
 
         _geomIdIndex.resize(_mjModel->ngeom,-1);
+       int lastCompositeIndex=-1;
+       std::string lastCompositePrefix;
         for (int i=0;i<int(_allGeoms.size());i++)
         { // _allGeoms might contain non-existing geoms from composites (e.g. for a m*n*o box we create m*n*o items in _allGeoms, for simplicity purpose)
             int mjId=mj_name2id(_mjModel,mjOBJ_GEOM,_allGeoms[i].name.c_str());
+            if (_allGeoms[i].itemType==compositeItem)
+            {
+                if (_allGeoms[i].prefix!=lastCompositePrefix)
+                {
+                    for (size_t j=0;j<_xmlCompositeInjections.size();j++)
+                    {
+                        if (_xmlCompositeInjections[j].prefix==_allGeoms[i].prefix)
+                        {
+                            lastCompositePrefix=_allGeoms[i].prefix;
+                            lastCompositeIndex=j;
+                        }
+                    }
+                }
+                _xmlCompositeInjections[lastCompositeIndex].mjIds.push_back(mjId);
+            }
             if (mjId>=0)
             {
                 _allGeoms[i].mjId=mjId;
@@ -502,23 +520,217 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     return(retVal);
 }
 
-void CRigidBodyContainerDyn::getCompositePoses(const char* prefix,std::vector<double>& poses) const
+std::string CRigidBodyContainerDyn::getCompositeInfo(const char* prefix,int what,std::vector<double>& info,int count[3]) const
 {
-    for (size_t i=0;i<_allGeoms.size();i++)
+    std::string retVal;
+    if (_mjData!=nullptr)
     {
-        const SMjGeom* geom=&_allGeoms[i];
-        if ( (geom->itemType==compositeItem)&&(geom->prefix==prefix) )
+        SCompositeInject* composite=nullptr;
+        for (size_t i=0;i<_xmlCompositeInjections.size();i++)
         {
-            int bodyId=_mjModel->geom_bodyid[geom->mjId];
-            poses.push_back(_mjData->xpos[3*bodyId+0]);
-            poses.push_back(_mjData->xpos[3*bodyId+1]);
-            poses.push_back(_mjData->xpos[3*bodyId+2]);
-            poses.push_back(_mjData->xquat[4*bodyId+1]);
-            poses.push_back(_mjData->xquat[4*bodyId+2]);
-            poses.push_back(_mjData->xquat[4*bodyId+3]);
-            poses.push_back(_mjData->xquat[4*bodyId+0]);
+            if (_xmlCompositeInjections[i].prefix==prefix)
+            {
+                composite=&_xmlCompositeInjections[i];
+                break;
+            }
+        }
+        if (composite!=nullptr)
+        {
+            count[0]=composite->count[0];
+            count[1]=composite->count[1];
+            count[2]=composite->count[2];
+            retVal=composite->type;
+
+            if (what==0)
+            { // positions
+                for (size_t i=0;i<composite->mjIds.size();i++)
+                {
+                    int id=composite->mjIds[i];
+                    if (id>=0)
+                    {
+                        int bodyId=_mjModel->geom_bodyid[id];
+                        info.push_back(_mjData->xpos[3*bodyId+0]);
+                        info.push_back(_mjData->xpos[3*bodyId+1]);
+                        info.push_back(_mjData->xpos[3*bodyId+2]);
+                    }
+                }
+            }
+            if (what==1)
+            { // poses
+                for (size_t i=0;i<composite->mjIds.size();i++)
+                {
+                    int id=composite->mjIds[i];
+                    if (id>=0)
+                    {
+                        int bodyId=_mjModel->geom_bodyid[id];
+                        info.push_back(_mjData->xpos[3*bodyId+0]);
+                        info.push_back(_mjData->xpos[3*bodyId+1]);
+                        info.push_back(_mjData->xpos[3*bodyId+2]);
+                        info.push_back(_mjData->xquat[4*bodyId+1]);
+                        info.push_back(_mjData->xquat[4*bodyId+2]);
+                        info.push_back(_mjData->xquat[4*bodyId+3]);
+                        info.push_back(_mjData->xquat[4*bodyId+0]);
+                    }
+                }
+            }
+            if ( (what==2)||(what==3) )
+            { // triangles
+                std::vector<double> pts;
+                for (size_t i=0;i<composite->mjIds.size();i++)
+                {
+                    int id=composite->mjIds[i];
+                    if (id>=0)
+                    {
+                        int bodyId=_mjModel->geom_bodyid[id];
+                        pts.push_back(_mjData->xpos[3*bodyId+0]);
+                        pts.push_back(_mjData->xpos[3*bodyId+1]);
+                        pts.push_back(_mjData->xpos[3*bodyId+2]);
+                    }
+                    else
+                    { // inside pt
+                        pts.push_back(0.0);
+                        pts.push_back(0.0);
+                        pts.push_back(0.0);
+                    }
+                }
+
+                // Box, cylinder and ellipsoid:
+                for (size_t fb=0;fb<2;fb++)
+                {
+                    // +- x faces:
+                    size_t off=3+3*(count[0]-1)*count[1]*count[2]*fb; // first 3 is to skip the center geom
+                    for (size_t y=0;y<count[1]-1;y++)
+                    {
+                        for (size_t z=0;z<count[2]-1;z++)
+                        {
+                            double p[4][3];
+                            for (size_t i=0;i<3;i++)
+                            {
+                                p[0][i]=pts[off+3*(y*count[2]+z)+i];
+                                p[1+2*fb][i]=pts[off+3*(y*count[2]+z+1)+i];
+                                p[2][i]=pts[off+3*((y+1)*count[2]+z+1)+i];
+                                p[3-2*fb][i]=pts[off+3*((y+1)*count[2]+z)+i];
+                            }
+                            if ( (composite->grow!=0.0)&&(what==3) )
+                            {
+                                C3Vector center(pts[0],pts[1],pts[2]);
+                                for (size_t i=0;i<4;i++)
+                                {
+                                    C3Vector v(p[i][0],p[i][1],p[i][2]);
+                                    C3Vector w(v-center);
+                                    w.normalize();
+                                    v=v+w*composite->grow;
+                                    p[i][0]=v(0);
+                                    p[i][1]=v(1);
+                                    p[i][2]=v(2);
+                                }
+                            }
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[0][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[1][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[3][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[1][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[2][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[3][i]);
+                        }
+                    }
+
+                    // +- y faces:
+                    off=3+(3*count[2]*(count[1]-1))*fb; // first 3 is to skip the center geom
+                    size_t soff=count[2]*count[1];
+                    for (size_t x=0;x<count[0]-1;x++)
+                    {
+                        for (size_t z=0;z<count[2]-1;z++)
+                        {
+                            double p[4][3];
+                            for (size_t i=0;i<3;i++)
+                            {
+                                p[0][i]=pts[off+3*(x*soff+z)+i];
+                                p[1+2*fb][i]=pts[off+3*((x+1)*soff+z)+i];
+                                p[2][i]=pts[off+3*((x+1)*soff+z+1)+i];
+                                p[3-2*fb][i]=pts[off+3*(x*soff+z+1)+i];
+                            }
+                            if ( (composite->grow!=0.0)&&(what==3) )
+                            {
+                                C3Vector center(pts[0],pts[1],pts[2]);
+                                for (size_t i=0;i<4;i++)
+                                {
+                                    C3Vector v(p[i][0],p[i][1],p[i][2]);
+                                    C3Vector w(v-center);
+                                    w.normalize();
+                                    v=v+w*composite->grow;
+                                    p[i][0]=v(0);
+                                    p[i][1]=v(1);
+                                    p[i][2]=v(2);
+                                }
+                            }
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[0][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[1][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[3][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[1][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[2][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[3][i]);
+                        }
+                    }
+                    // +- z faces:
+                    off=3+3*(count[2]-1)*fb; // first 3 is to skip the center geom
+                    soff=count[2]*count[1];
+                    for (size_t x=0;x<count[0]-1;x++)
+                    {
+                        for (size_t y=0;y<count[1]-1;y++)
+                        {
+                            double p[4][3];
+                            for (size_t i=0;i<3;i++)
+                            {
+                                p[0][i]=pts[off+3*(x*soff+y*count[2])+i];
+                                p[1+2*fb][i]=pts[off+3*(x*soff+(y+1)*count[2])+i];
+                                p[2][i]=pts[off+3*((x+1)*soff+(y+1)*count[2])+i];
+                                p[3-2*fb][i]=pts[off+3*((x+1)*soff+y*count[2])+i];
+                            }
+                            if ( (composite->grow!=0.0)&&(what==3) )
+                            {
+                                C3Vector center(pts[0],pts[1],pts[2]);
+                                for (size_t i=0;i<4;i++)
+                                {
+                                    C3Vector v(p[i][0],p[i][1],p[i][2]);
+                                    C3Vector w(v-center);
+                                    w.normalize();
+                                    v=v+w*composite->grow;
+                                    p[i][0]=v(0);
+                                    p[i][1]=v(1);
+                                    p[i][2]=v(2);
+                                }
+                            }
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[0][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[1][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[3][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[1][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[2][i]);
+                            for (size_t i=0;i<3;i++)
+                                info.push_back(p[3][i]);
+                        }
+                    }
+                }
+            }
         }
     }
+    return(retVal);
 }
 
 void CRigidBodyContainerDyn::_addInjections(CXmlSer* xmlDoc,const char* currentElement)
@@ -562,6 +774,14 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
             {
                 if ( (comp->type=="box")||(comp->type=="cylinder")||(comp->type=="ellipsoid") )
                 {
+                    SMjGeom g;
+                    g.name=comp->prefix+"Gcenter";
+                    g.objectHandle=-3;
+                    g.prefix=comp->prefix;
+                    g.itemType=compositeItem;
+                    g.respondableMask=0;
+                    _allGeoms.push_back(g);
+
                     for (size_t i=0;i<comp->count[0];i++)
                     {
                         for (size_t j=0;j<comp->count[1];j++)
@@ -600,7 +820,7 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
                     for (size_t i=0;i<comp->count[0];i++)
                     {
                         SMjGeom g;
-                        g.name=comp->prefix+"G"+std::to_string(i)+"_0";
+                        g.name=comp->prefix+"G"+std::to_string(i);
                         g.objectHandle=-3;
                         g.prefix=comp->prefix;
                         g.itemType=compositeItem;
@@ -1327,6 +1547,8 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
         g.itemType=shapeItem;
         g.objectHandle=_simGetObjectID(object);
         g.name=nm;
+        g.respondableMask=_simGetDynamicCollisionMask(object);
+
         if (geoms!=nullptr)
             geoms->push_back(g);
 
@@ -1579,37 +1801,35 @@ int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,
         bool canCollide=false;
         if ( (gm1->itemType==particleItem)&&(gm2->itemType==particleItem) )
         { // particle-particle
-            canCollide=(gm1->particleParticleRespondable&&gm2->particleParticleRespondable);
+            canCollide=(gm1->respondableMask&gm2->respondableMask&0x00ff);
+        }
+        if ( (gm1->itemType==compositeItem)&&(gm2->itemType==compositeItem) )
+        { // composite-composite
+            canCollide=(gm1->respondableMask&gm2->respondableMask&0x00ff);
         }
         if ( ((gm1->itemType==shapeItem)&&(gm2->itemType>shapeItem))||((gm1->itemType>shapeItem)&&(gm2->itemType==shapeItem)) )
         { // shape-particle or shape-composite
-            unsigned int collFA=0;
             canCollide=true;
+            unsigned int collFA=gm1->respondableMask&0xff00;
             if (gm1->itemType==shapeItem)
             {
                 CXSceneObject* shapeA=(CXSceneObject*)_simGetObject(body1Handle);
-                collFA=_simGetDynamicCollisionMask(shapeA);
                 canCollide=_simIsShapeDynamicallyRespondable(shapeA)!=0;
             }
-            else
-                collFA=gm1->respondableMask;
-            unsigned int collFB=0;
+            unsigned int collFB=gm2->respondableMask&0xff00;
             if (gm2->itemType==shapeItem)
             {
                 CXSceneObject* shapeB=(CXSceneObject*)_simGetObject(body2Handle);
-                collFB=_simGetDynamicCollisionMask(shapeB);
                 canCollide=_simIsShapeDynamicallyRespondable(shapeB)!=0;
             }
-            else
-                collFB=gm2->respondableMask;
             canCollide=(canCollide&&(collFA&collFB&0xff00)); // we are global
         }
         if ( (gm1->itemType==shapeItem)&&(gm2->itemType==shapeItem) )
         { // shape-shape
             CXSceneObject* shapeA=(CXSceneObject*)_simGetObject(body1Handle);
             CXSceneObject* shapeB=(CXSceneObject*)_simGetObject(body2Handle);
-            unsigned int collFA=_simGetDynamicCollisionMask(shapeA);
-            unsigned int collFB=_simGetDynamicCollisionMask(shapeB);
+            unsigned int collFA=gm1->respondableMask;
+            unsigned int collFB=gm2->respondableMask;
             canCollide=(_simIsShapeDynamicallyRespondable(shapeA)&&_simIsShapeDynamicallyRespondable(shapeB));
             if (canCollide)
             {
@@ -1843,12 +2063,10 @@ void CRigidBodyContainerDyn::_handleContactPoints(int dynPass)
         ci.subPassNumber=dynPass;
         ci.objectID1=-1; // unknown item
         ci.objectID2=-1; // unknown item
-        int ind1=_geomIdIndex[_mjData->contact[i].geom1];
-        int ind2=_geomIdIndex[_mjData->contact[i].geom2];
-        if (ind1>=0)
-            ci.objectID1=_allGeoms[ind1].objectHandle;
-        if (ind2>=0)
-            ci.objectID2=_allGeoms[ind2].objectHandle;
+        if (_mjData->contact[i].geom1<_geomIdIndex.size())
+            ci.objectID1=_allGeoms[_geomIdIndex[_mjData->contact[i].geom1]].objectHandle;
+        if (_mjData->contact[i].geom2<_geomIdIndex.size())
+            ci.objectID2=_allGeoms[_geomIdIndex[_mjData->contact[i].geom2]].objectHandle;
         ci.position=pos;
 
         // _mjData->contact[i].frame is a transposed rotation matrix. Axis X is the contact normal vector
@@ -2026,7 +2244,7 @@ void CRigidBodyContainerDyn::injectXml(const char* xml,const char* element)
     _xmlInjections.push_back(inf);
 }
 
-void CRigidBodyContainerDyn::injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask)
+void CRigidBodyContainerDyn::injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow)
 {
     SCompositeInject inf;
     inf.xml=xml;
@@ -2035,6 +2253,7 @@ void CRigidBodyContainerDyn::injectCompositeXml(const char* xml,int shapeHandle,
     inf.prefix=prefix;
     inf.type=type;
     inf.respondableMask=respondableMask;
+    inf.grow=grow;
     for (size_t i=0;i<3;i++)
         inf.count[i]=count[i];
     _xmlCompositeInjections.push_back(inf);

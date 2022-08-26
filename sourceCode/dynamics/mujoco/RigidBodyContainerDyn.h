@@ -29,7 +29,6 @@ struct SMjGeom
     std::string name; // shape, particle or composite name
     std::string prefix; // composite prefix
     int respondableMask; // for particles and composites only
-    bool particleParticleRespondable; // for particles only
     itemTypes itemType;
 
     int mjId; // geom
@@ -99,9 +98,11 @@ struct SCompositeInject
     std::string element;
     std::string type;
     int respondableMask; // global
+    double grow;
     std::string prefix;
     std::string xmlDummyString;
     size_t count[3];
+    std::vector<int> mjIds;
 };
 
 class CRigidBodyContainerDyn : public CRigidBodyContainerDyn_base
@@ -116,10 +117,10 @@ public:
     std::string getEngineInfo() const;
     bool isDynamicContentAvailable();
 
-    void getCompositePoses(const char* prefix,std::vector<double>& poses) const;
+    std::string getCompositeInfo(const char* prefix,int what,std::vector<double>& info,int count[3]) const;
     static float computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness=false);
     static void injectXml(const char* xml,const char* element);
-    static void injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask);
+    static void injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow);
 
 protected:
     static std::string _getObjectName(CXSceneObject* object);
