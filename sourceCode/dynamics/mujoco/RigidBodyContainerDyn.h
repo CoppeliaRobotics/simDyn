@@ -88,6 +88,7 @@ struct SInject
 {
     std::string xml;
     std::string element;
+    int objectHandle;
     std::string xmlDummyString;
 };
 
@@ -119,13 +120,13 @@ public:
 
     std::string getCompositeInfo(const char* prefix,int what,std::vector<double>& info,int count[3]) const;
     static float computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness=false);
-    static void injectXml(const char* xml,const char* element);
+    static void injectXml(const char* xml,const char* element,int objectHandle);
     static void injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow);
 
 protected:
     static std::string _getObjectName(CXSceneObject* object);
     static bool _addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms);
-    void _addInjections(CXmlSer* xmlDoc,const char* currentElement);
+    void _addInjections(CXmlSer* xmlDoc,int objectHandle,const char* currentElement);
     void _addComposites(CXmlSer* xmlDoc,int shapeHandle,const char* currentElement);
     std::string _buildMujocoWorld(float timeStep);
     bool _addObjectBranch(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);

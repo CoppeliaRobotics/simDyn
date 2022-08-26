@@ -23,11 +23,16 @@ void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
     int stack=p->stackID;
     CStackArray inArguments;
     inArguments.buildFromStack(stack);
-    if ( (inArguments.getSize()>=2)&&inArguments.isString(0)&&inArguments.isString(1) )
-    { // we expect 2 arguments: an xml string and an element name
+    if ( (inArguments.getSize()>=2)&&inArguments.isString(0)&&(inArguments.isString(1)||inArguments.isNumber(1)) )
+    { // we expect 2 arguments: an xml string and an element name or objectHandle
         std::string xml(inArguments.getString(0));
-        std::string element(inArguments.getString(1));
-        CRigidBodyContainerDyn::injectXml(xml.c_str(),element.c_str());
+        std::string element;
+        int handle=-1;
+        if (inArguments.isString(1))
+            element=inArguments.getString(1);
+        else
+            handle=inArguments.getInt(1);
+        CRigidBodyContainerDyn::injectXml(xml.c_str(),element.c_str(),handle);
     }
     else
         simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"Not enough arguments or wrong arguments.");

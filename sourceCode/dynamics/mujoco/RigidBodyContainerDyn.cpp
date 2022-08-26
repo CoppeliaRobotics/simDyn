@@ -56,7 +56,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     std::filesystem::create_directory(mjFile.c_str());
     mjFile+="/coppeliaSim.xml";
     CXmlSer* xmlDoc=new CXmlSer(mjFile.c_str());
-    _addInjections(xmlDoc,"mujoco");
+    _addInjections(xmlDoc,-1,"mujoco");
     xmlDoc->pushNewNode("compiler");
     if (useGlobalCoords)
         xmlDoc->setAttr("coordinate","global");
@@ -67,11 +67,11 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     xmlDoc->setAttr("balanceinertia",bool(simGetEngineBoolParam(sim_mujoco_global_balanceinertias,-1,nullptr,nullptr)));
     xmlDoc->setAttr("boundmass",simGetEngineFloatParam(sim_mujoco_global_boundmass,-1,nullptr,nullptr));
     xmlDoc->setAttr("boundinertia",simGetEngineFloatParam(sim_mujoco_global_boundinertia,-1,nullptr,nullptr));
-    _addInjections(xmlDoc,"compiler");
+    _addInjections(xmlDoc,-1,"compiler");
     xmlDoc->popNode();
 
     xmlDoc->pushNewNode("visual");
-    _addInjections(xmlDoc,"visual");
+    _addInjections(xmlDoc,-1,"visual");
     xmlDoc->popNode();
 
     xmlDoc->pushNewNode("size");
@@ -84,7 +84,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     xmlDoc->pushNewNode("geom");
     xmlDoc->setAttr("rgba",0.8,0.6,0.4,1.0);
     xmlDoc->popNode();
-    _addInjections(xmlDoc,"default");
+    _addInjections(xmlDoc,-1,"default");
     xmlDoc->popNode();
 
     xmlDoc->pushNewNode("option");
@@ -123,8 +123,8 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     xmlDoc->popNode();
 
     xmlDoc->pushNewNode("worldbody");
-    _addInjections(xmlDoc,"worldbody");
-    _addComposites(xmlDoc,-1,"worldbody"); // for mujoco ropes
+    _addInjections(xmlDoc,-1,"worldbody");
+    _addComposites(xmlDoc,-1,"worldbody");
     xmlDoc->pushNewNode("light");
     xmlDoc->setAttr("pos",0.0,0.0,2.0);
     xmlDoc->setAttr("dir",0.0,-1.0,-1.0);
@@ -188,7 +188,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
             xmlDoc->popNode();
 
             xmlDoc->pushNewNode("asset");
-            _addInjections(xmlDoc,"asset");
+            _addInjections(xmlDoc,-1,"asset");
             xmlDoc->pushNewNode("texture");
             xmlDoc->setAttr("type","skybox");
             xmlDoc->setAttr("builtin","gradient");
@@ -216,7 +216,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
 
 
             xmlDoc->pushNewNode("tendon");
-            _addInjections(xmlDoc,"tendon");
+            _addInjections(xmlDoc,-1,"tendon");
             for (size_t i=0;i<info.tendons.size();i++)
             {
                 CXSceneObject* dummy1=info.tendons[i];
@@ -269,7 +269,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
 
 
             xmlDoc->pushNewNode("equality");
-            _addInjections(xmlDoc,"equality");
+            _addInjections(xmlDoc,-1,"equality");
             for (size_t i=0;i<info.loopClosures.size();i++)
             {
                 CXSceneObject* dummy1=info.loopClosures[i];
@@ -354,7 +354,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
             xmlDoc->popNode(); // sensor
 
             xmlDoc->pushNewNode("actuator");
-            _addInjections(xmlDoc,"actuator");
+            _addInjections(xmlDoc,-1,"actuator");
             for (size_t i=0;i<_allJoints.size();i++)
             {
                 CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
@@ -733,15 +733,25 @@ std::string CRigidBodyContainerDyn::getCompositeInfo(const char* prefix,int what
     return(retVal);
 }
 
-void CRigidBodyContainerDyn::_addInjections(CXmlSer* xmlDoc,const char* currentElement)
+void CRigidBodyContainerDyn::_addInjections(CXmlSer* xmlDoc,int objectHandle,const char* currentElement)
 {
     for (size_t inj=0;inj<_xmlInjections.size();inj++)
     {
         if (_xmlInjections[inj].xmlDummyString.size()==0)
         {
-            if (_xmlInjections[inj].element==currentElement)
+            std::string ds;
+            if (objectHandle==-1)
             {
-                std::string ds(std::string("__xmlInject__")+std::to_string(inj));
+                if (_xmlInjections[inj].element==currentElement)
+                    ds=std::string("__xmlInject__")+std::to_string(inj);
+            }
+            else
+            {
+                if (_xmlInjections[inj].objectHandle==objectHandle)
+                    ds=std::string("__xmlObjInject__")+std::to_string(objectHandle);
+            }
+            if (ds.size()>0)
+            {
                 xmlDoc->pushNewNode(ds.c_str());
                 xmlDoc->pushNewNode("dummy");
                 xmlDoc->popNode();
@@ -1144,6 +1154,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
     { // we have a shape
         if (xmlDoc!=nullptr)
         {
+            _addInjections(xmlDoc,objectHandle,"");
             _addComposites(xmlDoc,objectHandle,"");
             xmlDoc->setAttr("name",objectName.c_str());
             _allShapes.push_back(g);
@@ -2236,11 +2247,12 @@ void CRigidBodyContainerDyn::_stepDynamics(float dt,int pass)
     mj_step(_mjModel,_mjData);
 }
 
-void CRigidBodyContainerDyn::injectXml(const char* xml,const char* element)
+void CRigidBodyContainerDyn::injectXml(const char* xml,const char* element,int objectHandle)
 {
     SInject inf;
     inf.xml=xml;
     inf.element=element;
+    inf.objectHandle=objectHandle;
     _xmlInjections.push_back(inf);
 }
 
