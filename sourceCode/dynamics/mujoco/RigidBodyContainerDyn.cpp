@@ -1868,6 +1868,11 @@ void CRigidBodyContainerDyn::_controlCallback(const mjModel* m,mjData* d)
 
 void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
 {
+    C3Vector gravity;
+    _simGetGravity(gravity.data);
+    _particleCont->handleAntiGravityForces_andFluidFrictionForces(gravity);
+
+    // handle additional forces/torques:
     for (size_t i=0;i<_allShapes.size();i++)
     {
         if (_allShapes[i].itemType==shapeItem)
@@ -1884,13 +1889,24 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
                 d->xfrc_applied[6*bodyId+3]=vt(0);
                 d->xfrc_applied[6*bodyId+4]=vt(1);
                 d->xfrc_applied[6*bodyId+5]=vt(2);
+
+                // handle objects lower than _dynamicActivityRange: (if they continue to fall, they will reset the Mujoco simulation eventually)
+                if (d->xpos[3*bodyId+2]<-_dynamicActivityRange)
+                {
+                    // Disable gravity:
+                    d->xfrc_applied[6*bodyId+2]=m->body_mass[bodyId]*gravity(2)*-1.0f;
+                    // Apply add. force inv. prop. to the velocity:
+                    d->xfrc_applied[6*bodyId+0]-=_mjData->cvel[6*bodyId+3]*0.1f;
+                    d->xfrc_applied[6*bodyId+1]-=_mjData->cvel[6*bodyId+4]*0.1f;
+                    d->xfrc_applied[6*bodyId+2]-=_mjData->cvel[6*bodyId+5]*0.1f;
+                    // Apply add. torque inv. prop. to the velocity:
+                    d->xfrc_applied[6*bodyId+3]-=_mjData->cvel[6*bodyId+0]*0.1f;
+                    d->xfrc_applied[6*bodyId+4]-=_mjData->cvel[6*bodyId+1]*0.1f;
+                    d->xfrc_applied[6*bodyId+5]-=_mjData->cvel[6*bodyId+2]*0.1f;
+                }
             }
         }
     }
-
-    C3Vector gravity;
-    _simGetGravity(gravity.data);
-    _particleCont->handleAntiGravityForces_andFluidFrictionForces(gravity);
 
     // Joints:
     std::vector<SMjJoint*> jointMujocoItems;
@@ -1902,12 +1918,17 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
             CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
             if ( (joint!=nullptr)&&(_allJoints[i].actMode>0)&&(_allJoints[i].jointType!=sim_joint_spherical_subtype) )
             {
-                _allJoints[i].object=joint;
-                jointMujocoItems.push_back(&_allJoints[i]);
-                if (_simGetJointDynCtrlMode(joint)==sim_jointdynctrl_callback)
-                    jointOrders.push_back(_simGetJointCallbackCallOrder(joint));
-                else
-                    jointOrders.push_back(sim_scriptexecorder_normal);
+                C7Vector jointPose;
+                _simGetObjectCumulativeTransformation(joint,jointPose.X.data,jointPose.Q.data,1);
+                if (jointPose.X(2)>-_dynamicActivityRange)
+                { // ignore joints outside of the dyn. activity range
+                    _allJoints[i].object=joint;
+                    jointMujocoItems.push_back(&_allJoints[i]);
+                    if (_simGetJointDynCtrlMode(joint)==sim_jointdynctrl_callback)
+                        jointOrders.push_back(_simGetJointCallbackCallOrder(joint));
+                    else
+                        jointOrders.push_back(sim_scriptexecorder_normal);
+                }
             }
         }
     }
