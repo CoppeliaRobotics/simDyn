@@ -24,8 +24,8 @@ void CRigidBodyDyn_base::init(CXShape* shape,bool forceStatic,bool forceNonRespo
     _mass_scaled*=CRigidBodyContainerDyn::getDynWorld()->getMassScalingFactorDyn();
     _localInertiaFrame_scaled.X*=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     _inverseLocalInertiaFrame_scaled=_localInertiaFrame_scaled.getInverse();
-    _diagonalInertia_scaled*=_mass_scaled;
     _diagonalInertia_scaled*=CRigidBodyContainerDyn::getDynWorld()->getMasslessInertiaScalingFactorDyn();
+    _diagonalInertia_scaled*=CRigidBodyContainerDyn::getDynWorld()->getMassScalingFactorDyn();
 
     _collisionShapeDyn->init(shape,geom,willBeStatic,_inverseLocalInertiaFrame_scaled); // even non-respondable shapes have a collision object
 

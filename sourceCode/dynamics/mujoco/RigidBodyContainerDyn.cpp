@@ -1775,7 +1775,6 @@ void CRigidBodyContainerDyn::handleDynamics(float dt,float simulationTime)
                     float floats[1]={_dynamicsInternalStepSize};
                     _simDynCallback(integers,floats);
                     _handleKinematicBodies_step(float(i+1)/float(_dynamicsCalculationPasses),dt);
- //                   printf("sim time: %f, %f\n",_simulationTime,_mjData->time);
                     _stepDynamics(_dynamicsInternalStepSize,i);
                     _handleContactPoints(i);
                     _simulationTime+=_dynamicsInternalStepSize;
