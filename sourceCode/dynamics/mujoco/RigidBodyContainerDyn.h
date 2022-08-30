@@ -136,7 +136,7 @@ protected:
 
     int _handleContact(const mjModel* m,mjData* d,int geom1,int geom2);
     void _handleControl(const mjModel* m,mjData* d);
-    void _handleMotorControl(SMjJoint* mujocoItem,int passCnt,int totalPasses);
+    void _handleMotorControl(SMjJoint* mujocoItem);
     void _handleContactPoints(int dynPass);
     dynReal _getAngleMinusAlpha(dynReal angle,dynReal alpha);
 
@@ -168,4 +168,5 @@ protected:
     bool _firstCtrlPass;
     int _currentPass;
     int _overrideKinematicFlag;
+    int _rg4Cnt;
 };

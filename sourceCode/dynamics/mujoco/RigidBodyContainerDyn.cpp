@@ -104,7 +104,12 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
         w[i]=simGetEngineFloatParam(sim_mujoco_global_overridesolimp1+i,-1,nullptr,nullptr);
     xmlDoc->setAttr("o_solimp",w,5);
     const char* integrator[]={"Euler","RK4","implicit"};
-    xmlDoc->setAttr("integrator",integrator[simGetEngineInt32Param(sim_mujoco_global_integrator,-1,nullptr,nullptr)]);
+    int integratorIndex=simGetEngineInt32Param(sim_mujoco_global_integrator,-1,nullptr,nullptr);
+    xmlDoc->setAttr("integrator",integrator[integratorIndex]);
+    if (integratorIndex==1)
+        _rg4Cnt=1; // using Runge-Kutta4
+    else
+        _rg4Cnt=0;
     const char* cone[]={"pyramidal","elliptic"};
     xmlDoc->setAttr("cone",cone[simGetEngineInt32Param(sim_mujoco_global_cone,-1,nullptr,nullptr)]);
     const char* solver[]={"PGS","CG","Newton"};
@@ -1938,19 +1943,19 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
     for (size_t i=0;i<jointOrders.size();i++)
     {
         if (jointOrders[i]<0)
-            _handleMotorControl(jointMujocoItems[i],_currentPass,_dynamicsCalculationPasses);
+            _handleMotorControl(jointMujocoItems[i]);
     }
     // now the normal priority joints:
     for (size_t i=0;i<jointOrders.size();i++)
     {
         if (jointOrders[i]==0)
-            _handleMotorControl(jointMujocoItems[i],_currentPass,_dynamicsCalculationPasses);
+            _handleMotorControl(jointMujocoItems[i]);
     }
     // now the low priority joints:
     for (size_t i=0;i<jointOrders.size();i++)
     {
         if (jointOrders[i]>0)
-            _handleMotorControl(jointMujocoItems[i],_currentPass,_dynamicsCalculationPasses);
+            _handleMotorControl(jointMujocoItems[i]);
     }
 
     // Compute inverse dynamics to figure out force/torque values for a perfect velocity control:
@@ -1995,9 +2000,15 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
     }
 
     _firstCtrlPass=false;
+    if (_rg4Cnt>0)
+    { // we have Runge-Kutta4 integrator
+        _rg4Cnt++;
+        if (_rg4Cnt>4)
+            _rg4Cnt=1;
+    }
 }
 
-void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem,int passCnt,int totalPasses)
+void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
 {
     CXSceneObject* joint=mujocoItem->object;
     int ctrlMode=_simGetJointDynCtrlMode(joint);
@@ -2028,15 +2039,19 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem,int passCn
     if (_firstCtrlPass)
         auxV|=1;
     int inputValuesInt[5]={0,0,0,0,0};
-    inputValuesInt[0]=passCnt;
-    inputValuesInt[1]=totalPasses;
+    inputValuesInt[0]=_currentPass;
+    inputValuesInt[1]=_dynamicsCalculationPasses;
+    inputValuesInt[2]=_rg4Cnt;
     float inputValuesFloat[7]={0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
     if (mujocoItem->jointType==sim_joint_revolute_subtype)
         inputValuesFloat[0]=currentPos;
     else
        inputValuesFloat[0]=currentPos;
     inputValuesFloat[1]=_mjData->actuator_force[mujocoItem->mjId2];
-    inputValuesFloat[2]=dynStepSize;
+    if (_rg4Cnt==0)
+        inputValuesFloat[2]=dynStepSize;
+    else
+        inputValuesFloat[2]=dynStepSize*0.25; // what is the most compatible dt to accomodate callback func. that do not expect a RG4 integrator?
     inputValuesFloat[3]=e;
     inputValuesFloat[4]=currentVel;
     inputValuesFloat[5]=currentAccel;

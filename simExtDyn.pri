@@ -200,8 +200,11 @@ MUJOCO_ENGINE {
     *-msvc* {
         QMAKE_CFLAGS_RELEASE += -MT
         QMAKE_CXXFLAGS_RELEASE += -MT
+        LIBS += $${MUJOCO_LIBPATH}/mujoco.lib
     }
-    LIBS += $${MUJOCO_LIBPATH}/mujoco.lib
+    unix {
+        LIBS += $${MUJOCO_LIBPATH}/libmujoco.so
+    }
 
     INCLUDEPATH += $$MUJOCO_INCLUDEPATH
     INCLUDEPATH += "sourceCode/dynamics/mujoco"
