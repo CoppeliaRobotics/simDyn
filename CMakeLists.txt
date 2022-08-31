@@ -80,6 +80,13 @@ set(COMMON_SOURCES
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/4X4Matrix.cpp
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/4X4FullMatrix.cpp
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/MyMath.cpp
+    ${COPPELIASIM_COMMON_DIR}/stack/stackArray.cpp
+    ${COPPELIASIM_COMMON_DIR}/stack/stackBool.cpp
+    ${COPPELIASIM_COMMON_DIR}/stack/stackMap.cpp
+    ${COPPELIASIM_COMMON_DIR}/stack/stackNull.cpp
+    ${COPPELIASIM_COMMON_DIR}/stack/stackNumber.cpp
+    ${COPPELIASIM_COMMON_DIR}/stack/stackObject.cpp
+    ${COPPELIASIM_COMMON_DIR}/stack/stackString.cpp
     sourceCode/dynamics/CollShapeDyn_base.cpp
     sourceCode/dynamics/ConstraintDyn_base.cpp
     sourceCode/dynamics/ParticleObjectContainer_base.cpp
