@@ -70,6 +70,7 @@ include_directories(sourceCode/dynamics)
 include_directories(${LIBCOPPELIASIM_SOURCE_DIR}/sourceCode/interfaces)
 include_directories(${COPPELIASIM_ROOT_DIR}/programming/simMath)
 include_directories(${COPPELIASIM_INCLUDE_DIR})
+include_directories(${COPPELIASIM_INCLUDE_DIR}/stack)
 
 set(COMMON_SOURCES
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/3Vector.cpp
