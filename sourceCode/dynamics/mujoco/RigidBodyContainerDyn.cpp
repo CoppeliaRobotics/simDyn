@@ -422,6 +422,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
 
     std::string retVal;
 
+    simAddLog(LIBRARY_NAME,sim_verbosity_warnings,"make sure your CPU supports AVX, SSE and similar, otherwise you might see a crash now...");
     char error[1000] = "could not load binary model";
     _mjModel=mj_loadXML(mjFile.c_str(),0,error,1000);
     if (_mjModel!=nullptr)
@@ -2051,7 +2052,17 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
     if (_rg4Cnt==0)
         inputValuesFloat[2]=dynStepSize;
     else
-        inputValuesFloat[2]=dynStepSize*0.25; // what is the most compatible dt to accomodate callback func. that do not expect a RG4 integrator?
+    {
+        if (_rg4Cnt>1)
+        {
+            if (_rg4Cnt<4)
+                inputValuesFloat[2]=dynStepSize*0.5;
+            else
+                inputValuesFloat[2]=dynStepSize;
+        }
+        else
+            inputValuesFloat[2]=0.0;
+    }
     inputValuesFloat[3]=e;
     inputValuesFloat[4]=currentVel;
     inputValuesFloat[5]=currentAccel;
