@@ -684,5 +684,6 @@ elseif(UNIX AND APPLE)
 elseif(UNIX)
     target_link_libraries(simExtMujoco ${MUJOCO_LIBPATH}/mujoco_nogl.a)
 endif()
+coppeliasim_add_lua(simMujoco.lua)
 endif(Mujoco)
 
