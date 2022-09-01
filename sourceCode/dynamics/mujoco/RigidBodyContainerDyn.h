@@ -119,6 +119,7 @@ public:
     bool isDynamicContentAvailable();
 
     std::string getCompositeInfo(const char* prefix,int what,std::vector<double>& info,int count[3]) const;
+    void particlesAdded();
     static float computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness=false);
     static void injectXml(const char* xml,const char* element,int objectHandle);
     static void injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow);
@@ -127,9 +128,10 @@ public:
 protected:
     static std::string _getObjectName(CXSceneObject* object);
     static bool _addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms);
+    int _hasContentChanged();
     void _addInjections(CXmlSer* xmlDoc,int objectHandle,const char* currentElement);
     void _addComposites(CXmlSer* xmlDoc,int shapeHandle,const char* currentElement);
-    std::string _buildMujocoWorld(float timeStep);
+    std::string _buildMujocoWorld(float timeStep,bool rebuild);
     bool _addObjectBranch(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
     void _addShape(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
     void _addInertiaElement(CXmlSer* xmlDoc,float mass,const C7Vector& tr,const C3Vector diagI);
@@ -159,14 +161,21 @@ protected:
     mjData* _mjDataCopy;
 
     std::vector<SMjGeom> _allGeoms; // shape, particles and composites
-    std::vector<SMjJoint> _allJoints; // not freejoints
+    std::vector<SMjJoint> _allJoints; // not freejoints. Only from CoppeliaSim joints
+    std::vector<std::string> _allfreeJointNames; // only freejoints from CoppeliaSim free shapes
     std::vector<SMjForceSensor> _allForceSensors;
     std::vector<SMjShape> _allShapes;
     std::vector<int> _geomIdIndex;
 
-    bool _firstDynPass;
+    int _objectCreationCounter;
+    int _objectDestructionCounter;
+    int _hierarchyChangeCounter;
+    bool _xmlInjectionChanged;
+    bool _particleChanged;
     bool _firstCtrlPass;
     int _currentPass;
     int _overrideKinematicFlag;
     int _rg4Cnt;
+    int _rebuildTrigger;
+    std::map<std::string,bool> _dynamicallyResetObjects;
 };

@@ -305,6 +305,9 @@ SIM_DLLEXPORT char dynPlugin_addParticleObjectItem(int objectHandle,const float*
         if (it==nullptr)
             return(false); // error
         it->addParticle(simulationTime,itemData);
+#ifdef INCLUDE_MUJOCO_CODE
+        dynWorld->particlesAdded();
+#endif
         return(true);
     }
     return(false); // error

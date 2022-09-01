@@ -19,8 +19,8 @@ CParticleDyn::~CParticleDyn()
 
 bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
 {
-    if (_initializationState!=0)
-        return(_initializationState==1);
+    if (_initializationState>1)
+        return(false);
     _initializationState=1;
 
     _name="_particle_";
@@ -42,22 +42,9 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     xmlDoc->setAttr("priority",1);
     xmlDoc->popNode();
 
-    xmlDoc->pushNewNode("joint");
-    xmlDoc->setAttr("name",(_name+"1").c_str());
-    xmlDoc->setAttr("type","slide");
-    xmlDoc->setAttr("axis",1.0,0.0,0.0);
+    xmlDoc->pushNewNode("freejoint");
+    xmlDoc->setAttr("name",(_name+"_freejoint").c_str());
     xmlDoc->popNode();
-    xmlDoc->pushNewNode("joint");
-    xmlDoc->setAttr("name",(_name+"2").c_str());
-    xmlDoc->setAttr("type","slide");
-    xmlDoc->setAttr("axis",0.0,1.0,0.0);
-    xmlDoc->popNode();
-    xmlDoc->pushNewNode("joint");
-    xmlDoc->setAttr("name",(_name+"3").c_str());
-    xmlDoc->setAttr("type","slide");
-    xmlDoc->setAttr("axis",0.0,0.0,1.0);
-    xmlDoc->popNode();
-
     xmlDoc->popNode();
 
 
@@ -78,7 +65,6 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
         g.respondableMask|=0x0f00;
     if (_objectType&sim_particle_respondable5to8)
         g.respondableMask|=0xf000;
-    _indexInAllGeoms=int(allGeoms->size());
     allGeoms->push_back(g);
     return(true);
 }
@@ -154,10 +140,7 @@ void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector
 void CParticleDyn::removeFromEngine()
 {
     if (_initializationState==1)
-    {
-        allGeoms->at(_indexInAllGeoms).respondableMask=0;
         _initializationState=2;
-    }
 }
 
 void CParticleDyn::updatePosition()

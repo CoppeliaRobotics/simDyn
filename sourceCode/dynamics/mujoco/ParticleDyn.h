@@ -18,7 +18,6 @@ public:
     void updatePosition();
     void removeFromEngine();
 
-    size_t _indexInAllGeoms;
     std::string _name;
     bool _initVelSet;
     int _body_mjId;

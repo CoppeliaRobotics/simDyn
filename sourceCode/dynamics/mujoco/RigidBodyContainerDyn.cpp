@@ -22,8 +22,14 @@ CRigidBodyContainerDyn::CRigidBodyContainerDyn()
     _mjData=nullptr;
     _mjDataCopy=nullptr;
     _firstCtrlPass=true;
-    _firstDynPass=true;
     _simulationHalted=false;
+    _objectCreationCounter=-1;
+    _objectDestructionCounter=-1;
+    _hierarchyChangeCounter=-1;
+    _xmlInjectionChanged=false;
+    _particleChanged=false;
+
+    _rebuildTrigger=simGetEngineInt32Param(sim_mujoco_global_rebuildtrigger,-1,nullptr,nullptr);
 }
 
 CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
@@ -45,15 +51,44 @@ std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int i
     return("");
 }
 
-std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
+std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,bool rebuild)
 {
+    mju_user_warning=nullptr;
+    mju_user_error=nullptr;
+    mjcb_contactfilter=nullptr;
+    mjcb_control=nullptr;
+    _xmlInjectionChanged=false;
+    _particleChanged=false;
+    _allGeoms.clear();
+    _allJoints.clear();
+    _allfreeJointNames.clear();
+    _allForceSensors.clear();
+    _allShapes.clear();
+    _geomIdIndex.clear();
+    mjModel* _mjPrevModel=nullptr;
+    mjData* _mjPrevData=nullptr;
+
+    for (size_t i=0;i<_xmlInjections.size();i++)
+        _xmlInjections[i].xmlDummyString.clear();
+    for (size_t i=0;i<_xmlCompositeInjections.size();i++)
+        _xmlCompositeInjections[i].xmlDummyString.clear();
+
     _overrideKinematicFlag=simGetEngineInt32Param(sim_mujoco_global_overridekin,-1,nullptr,nullptr);
     char* _dir=simGetStringParam(sim_stringparam_mujocodir);
     std::string mjFile(_dir);
     std::string dir(_dir);
     simReleaseBuffer(_dir);
-    std::filesystem::remove_all(mjFile.c_str());
-    std::filesystem::create_directory(mjFile.c_str());
+    if (rebuild)
+    {
+        mj_deleteData(_mjDataCopy);
+        _mjPrevModel=_mjModel;
+        _mjPrevData=_mjData;
+    }
+    else
+    {
+        std::filesystem::remove_all(mjFile.c_str());
+        std::filesystem::create_directory(mjFile.c_str());
+    }
     mjFile+="/coppeliaSim.xml";
     CXmlSer* xmlDoc=new CXmlSer(mjFile.c_str());
     _addInjections(xmlDoc,-1,"mujoco");
@@ -145,8 +180,8 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     CParticleDyn::allGeoms=&_allGeoms;
     CParticleDyn::allShapes=&_allShapes;
 
-    _particleCont->addParticlesIfNeeded();
     _particleCont->removeKilledParticles();
+    _particleCont->addParticlesIfNeeded();
 
     SInfo info;
     info.folder=dir;
@@ -420,9 +455,12 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
     }
     delete xmlDoc; // saves the file
 
-    std::string retVal;
+    static bool passed=false;
+    if (!passed)
+        simAddLog(LIBRARY_NAME,sim_verbosity_warnings|sim_verbosity_onlyterminal,"make sure your CPU supports AVX, SSE and similar, otherwise you might see a crash now...");
+    passed=true;
 
-    simAddLog(LIBRARY_NAME,sim_verbosity_warnings,"make sure your CPU supports AVX, SSE and similar, otherwise you might see a crash now...");
+    std::string retVal;
     char error[1000] = "could not load binary model";
     _mjModel=mj_loadXML(mjFile.c_str(),0,error,1000);
     if (_mjModel!=nullptr)
@@ -434,8 +472,8 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
         CParticleDyn::mjData=_mjData;
 
         _geomIdIndex.resize(_mjModel->ngeom,-1);
-       int lastCompositeIndex=-1;
-       std::string lastCompositePrefix;
+        int lastCompositeIndex=-1;
+        std::string lastCompositePrefix;
         for (int i=0;i<int(_allGeoms.size());i++)
         { // _allGeoms might contain non-existing geoms from composites (e.g. for a m*n*o box we create m*n*o items in _allGeoms, for simplicity purpose)
             int mjId=mj_name2id(_mjModel,mjOBJ_GEOM,_allGeoms[i].name.c_str());
@@ -459,6 +497,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
                 i--;
             }
         }
+        std::map<std::string,bool> sceneJoints;
         for (size_t i=0;i<_allJoints.size();i++)
         {
             _allJoints[i].object=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
@@ -466,7 +505,10 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
             _allJoints[i].mjId=mjId;
             mjId=mj_name2id(_mjModel,mjOBJ_ACTUATOR,(_allJoints[i].name+"act").c_str());
             _allJoints[i].mjId2=mjId;
+            sceneJoints[_allJoints[i].name]=true;
         }
+        for (size_t i=0;i<_allfreeJointNames.size();i++)
+            sceneJoints[_allfreeJointNames[i]]=true;
         for (size_t i=0;i<_allForceSensors.size();i++)
         {
             _allForceSensors[i].object=(CXSceneObject*)_simGetObject(_allForceSensors[i].objectHandle);
@@ -510,14 +552,70 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep)
                 }
             }
         }
+        if (rebuild)
+        {
+            for (int jcnt=0;jcnt<_mjPrevModel->njnt;jcnt++)
+            { // loop through all joints in the old model
+                char* nm=_mjPrevModel->names+_mjPrevModel->name_jntadr[jcnt];
+                if (_dynamicallyResetObjects.find(nm)==_dynamicallyResetObjects.end())
+                { // that object was not dynamically reset on CoppeliaSim side
+                    int mjId=mj_name2id(_mjModel,mjOBJ_JOINT,nm);
+                    if (mjId>=0)
+                    { // that joint is also present in the new model
+                        int mjPrevId=mj_name2id(_mjPrevModel,mjOBJ_JOINT,nm);
+                        if (_mjPrevModel->jnt_type[mjPrevId]==_mjModel->jnt_type[mjId])
+                        { // same type (should actually always be the same type)
+                            int vadr=_mjModel->jnt_dofadr[mjId];
+                            int prevVadr=_mjPrevModel->jnt_dofadr[mjId];
+                            size_t posd=1;
+                            size_t dof=1;
+                            if (_mjPrevModel->jnt_type[mjPrevId]==mjJNT_FREE)
+                            {
+                                posd=7;
+                                dof=6;
+                            }
+                            if (_mjPrevModel->jnt_type[mjPrevId]==mjJNT_BALL)
+                            {
+                                posd=4;
+                                dof=3;
+                            }
+                            for (size_t i=0;i<dof;i++)
+                                _mjData->qvel[vadr+i]=_mjPrevData->qvel[prevVadr+i];
+                            if (sceneJoints.find(nm)==sceneJoints.end())
+                            { // those are not joints related to CoppeliaSim scene objects. Reuse also previous pos info:
+                                int padr=_mjModel->jnt_qposadr[mjId];
+                                int prevPadr=_mjPrevModel->jnt_qposadr[mjId];
+                                for (size_t i=0;i<posd;i++)
+                                    _mjData->qpos[padr+i]=_mjPrevData->qpos[prevPadr+i];
+                            }
+                        }
+                    }
+                }
+            }
+
+            mj_deleteData(_mjPrevData);
+            mj_deleteModel(_mjPrevModel);
+        }
         mjcb_contactfilter=_contactCallback;
         mjcb_control=_controlCallback;
         mju_user_error=_errorCallback;
         mju_user_warning=_warningCallback;
     }
     else
+    {
+        if (rebuild)
+        {
+            mj_deleteData(_mjPrevData);
+            mj_deleteModel(_mjPrevModel);
+        }
         retVal=error;
+    }
     return(retVal);
+}
+
+void CRigidBodyContainerDyn::particlesAdded()
+{
+    _particleChanged=true;
 }
 
 std::string CRigidBodyContainerDyn::getCompositeInfo(const char* prefix,int what,std::vector<double>& info,int count[3]) const
@@ -1220,6 +1318,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 xmlDoc->pushNewNode("freejoint");
                 xmlDoc->setAttr("name",(objectName+"freejoint").c_str());
                 xmlDoc->popNode();
+                _allfreeJointNames.push_back(objectName+"freejoint");
             }
         }
     }
@@ -1671,7 +1770,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
         if (pType==sim_primitiveshape_none)
         {
             xmlDoc->setAttr("type","mesh");
-            std::string fn(_getObjectName(object)+std::to_string(i));
+            std::string fn(_getObjectName(object)+std::to_string(i)); // ideally get the hash of the local mesh for the filename. This would avoid creating file duplicates with identical meshes
             xmlDoc->setAttr("mesh",fn.c_str());
             fn+=".stl";
             info->meshFiles.push_back(fn);
@@ -1735,7 +1834,8 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
                 allIndicesSize*=4;
             }
             fn=info->folder+"/"+fn;
-            simExportMesh(4,fn.c_str(),0,1.0f,1,(const float**)&mv,&allVerticesSize,(const int**)&mi,&allIndicesSize,nullptr,nullptr);
+            if (simDoesFileExist(fn.c_str())==0)
+                simExportMesh(4,fn.c_str(),0,1.0f,1,(const float**)&mv,&allVerticesSize,(const int**)&mi,&allIndicesSize,nullptr,nullptr);
             delete[] mi;
             delete[] mv;
             simReleaseBuffer((simChar*)allVertices);
@@ -1744,6 +1844,49 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
 
         xmlDoc->popNode();
     }
+    return(retVal);
+}
+
+int CRigidBodyContainerDyn::_hasContentChanged()
+{
+    int occ,odc,hcc;
+    simGetInt32Param(sim_intparam_objectcreationcounter,&occ);
+    simGetInt32Param(sim_intparam_objectdestructioncounter,&odc);
+    simGetInt32Param(sim_intparam_hierarchychangecounter,&hcc);
+    int retVal=0;
+    if (_objectCreationCounter==-1)
+        retVal=1; // there is no content yet
+    else
+    {
+        if ( (_objectCreationCounter!=occ)&&(_rebuildTrigger&1) )
+            retVal=2;
+        if ( (_objectDestructionCounter!=odc)&&(_rebuildTrigger&2) )
+            retVal=2;
+        if ( (_hierarchyChangeCounter!=hcc)&&(_rebuildTrigger&4) )
+            retVal=2;
+        if ( _xmlInjectionChanged&&(_rebuildTrigger&16) )
+            retVal=2;
+        if ( _particleChanged&&(_rebuildTrigger&32) )
+            retVal=2;
+        if ( (retVal==0)&&(_rebuildTrigger&8) )
+        {
+            _dynamicallyResetObjects.clear();
+            int lSize=_simGetObjectListSize(sim_handle_all);
+            for (int i=0;i<lSize;i++)
+            {
+                CXSceneObject* it=(CXSceneObject*)_simGetObjectFromIndex(sim_handle_all,i);
+                if (_simGetDynamicsFullRefreshFlag(it)!=0)
+                {
+                    retVal=2;
+                    _simSetDynamicsFullRefreshFlag(it,false);
+                    _dynamicallyResetObjects[_getObjectName(it)];
+                }
+            }
+        }
+    }
+    _objectCreationCounter=occ;
+    _objectDestructionCounter=odc;
+    _hierarchyChangeCounter=hcc;
     return(retVal);
 }
 
@@ -1758,12 +1901,12 @@ void CRigidBodyContainerDyn::handleDynamics(float dt,float simulationTime)
         if (_dynamicsCalculationPasses<1)
             _dynamicsCalculationPasses=1;
         _dynamicsInternalStepSize=dt/float(_dynamicsCalculationPasses);
-        if (_firstDynPass)
+        int contentChanged=_hasContentChanged();
+        if (contentChanged>0)
         {
-            std::string err=_buildMujocoWorld(_dynamicsInternalStepSize);
+            std::string err=_buildMujocoWorld(_dynamicsInternalStepSize,contentChanged>1);
             if (err.size()>0)
                 simAddLog(LIBRARY_NAME,sim_verbosity_errors,err.c_str());
-            _firstDynPass=false;
         }
         if (_mjModel!=nullptr)
         {
@@ -1899,16 +2042,18 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
                 // handle objects lower than _dynamicActivityRange: (if they continue to fall, they will reset the Mujoco simulation eventually)
                 if (d->xpos[3*bodyId+2]<-_dynamicActivityRange)
                 {
+                    double mass=m->body_mass[bodyId];
+                    double avgI=(m->body_inertia[bodyId+0]+m->body_inertia[bodyId+1]+m->body_inertia[bodyId+2])/3.0;
                     // Disable gravity:
-                    d->xfrc_applied[6*bodyId+2]=m->body_mass[bodyId]*gravity(2)*-1.0f;
+                    d->xfrc_applied[6*bodyId+2]=mass*gravity(2)*-1.0f;
                     // Apply add. force inv. prop. to the velocity:
-                    d->xfrc_applied[6*bodyId+0]-=_mjData->cvel[6*bodyId+3]*0.1f;
-                    d->xfrc_applied[6*bodyId+1]-=_mjData->cvel[6*bodyId+4]*0.1f;
-                    d->xfrc_applied[6*bodyId+2]-=_mjData->cvel[6*bodyId+5]*0.1f;
+                    d->xfrc_applied[6*bodyId+0]-=mass*_mjData->cvel[6*bodyId+3]*1.0f;
+                    d->xfrc_applied[6*bodyId+1]-=mass*_mjData->cvel[6*bodyId+4]*1.0f;
+                    d->xfrc_applied[6*bodyId+2]-=mass*_mjData->cvel[6*bodyId+5]*1.0f;
                     // Apply add. torque inv. prop. to the velocity:
-                    d->xfrc_applied[6*bodyId+3]-=_mjData->cvel[6*bodyId+0]*0.1f;
-                    d->xfrc_applied[6*bodyId+4]-=_mjData->cvel[6*bodyId+1]*0.1f;
-                    d->xfrc_applied[6*bodyId+5]-=_mjData->cvel[6*bodyId+2]*0.1f;
+                    d->xfrc_applied[6*bodyId+3]-=avgI*_mjData->cvel[6*bodyId+0]*0.00001f;
+                    d->xfrc_applied[6*bodyId+4]-=avgI*_mjData->cvel[6*bodyId+1]*0.00001f;
+                    d->xfrc_applied[6*bodyId+5]-=avgI*_mjData->cvel[6*bodyId+2]*0.00001f;
                 }
             }
         }
@@ -2297,6 +2442,7 @@ void CRigidBodyContainerDyn::injectXml(const char* xml,const char* element,int o
     inf.element=element;
     inf.objectHandle=objectHandle;
     _xmlInjections.push_back(inf);
+    _dynWorld->_xmlInjectionChanged=true;
 }
 
 void CRigidBodyContainerDyn::injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow)
@@ -2312,6 +2458,7 @@ void CRigidBodyContainerDyn::injectCompositeXml(const char* xml,int shapeHandle,
     for (size_t i=0;i<3;i++)
         inf.count[i]=count[i];
     _xmlCompositeInjections.push_back(inf);
+    _dynWorld->_xmlInjectionChanged=true;
 }
 
 int CRigidBodyContainerDyn::getCompositeIndexFromPrefix(const char* prefix)
