@@ -280,11 +280,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
         }
         else
         { // We have a convex shape or multishape:
-            if (_simIsGeomWrapConvex(geomInfo)==0)
-            { // this shape is NOT convex. In Newton, only static non-convex shapes are supported. So treat non-convex dynamic shapes as convex and output a warning:
-                _simMakeDynamicAnnouncement(sim_announce_newtondynamicrandommeshnotsupported);
-            }
-
+            // note: in Newton, only static non-convex shapes are supported. So treat non-convex dynamic shapes as convex and output a warning:
             if (!_simIsGeomWrapGeometric(geomInfo))
             { // We a have a convex MULTISHAPE!!
                 int componentListSize=_simGetGeometricCount(geomInfo);
