@@ -9,8 +9,8 @@ enum shapeModes{staticMode=0,kinematicMode=1,freeMode=2,attachedMode=3};
 enum itemTypes{shapeItem=0,particleItem=1,compositeItem=2,dummyShapeItem=3};
 
 struct SMjShape
-{
-    int objectHandle; // shape. All particles are -2, all composites are -3
+{ // only the shapes that exist as joints in CoppeliaSim.
+    int objectHandle;
     std::string name;
     CXSceneObject* object;
 
@@ -21,10 +21,11 @@ struct SMjShape
     C7Vector staticShapeStart;
     C7Vector staticShapeGoal;
     itemTypes itemType;
+    std::vector<int> geomIndices; // pointing into _allGeoms
 };
 
 struct SMjGeom
-{
+{ // for CoppeliaSim shape geoms, particles and composites
     int objectHandle; // shape. All particles are -2, all composites are -3
     std::string name; // shape, particle or composite name
     std::string prefix; // composite prefix
@@ -35,7 +36,7 @@ struct SMjGeom
 };
 
 struct SMjJoint
-{
+{ // only the joints that exist as joints in CoppeliaSim
     int objectHandle;
     std::string name;
     CXSceneObject* object;
@@ -49,8 +50,15 @@ struct SMjJoint
     C4Vector initialBallQuat;
     int dependencyJointHandle;
     double polycoef[5];
+};
 
-    int type; // 0=CoppeliaSim joint, 2=composite
+struct SMjFreejoint
+{ // only the freejoints that are linked to free shapes in CoppeliaSim
+    int objectHandle;
+    std::string name; // name includes the "freejoint" suffix
+    CXSceneObject* object; // shape
+
+    int mjId;
 };
 
 struct SMjForceSensor
@@ -131,7 +139,7 @@ protected:
     int _hasContentChanged();
     void _addInjections(CXmlSer* xmlDoc,int objectHandle,const char* currentElement);
     void _addComposites(CXmlSer* xmlDoc,int shapeHandle,const char* currentElement);
-    std::string _buildMujocoWorld(float timeStep,bool rebuild);
+    std::string _buildMujocoWorld(float timeStep,float simTime,bool rebuild);
     bool _addObjectBranch(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
     void _addShape(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
     void _addInertiaElement(CXmlSer* xmlDoc,float mass,const C7Vector& tr,const C3Vector diagI);
@@ -160,11 +168,12 @@ protected:
     mjData* _mjData;
     mjData* _mjDataCopy;
 
-    std::vector<SMjGeom> _allGeoms; // shape, particles and composites
-    std::vector<SMjJoint> _allJoints; // not freejoints. Only from CoppeliaSim joints
+    std::vector<SMjGeom> _allGeoms; // shape geoms, particles and composites
+    std::vector<SMjJoint> _allJoints; // only joints that also exist in CoppeliaSim
+    std::vector<SMjFreejoint> _allFreejoints; // only freejoints linked to free shapes in CoppeliaSim
     std::vector<std::string> _allfreeJointNames; // only freejoints from CoppeliaSim free shapes
     std::vector<SMjForceSensor> _allForceSensors;
-    std::vector<SMjShape> _allShapes;
+    std::vector<SMjShape> _allShapes; // only shapes that also exist in CoppeliaSim
     std::vector<int> _geomIdIndex;
 
     int _objectCreationCounter;

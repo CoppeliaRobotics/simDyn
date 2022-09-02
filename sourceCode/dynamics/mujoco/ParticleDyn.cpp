@@ -4,7 +4,6 @@
 
 CXmlSer* CParticleDyn::xmlDoc=nullptr;
 std::vector<SMjGeom>* CParticleDyn::allGeoms=nullptr;
-std::vector<SMjShape>* CParticleDyn::allShapes=nullptr;
 mjModel* CParticleDyn::mjModel=nullptr;
 mjData* CParticleDyn::mjData=nullptr;
 
@@ -47,13 +46,6 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     xmlDoc->popNode();
     xmlDoc->popNode();
 
-
-    SMjShape s;
-    s.objectHandle=-2;//CRigidBodyContainerDyn::getDynWorld()->getDynamicParticlesIdStart()+_uniqueID;
-    s.name=_name;
-    s.itemType=particleItem;
-    allShapes->push_back(s);
-
     SMjGeom g;
     g.itemType=particleItem;
     g.objectHandle=-2;//CRigidBodyContainerDyn::getDynWorld()->getDynamicParticlesIdStart()+_uniqueID;
@@ -76,8 +68,6 @@ void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector
         if (!_initVelSet)
         {
             _body_mjId=mj_name2id(mjModel,mjOBJ_BODY,_name.c_str());
-            _geom_mjId=mj_name2id(mjModel,mjOBJ_GEOM,_name.c_str());
-            // done elsewhere... allGeoms->at(_indexInAllGeoms).mjId=mj_name2id(mjModel,mjOBJ_GEOM,_name.c_str());
 
             int nvadr=mjModel->body_dofadr[_body_mjId];
             if (_initialVelocityVector.getLength()>0.0f)

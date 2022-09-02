@@ -21,12 +21,10 @@ public:
     std::string _name;
     bool _initVelSet;
     int _body_mjId;
-    int _geom_mjId;
 
 
     static CXmlSer* xmlDoc;
     static std::vector<SMjGeom>* allGeoms;
-    static std::vector<SMjShape>* allShapes;
     static mjModel* mjModel;
     static mjData* mjData;
 };

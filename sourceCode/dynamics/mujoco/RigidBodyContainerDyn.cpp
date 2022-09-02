@@ -51,7 +51,7 @@ std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int i
     return("");
 }
 
-std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,bool rebuild)
+std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTime,bool rebuild)
 {
     mju_user_warning=nullptr;
     mju_user_error=nullptr;
@@ -61,7 +61,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,bool rebuil
     _particleChanged=false;
     _allGeoms.clear();
     _allJoints.clear();
-    _allfreeJointNames.clear();
+    _allFreejoints.clear();
     _allForceSensors.clear();
     _allShapes.clear();
     _geomIdIndex.clear();
@@ -178,7 +178,6 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,bool rebuil
 
     CParticleDyn::xmlDoc=xmlDoc;
     CParticleDyn::allGeoms=&_allGeoms;
-    CParticleDyn::allShapes=&_allShapes;
 
     _particleCont->removeKilledParticles();
     _particleCont->addParticlesIfNeeded();
@@ -507,8 +506,12 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,bool rebuil
             _allJoints[i].mjId2=mjId;
             sceneJoints[_allJoints[i].name]=true;
         }
-        for (size_t i=0;i<_allfreeJointNames.size();i++)
-            sceneJoints[_allfreeJointNames[i]]=true;
+        for (size_t i=0;i<_allFreejoints.size();i++)
+        {
+            _allFreejoints[i].object=(CXSceneObject*)_simGetObject(_allFreejoints[i].objectHandle);
+            _allFreejoints[i].mjId=mj_name2id(_mjModel,mjOBJ_JOINT,_allFreejoints[i].name.c_str());
+            sceneJoints[_allFreejoints[i].name]=true;
+        }
         for (size_t i=0;i<_allForceSensors.size();i++)
         {
             _allForceSensors[i].object=(CXSceneObject*)_simGetObject(_allForceSensors[i].objectHandle);
@@ -517,8 +520,10 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,bool rebuil
             mjId=mj_name2id(_mjModel,mjOBJ_SENSOR,(_allForceSensors[i].name+"torque").c_str());
             _allForceSensors[i].mjId2=mjId;
         }
+        std::map<int,size_t> tempShapeMap;
         for (size_t i=0;i<_allShapes.size();i++)
         {
+            tempShapeMap[_allShapes[i].objectHandle]=i;
             int mjId=mj_name2id(_mjModel,mjOBJ_BODY,_allShapes[i].name.c_str());
             _allShapes[i].mjId=mjId;
             _allShapes[i].mjId2=mjId;
@@ -552,6 +557,14 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,bool rebuil
                 }
             }
         }
+        for (size_t i=0;i<_allGeoms.size();i++)
+        {
+            if (tempShapeMap.find(_allGeoms[i].objectHandle)!=tempShapeMap.end())
+            {
+                size_t ind=tempShapeMap[_allGeoms[i].objectHandle];
+                _allShapes[ind].geomIndices.push_back(i);
+            }
+        }
         if (rebuild)
         {
             for (int jcnt=0;jcnt<_mjPrevModel->njnt;jcnt++)
@@ -581,6 +594,12 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,bool rebuil
                             }
                             for (size_t i=0;i<dof;i++)
                                 _mjData->qvel[vadr+i]=_mjPrevData->qvel[prevVadr+i];
+                            //---- not needed, but who knows... ---
+                            for (size_t i=0;i<dof;i++)
+                                _mjData->qacc[vadr+i]=_mjPrevData->qacc[prevVadr+i];
+                            for (size_t i=0;i<dof;i++)
+                                _mjData->qacc_warmstart[vadr+i]=_mjPrevData->qacc_warmstart[prevVadr+i];
+                            //----------------------------
                             if (sceneJoints.find(nm)==sceneJoints.end())
                             { // those are not joints related to CoppeliaSim scene objects. Reuse also previous pos info:
                                 int padr=_mjModel->jnt_qposadr[mjId];
@@ -592,9 +611,13 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,bool rebuil
                     }
                 }
             }
-
+            _mjData->time=simTime;
             mj_deleteData(_mjPrevData);
             mj_deleteModel(_mjPrevModel);
+            //---- not needed, but who knows... ---
+            mj_energyPos(_mjModel,_mjData);
+            mj_energyVel(_mjModel,_mjData);
+            //----------------------------
         }
         mjcb_contactfilter=_contactCallback;
         mjcb_control=_controlCallback;
@@ -1318,7 +1341,10 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 xmlDoc->pushNewNode("freejoint");
                 xmlDoc->setAttr("name",(objectName+"freejoint").c_str());
                 xmlDoc->popNode();
-                _allfreeJointNames.push_back(objectName+"freejoint");
+                SMjFreejoint fj;
+                fj.objectHandle=objectHandle;
+                fj.name=objectName+"freejoint";
+                _allFreejoints.push_back(fj);
             }
         }
     }
@@ -1376,7 +1402,6 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 xmlDoc->setAttr("name",jointName.c_str());
 
                 SMjJoint gjoint;
-                gjoint.type=0; // CoppeliaSim joint
 
                 if (jt==sim_joint_spherical_subtype)
                 {
@@ -1857,7 +1882,7 @@ int CRigidBodyContainerDyn::_hasContentChanged()
     if (_objectCreationCounter==-1)
         retVal=1; // there is no content yet
     else
-    {
+    { // in here we could eventually look a bit closer to see if the change is really involving pyhsics-simulated objects...
         if ( (_objectCreationCounter!=occ)&&(_rebuildTrigger&1) )
             retVal=2;
         if ( (_objectDestructionCounter!=odc)&&(_rebuildTrigger&2) )
@@ -1904,7 +1929,7 @@ void CRigidBodyContainerDyn::handleDynamics(float dt,float simulationTime)
         int contentChanged=_hasContentChanged();
         if (contentChanged>0)
         {
-            std::string err=_buildMujocoWorld(_dynamicsInternalStepSize,contentChanged>1);
+            std::string err=_buildMujocoWorld(_dynamicsInternalStepSize,simulationTime,contentChanged>1);
             if (err.size()>0)
                 simAddLog(LIBRARY_NAME,sim_verbosity_errors,err.c_str());
         }
@@ -2017,6 +2042,13 @@ void CRigidBodyContainerDyn::_controlCallback(const mjModel* m,mjData* d)
 
 void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
 {
+    // Handle joint control here mainly. But also handle application of additional forces/torques
+    // Also, we handle item "deactivation" when outside of the "_dynamicActivityRange" by:
+    // 1. Disabling gravity, i.e. effectively adding a counter force
+    // 2. Adding damping to the involved bodies
+    // 3. Setting the velocity to 0 for involved freejoints
+    // 4. Disable collision response for involved bodies
+
     C3Vector gravity;
     _simGetGravity(gravity.data);
     _particleCont->handleAntiGravityForces_andFluidFrictionForces(gravity);
@@ -2038,7 +2070,6 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
                 d->xfrc_applied[6*bodyId+3]=vt(0);
                 d->xfrc_applied[6*bodyId+4]=vt(1);
                 d->xfrc_applied[6*bodyId+5]=vt(2);
-
                 // handle objects lower than _dynamicActivityRange: (if they continue to fall, they will reset the Mujoco simulation eventually)
                 if (d->xpos[3*bodyId+2]<-_dynamicActivityRange)
                 {
@@ -2054,6 +2085,9 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
                     d->xfrc_applied[6*bodyId+3]-=avgI*_mjData->cvel[6*bodyId+0]*0.00001f;
                     d->xfrc_applied[6*bodyId+4]-=avgI*_mjData->cvel[6*bodyId+1]*0.00001f;
                     d->xfrc_applied[6*bodyId+5]-=avgI*_mjData->cvel[6*bodyId+2]*0.00001f;
+                    // Disable collision response:
+                    for (size_t j=0;j<_allShapes[i].geomIndices.size();j++)
+                        _allGeoms[_allShapes[i].geomIndices[j]].respondableMask=0;
                 }
             }
         }
@@ -2064,25 +2098,28 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
     std::vector<int> jointOrders;
     for (size_t i=0;i<_allJoints.size();i++)
     {
-        if (_allJoints[i].type==0)
-        { // exclude joints from composites
-            CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
-            if ( (joint!=nullptr)&&(_allJoints[i].actMode>0)&&(_allJoints[i].jointType!=sim_joint_spherical_subtype) )
-            {
-                C7Vector jointPose;
-                _simGetObjectCumulativeTransformation(joint,jointPose.X.data,jointPose.Q.data,1);
-                if (jointPose.X(2)>-_dynamicActivityRange)
-                { // ignore joints outside of the dyn. activity range
-                    _allJoints[i].object=joint;
-                    jointMujocoItems.push_back(&_allJoints[i]);
-                    if (_simGetJointDynCtrlMode(joint)==sim_jointdynctrl_callback)
-                        jointOrders.push_back(_simGetJointCallbackCallOrder(joint));
-                    else
-                        jointOrders.push_back(sim_scriptexecorder_normal);
-                }
-            }
+        CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
+        if ( (joint!=nullptr)&&(_allJoints[i].actMode>0)&&(_allJoints[i].jointType!=sim_joint_spherical_subtype) )
+        {
+            _allJoints[i].object=joint;
+            jointMujocoItems.push_back(&_allJoints[i]);
+            if (_simGetJointDynCtrlMode(joint)==sim_jointdynctrl_callback)
+                jointOrders.push_back(_simGetJointCallbackCallOrder(joint));
+            else
+                jointOrders.push_back(sim_scriptexecorder_normal);
         }
     }
+    for (size_t i=0;i<_allFreejoints.size();i++)
+    {
+        int padr=_mjModel->jnt_qposadr[_allFreejoints[i].mjId];
+        if ( (fabs(_mjData->qpos[padr+0])>_dynamicActivityRange)||(fabs(_mjData->qpos[padr+1])>_dynamicActivityRange)||(fabs(_mjData->qpos[padr+2])>_dynamicActivityRange) )
+        { // make sure that this joint doesn't start making the rest of the simulation unstable
+            int vadr=_mjModel->jnt_dofadr[_allFreejoints[i].mjId];
+            for (size_t j=0;j<6;j++)
+                _mjData->qvel[vadr+j]=0.0;
+        }
+    }
+
 
     // First get control values:
     // handle first the higher priority joints:
@@ -2262,9 +2299,9 @@ void CRigidBodyContainerDyn::_handleContactPoints(int dynPass)
         ci.subPassNumber=dynPass;
         ci.objectID1=-1; // unknown item
         ci.objectID2=-1; // unknown item
-        if (_mjData->contact[i].geom1<_geomIdIndex.size())
+        if ( (_mjData->contact[i].geom1<int(_geomIdIndex.size()))&&(_mjData->contact[i].geom1>=0) )
             ci.objectID1=_allGeoms[_geomIdIndex[_mjData->contact[i].geom1]].objectHandle;
-        if (_mjData->contact[i].geom2<_geomIdIndex.size())
+        if ( (_mjData->contact[i].geom2<int(_geomIdIndex.size()))&&(_mjData->contact[i].geom2>=0) )
             ci.objectID2=_allGeoms[_geomIdIndex[_mjData->contact[i].geom2]].objectHandle;
         ci.position=pos;
 
@@ -2380,29 +2417,26 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
 
     for (size_t i=0;i<_allJoints.size();i++)
     {
-        if (_allJoints[i].type==0)
-        { // only joints that exist in CoppeliaSim
-            CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
-            if (joint!=nullptr)
+        CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
+        if (joint!=nullptr)
+        {
+            int padr=_mjModel->jnt_qposadr[_allJoints[i].mjId];
+            int vadr=_mjModel->jnt_dofadr[_allJoints[i].mjId];
+            if (_allJoints[i].jointType==sim_joint_spherical_subtype)
             {
-                int padr=_mjModel->jnt_qposadr[_allJoints[i].mjId];
-                int vadr=_mjModel->jnt_dofadr[_allJoints[i].mjId];
-                if (_allJoints[i].jointType==sim_joint_spherical_subtype)
-                {
-                    C4Vector q(_mjData->qpos[padr+0],_mjData->qpos[padr+1],_mjData->qpos[padr+2],_mjData->qpos[padr+3]);
-                    q=_allJoints[i].initialBallQuat*q;
-                    q.normalize();
-                    _simSetJointSphericalTransformation(joint,q.data,simulationTime);
-                }
-                else
-                {
-                    _simSetJointPosition(joint,_mjData->qpos[padr]);
-                    int totalPassesCount=0;
-                    if (currentPass==totalPasses-1)
-                        totalPassesCount=totalPasses;
-                    _simAddJointCumulativeForcesOrTorques(joint,-_mjData->actuator_force[_allJoints[i].mjId2],totalPassesCount,simulationTime);
-                    //  _simSetJointVelocity(joint,_mjData->qvel[vadr]);
-                }
+                C4Vector q(_mjData->qpos[padr+0],_mjData->qpos[padr+1],_mjData->qpos[padr+2],_mjData->qpos[padr+3]);
+                q=_allJoints[i].initialBallQuat*q;
+                q.normalize();
+                _simSetJointSphericalTransformation(joint,q.data,simulationTime);
+            }
+            else
+            {
+                _simSetJointPosition(joint,_mjData->qpos[padr]);
+                int totalPassesCount=0;
+                if (currentPass==totalPasses-1)
+                    totalPassesCount=totalPasses;
+                _simAddJointCumulativeForcesOrTorques(joint,-_mjData->actuator_force[_allJoints[i].mjId2],totalPassesCount,simulationTime);
+                //  _simSetJointVelocity(joint,_mjData->qvel[vadr]);
             }
         }
     }
