@@ -1661,6 +1661,8 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
     solimp[4]=simGetEngineFloatParam(sim_mujoco_body_solimp5,-1,object,nullptr);
     double solmix=simGetEngineFloatParam(sim_mujoco_body_solmix,-1,object,nullptr);
     int condim=simGetEngineInt32Param(sim_mujoco_body_condim,-1,object,nullptr);
+    double margin=simGetEngineFloatParam(sim_mujoco_body_margin,-1,object,nullptr);
+    int priority=simGetEngineInt32Param(sim_mujoco_body_priority,-1,object,nullptr);
 
     int componentListSize=_simGetGeometricCount(geomInfo);
     CXGeometric** componentList=new CXGeometric*[componentListSize];
@@ -1678,6 +1680,8 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
         xmlDoc->setAttr("solimp",solimp,5);
         xmlDoc->setAttr("solmix",solmix);
         xmlDoc->setAttr("condim",condim);
+        xmlDoc->setAttr("margin",margin);
+        xmlDoc->setAttr("priority",priority);
         std::string nm(_getObjectName(object)+std::to_string(i));
         xmlDoc->setAttr("name",nm.c_str());
 
