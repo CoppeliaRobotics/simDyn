@@ -43,6 +43,12 @@ CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
     mj_deleteModel(_mjModel);
     _xmlInjections.clear();
     _xmlCompositeInjections.clear();
+
+    for (int i=0;i<_simGetObjectListSize(sim_handle_all);i++)
+    {
+        CXSceneObject* it=(CXSceneObject*)_simGetObjectFromIndex(sim_handle_all,i);
+        _simSetDynamicSimulationIconCode(it,sim_dynamicsimicon_none);
+    }
 }
 
 std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int intParams[20])
