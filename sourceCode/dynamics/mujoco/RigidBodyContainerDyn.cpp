@@ -18,6 +18,8 @@ CRigidBodyContainerDyn::CRigidBodyContainerDyn()
 {
     _engine=sim_physics_mujoco;
     _engineVersion=0;
+    _restartCount=0;
+    _restartWarning=false;
     _mjModel=nullptr;
     _mjData=nullptr;
     _mjDataCopy=nullptr;
@@ -28,6 +30,7 @@ CRigidBodyContainerDyn::CRigidBodyContainerDyn()
     _hierarchyChangeCounter=-1;
     _xmlInjectionChanged=false;
     _particleChanged=false;
+    _nextCompositeHandle=-3;
 
     _rebuildTrigger=simGetEngineInt32Param(sim_mujoco_global_rebuildtrigger,-1,nullptr,nullptr);
 }
@@ -89,6 +92,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
         mj_deleteData(_mjDataCopy);
         _mjPrevModel=_mjModel;
         _mjPrevData=_mjData;
+        _restartCount++;
     }
     else
     {
@@ -624,6 +628,11 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
             mj_energyPos(_mjModel,_mjData);
             mj_energyVel(_mjModel,_mjData);
             //----------------------------
+            if ( (_restartCount>20)&&(_restartCount>int(simTime))&&(!_restartWarning) )
+            {
+                simAddLog(LIBRARY_NAME,sim_verbosity_warnings,"detected frequent dynamic world rebuilds. The MuJoCo engine is not optimized for frequent changes in the world, and the simulation might not be running in an optimal fashion.");
+                _restartWarning=true;
+            }
         }
         mjcb_contactfilter=_contactCallback;
         mjcb_control=_controlCallback;
@@ -716,7 +725,7 @@ std::string CRigidBodyContainerDyn::getCompositeInfo(const char* prefix,int what
 
                 // Box, cylinder, ellipsoid and grids:
                 size_t centerGeom=0;
-                if ( (composite->type=="box")||(composite->type=="cylinder")||(composite->type=="ellipsoide") )
+                if ( (composite->type=="box")||(composite->type=="cylinder")||(composite->type=="ellipsoid") )
                     centerGeom=1;
                 else
                     what=2; // only boxes, cylinders and ellipsoides can be grown since they have a center
@@ -911,7 +920,7 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
                 {
                     SMjGeom g;
                     g.name=comp->prefix+"Gcenter";
-                    g.objectHandle=-3;
+                    g.objectHandle=_nextCompositeHandle;
                     g.prefix=comp->prefix;
                     g.itemType=compositeItem;
                     g.respondableMask=0;
@@ -925,7 +934,7 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
                             {
                                 SMjGeom g;
                                 g.name=comp->prefix+"G"+std::to_string(i)+"_"+std::to_string(j)+"_"+std::to_string(k);
-                                g.objectHandle=-3;
+                                g.objectHandle=_nextCompositeHandle;
                                 g.prefix=comp->prefix;
                                 g.itemType=compositeItem;
                                 g.respondableMask=comp->respondableMask;
@@ -942,7 +951,7 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
                         {
                             SMjGeom g;
                             g.name=comp->prefix+"G"+std::to_string(i)+"_"+std::to_string(j);
-                            g.objectHandle=-3;
+                            g.objectHandle=_nextCompositeHandle;
                             g.prefix=comp->prefix;
                             g.itemType=compositeItem;
                             g.respondableMask=comp->respondableMask;
@@ -956,13 +965,14 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
                     {
                         SMjGeom g;
                         g.name=comp->prefix+"G"+std::to_string(i);
-                        g.objectHandle=-3;
+                        g.objectHandle=_nextCompositeHandle;
                         g.prefix=comp->prefix;
                         g.itemType=compositeItem;
                         g.respondableMask=comp->respondableMask;
                         _allGeoms.push_back(g);
                     }
                 }
+                _nextCompositeHandle--;
                 xmlDoc->pushNewNode(ds.c_str());
                 xmlDoc->pushNewNode("dummy");
                 xmlDoc->popNode();
@@ -1996,7 +2006,10 @@ int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,
         }
         if ( (gm1->itemType==compositeItem)&&(gm2->itemType==compositeItem) )
         { // composite-composite
-            canCollide=(gm1->respondableMask&gm2->respondableMask&0x00ff);
+            if (gm1->objectHandle==gm2->objectHandle)
+                canCollide=(gm1->respondableMask&gm2->respondableMask&0x000f); // same composite
+            else
+                canCollide=(gm1->respondableMask&gm2->respondableMask&0x00f0); // other composites
         }
         if ( ((gm1->itemType==shapeItem)&&(gm2->itemType>shapeItem))||((gm1->itemType>shapeItem)&&(gm2->itemType==shapeItem)) )
         { // shape-particle or shape-composite
@@ -2446,7 +2459,7 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
                 if (currentPass==totalPasses-1)
                     totalPassesCount=totalPasses;
                 _simAddJointCumulativeForcesOrTorques(joint,-_mjData->actuator_force[_allJoints[i].mjId2],totalPassesCount,simulationTime);
-                //  _simSetJointVelocity(joint,_mjData->qvel[vadr]);
+                _simSetJointVelocity(joint,_mjData->qvel[vadr]);
             }
         }
     }

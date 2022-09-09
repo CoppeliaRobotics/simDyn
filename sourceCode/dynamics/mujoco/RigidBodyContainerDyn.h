@@ -26,10 +26,10 @@ struct SMjShape
 
 struct SMjGeom
 { // for CoppeliaSim shape geoms, particles and composites
-    int objectHandle; // shape. All particles are -2, all composites are -3
+    int objectHandle; // shape. All particles are -2, all composites are -3 and lower
     std::string name; // shape, particle or composite name
     std::string prefix; // composite prefix
-    int respondableMask; // for particles and composites only
+    int respondableMask; // for particles and composites only. 0xff00=collision with shapes, 0x00ff=particle-particle collision, 0x00f0=composite-other composite collision, 0x000f=composite-same composite collision
     itemTypes itemType;
 
     int mjId; // geom
@@ -186,5 +186,8 @@ protected:
     int _overrideKinematicFlag;
     int _rg4Cnt;
     int _rebuildTrigger;
+    int _restartCount;
+    bool _restartWarning;
+    int _nextCompositeHandle;
     std::map<std::string,bool> _dynamicallyResetObjects;
 };

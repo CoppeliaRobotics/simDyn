@@ -15,7 +15,7 @@
 #    VORTEX_INCLUDEPATH = $${VORTEX_DIR}/include # (e.g. Windows)
 #    VORTEX_LIBPATH = $${VORTEX_DIR}/lib # (e.g. Windows)
 
-# location of mujoco files
+# location of MuJoCo files
 #    MUJOCO_PATH = "e:/Mujoco-2.1.1" # (e.g. Windows)
 #    MUJOCO_LIBPATH = $${MUJOCO_PATH}/lib # (e.g. Windows)
 #    MUJOCO_INCLUDEPATH = $${MUJOCO_PATH}/include # (e.g. Windows)
