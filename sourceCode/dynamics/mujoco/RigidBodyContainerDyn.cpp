@@ -228,6 +228,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
         for (size_t i=0;i<toExplore.size();i++)
         {
             info.moreToExplore.clear();
+            info.isTreeDynamic=false;
             if (_addObjectBranch(toExplore[i],nullptr,ser,&info))
                 toExplore.insert(toExplore.end(),info.moreToExplore.begin(),info.moreToExplore.end());
         }
@@ -536,16 +537,27 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
             tempShapeMap[_allShapes[i].objectHandle]=i;
             int mjId=mj_name2id(_mjModel,mjOBJ_BODY,_allShapes[i].name.c_str());
             _allShapes[i].mjId=mjId;
-            _allShapes[i].mjId2=mjId;
+            _allShapes[i].mjIdStatic=-1;
+            _allShapes[i].mjIdJoint=-1;
             if (_allShapes[i].itemType==shapeItem)
             {
                 _allShapes[i].object=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
                 if (_allShapes[i].shapeMode==shapeModes::kinematicMode)
-                    _allShapes[i].mjId2=mj_name2id(_mjModel,mjOBJ_BODY,(_allShapes[i].name+"staticCounterpart").c_str());
+                {
+                    _allShapes[i].mjIdStatic=mj_name2id(_mjModel,mjOBJ_BODY,(_allShapes[i].name+"staticCounterpart").c_str());
+                    _allShapes[i].mjIdJoint=mj_name2id(_mjModel,mjOBJ_JOINT,(_allShapes[i].name+"freejoint").c_str());
+                    /*
+                    C3Vector lv,av;
+                    _simGetInitialDynamicVelocity(_allShapes[i].object,lv.data);
+                    _simGetInitialDynamicAngVelocity(_allShapes[i].object,av.data);
+                    if ( (lv.getLength()>0.0f)||(av.getLength()>0.0f) )
+                        simAddLog(LIBRARY_NAME,sim_verbosity_warnings,"detected an initial static shape velocity. This will not work as expected with the MuJoCo engine.");
+                        */
+                }
                 if (_allShapes[i].shapeMode==shapeModes::freeMode)
                 { // handle initial velocity for free bodies:
                     mjId=mj_name2id(_mjModel,mjOBJ_JOINT,(_allShapes[i].name+"freejoint").c_str());
-                    _allShapes[i].mjId2=mjId;
+                    _allShapes[i].mjIdJoint=mjId;
                     int nvadr=_mjModel->body_dofadr[_allShapes[i].mjId];
                     C3Vector v;
                     _simGetInitialDynamicVelocity(_allShapes[i].object,v.data);
@@ -1004,6 +1016,11 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
         if (objType==sim_object_shape_type)
         {
             bool isStatic=((dynProp&sim_objdynprop_dynamic)==0)||(_simIsShapeDynamicallyStatic(object)!=0);
+            if (isStatic)
+            {
+                if ( (_simIsShapeDynamicallyRespondable(object)!=0)&&info->isTreeDynamic )
+                    _simMakeDynamicAnnouncement(sim_announce_containsstaticshapesondynamicconstruction);
+            }
             if ( isStatic&&(parent!=nullptr) )
             { // static shapes should always be added to "worldbody"!
                 info->moreToExplore.push_back(object);
@@ -1234,6 +1251,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
     else
     {
         g.itemType=shapeItem;
+        _simGetLocalInertiaInfo(object,g.shapeComTr.X.data,g.shapeComTr.Q.data,nullptr);
         if (parent==nullptr)
         {
             if ( forceStatic||(_simIsShapeDynamicallyStatic(object)!=0) )
@@ -1273,7 +1291,10 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
             }
         }
         if (g.shapeMode>=shapeModes::freeMode)
+        {
             flag=flag|2; // free or attached shapes
+            info->isTreeDynamic=true;
+        }
         if ( (!forceNonRespondable)&&_simIsShapeDynamicallyRespondable(object) )
             flag=flag|1;
     }
@@ -2368,13 +2389,35 @@ bool CRigidBodyContainerDyn::_updateWorldFromCoppeliaSim()
         { // only shapes that exist in CoppeliaSim
             if (_allShapes[i].shapeMode<=shapeModes::kinematicMode)
             { // prepare for static shape motion interpol.
-                int bodyId=_mjModel->body_mocapid[_allShapes[i].mjId2];
+                int bodyId=_mjModel->body_mocapid[_allShapes[i].mjIdStatic];
                 _allShapes[i].staticShapeStart.X=C3Vector(_mjData->mocap_pos[3*bodyId+0],_mjData->mocap_pos[3*bodyId+1],_mjData->mocap_pos[3*bodyId+2]);
                 _allShapes[i].staticShapeStart.Q=C4Vector(_mjData->mocap_quat[4*bodyId+0],_mjData->mocap_quat[4*bodyId+1],_mjData->mocap_quat[4*bodyId+2],_mjData->mocap_quat[4*bodyId+3]);
                 _allShapes[i].staticShapeGoal=_allShapes[i].staticShapeStart;
                 CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
                 if (shape!=nullptr)
-                    _simGetObjectCumulativeTransformation(shape,_allShapes[i].staticShapeGoal.X.data,_allShapes[i].staticShapeGoal.Q.data,false);
+                {
+                    /*
+                    // Trying initial velocity for static shapes (e.g. simple conveyor)
+                    C3Vector lv,av;
+                    _simGetInitialDynamicVelocity(_allShapes[i].object,lv.data);
+                    _simGetInitialDynamicAngVelocity(_allShapes[i].object,av.data);
+                    if ( (lv.getLength()>0.0f)||(av.getLength()>0.0f) )
+                    { // when a static shape has an initial velocity (e.g. simple conveyor)
+                        _simSetInitialDynamicVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
+                        _simSetInitialDynamicAngVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
+                        float dt=_dynamicsInternalStepSize*float(_dynamicsCalculationPasses);
+                        _allShapes[i].staticShapeGoal.X(0)+=lv(0)*dt;
+                        _allShapes[i].staticShapeGoal.X(1)+=lv(1)*dt;
+                        _allShapes[i].staticShapeGoal.X(2)+=lv(2)*dt;
+                        int nvadr=_mjModel->jnt_dofadr[_allShapes[i].mjIdJoint];
+                        _mjData->qvel[nvadr+0]=lv(0);
+                        _mjData->qvel[nvadr+1]=lv(1);
+                        _mjData->qvel[nvadr+2]=lv(2);
+                    }
+                    else
+                    //*/
+                        _simGetObjectCumulativeTransformation(shape,_allShapes[i].staticShapeGoal.X.data,_allShapes[i].staticShapeGoal.Q.data,false);
+                }
             }
         }
     }
@@ -2393,7 +2436,7 @@ void CRigidBodyContainerDyn::_handleKinematicBodies_step(float t,float cumulated
                 CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
                 if (shape!=nullptr)
                 {
-                    int bodyId=_mjModel->body_mocapid[_allShapes[i].mjId2];
+                    int bodyId=_mjModel->body_mocapid[_allShapes[i].mjIdStatic];
                     C7Vector tr;
                     tr.buildInterpolation(_allShapes[i].staticShapeStart,_allShapes[i].staticShapeGoal,t);
                     _mjData->mocap_pos[3*bodyId+0]=tr.X(0);
@@ -2431,6 +2474,7 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
                 C3Vector lv(_mjData->cvel[6*bodyId+3],_mjData->cvel[6*bodyId+4],_mjData->cvel[6*bodyId+5]);
                 // Above is COM vel.
                 C4Vector q(_allShapes[i].shapeComTr.Q);
+                printf("Q: %f, %f, %f, %f\n",q(0),q(1),q(2),q(3));
                 av=q*av;
                 lv=q*lv;
                 _simSetShapeDynamicVelocity(shape,lv.data,av.data,simulationTime);

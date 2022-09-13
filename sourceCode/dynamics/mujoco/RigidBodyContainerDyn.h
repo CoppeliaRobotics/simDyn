@@ -15,7 +15,8 @@ struct SMjShape
     CXSceneObject* object;
 
     int mjId; // body
-    int mjId2; // body (static counterpart, if applies), or freejoint (if shape in free mode)
+    int mjIdStatic; // body (static counterpart, if applies)
+    int mjIdJoint; // freejoint (if shape in free mode)
     shapeModes shapeMode;
     C7Vector shapeComTr; // Shape's com transf rel to shape frame
     C7Vector staticShapeStart;
@@ -90,6 +91,7 @@ struct SInfo
     std::map<CXSceneObject*,int> massDividers;
     std::string folder;
     bool inertiaCalcRobust; // e.g. for meshes without volume, so that inertia can be computed
+    bool isTreeDynamic; // one a branch is dynamic, a static item indicates an error
 };
 
 struct SInject
