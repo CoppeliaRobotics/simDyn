@@ -2470,14 +2470,40 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
                     _simDynReportObjectCumulativeTransformation(shape,tr.X.data,tr.Q.data,simulationTime);
                 }
 
-                C3Vector av(_mjData->cvel[6*bodyId+0],_mjData->cvel[6*bodyId+1],_mjData->cvel[6*bodyId+2]);
-                C3Vector lv(_mjData->cvel[6*bodyId+3],_mjData->cvel[6*bodyId+4],_mjData->cvel[6*bodyId+5]);
-                // Above is COM vel.
-                C4Vector q(_allShapes[i].shapeComTr.Q);
-                printf("Q: %f, %f, %f, %f\n",q(0),q(1),q(2),q(3));
-                av=q*av;
-                lv=q*lv;
-                _simSetShapeDynamicVelocity(shape,lv.data,av.data,simulationTime);
+                double av[3]={_mjData->cvel[6*bodyId+0],_mjData->cvel[6*bodyId+1],_mjData->cvel[6*bodyId+2]};
+                double lv[3]={_mjData->cvel[6*bodyId+3],_mjData->cvel[6*bodyId+4],_mjData->cvel[6*bodyId+5]};
+                // Above is COM vel. in spatial vector
+                double comPos[3]={_mjData->xipos[3*bodyId+0],_mjData->xipos[3*bodyId+1],_mjData->xipos[3*bodyId+2]};
+                // Above com is relative to the origin. We however need the com relative to the last parent body.
+                // This is strange and not the "spatial velocity" that I know of:
+                int parentId=bodyId;
+                while (true)
+                {
+                    int p=_mjModel->body_parentid[parentId];
+                    if (p>0)
+                        parentId=p;
+                    else
+                        break;
+                }
+                if (parentId!=bodyId)
+                {
+                    comPos[0]-=_mjData->xipos[3*parentId+0];
+                    comPos[1]-=_mjData->xipos[3*parentId+1];
+                    comPos[2]-=_mjData->xipos[3*parentId+2];
+                }
+                double llv[3];
+                llv[0]=lv[0]-(comPos[1]*av[2]-comPos[2]*av[1]);
+                llv[1]=lv[1]-(comPos[2]*av[0]-comPos[0]*av[2]);
+                llv[2]=lv[2]-(comPos[0]*av[1]-comPos[1]*av[0]);
+                //printf("body:      %s\n",_mjModel->names+_mjModel->name_bodyadr[bodyId]);
+                //printf("parent:    %s\n",_mjModel->names+_mjModel->name_bodyadr[parentId]);
+                //printf("av:        %.4f, %.4f, %.4f\n",av[0],av[1],av[2]);
+                //printf("lv:        %.4f, %.4f, %.4f\n",lv[0],lv[1],lv[2]);
+                //printf("comPos:    %.4f, %.4f, %.4f\n",comPos[0],comPos[1],comPos[2]);
+                //printf("lv-comPos^av: %.4f, %.4f, %.4f\n",llv[0],llv[1],llv[2]);
+                float a[3]={float(av[0]),float(av[1]),float(av[2])};
+                float l[3]={float(llv[0]),float(llv[1]),float(llv[2])};
+                _simSetShapeDynamicVelocity(shape,l,a,simulationTime);
             }
         }
     }
