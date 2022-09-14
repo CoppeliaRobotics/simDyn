@@ -1251,7 +1251,6 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
     else
     {
         g.itemType=shapeItem;
-        _simGetLocalInertiaInfo(object,g.shapeComTr.X.data,g.shapeComTr.Q.data,nullptr);
         if (parent==nullptr)
         {
             if ( forceStatic||(_simIsShapeDynamicallyStatic(object)!=0) )
@@ -2485,22 +2484,37 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
                     else
                         break;
                 }
+                /*
+                printf("body:      %s\n",_mjModel->names+_mjModel->name_bodyadr[bodyId]);
+                printf("parent:    %s\n",_mjModel->names+_mjModel->name_bodyadr[parentId]);
+                printf("av:        %.4f, %.4f, %.4f\n",av[0],av[1],av[2]);
+                printf("lv:        %.4f, %.4f, %.4f\n",lv[0],lv[1],lv[2]);
+                //*/
+                double llv[3];
                 if (parentId!=bodyId)
                 {
                     comPos[0]-=_mjData->xipos[3*parentId+0];
                     comPos[1]-=_mjData->xipos[3*parentId+1];
                     comPos[2]-=_mjData->xipos[3*parentId+2];
+                    double x[3];
+                    x[0]=comPos[1]*av[2]-comPos[2]*av[1];
+                    x[1]=comPos[2]*av[0]-comPos[0]*av[2];
+                    x[2]=comPos[0]*av[1]-comPos[1]*av[0];
+                    llv[0]=lv[0]-x[0];
+                    llv[1]=lv[1]-x[1];
+                    llv[2]=lv[2]-x[2];
+                    /*
+                    printf("comPos:    %.4f, %.4f, %.4f\n",comPos[0],comPos[1],comPos[2]);
+                    printf("comPos^av: %.4f, %.4f, %.4f\n",x[0],x[1],x[2]);
+                    //*/
                 }
-                double llv[3];
-                llv[0]=lv[0]-(comPos[1]*av[2]-comPos[2]*av[1]);
-                llv[1]=lv[1]-(comPos[2]*av[0]-comPos[0]*av[2]);
-                llv[2]=lv[2]-(comPos[0]*av[1]-comPos[1]*av[0]);
-                //printf("body:      %s\n",_mjModel->names+_mjModel->name_bodyadr[bodyId]);
-                //printf("parent:    %s\n",_mjModel->names+_mjModel->name_bodyadr[parentId]);
-                //printf("av:        %.4f, %.4f, %.4f\n",av[0],av[1],av[2]);
-                //printf("lv:        %.4f, %.4f, %.4f\n",lv[0],lv[1],lv[2]);
-                //printf("comPos:    %.4f, %.4f, %.4f\n",comPos[0],comPos[1],comPos[2]);
-                //printf("lv-comPos^av: %.4f, %.4f, %.4f\n",llv[0],llv[1],llv[2]);
+                else
+                {
+                    llv[0]=lv[0];
+                    llv[1]=lv[1];
+                    llv[2]=lv[2];
+                }
+
                 float a[3]={float(av[0]),float(av[1]),float(av[2])};
                 float l[3]={float(llv[0]),float(llv[1]),float(llv[2])};
                 _simSetShapeDynamicVelocity(shape,l,a,simulationTime);

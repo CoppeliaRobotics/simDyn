@@ -18,7 +18,6 @@ struct SMjShape
     int mjIdStatic; // body (static counterpart, if applies)
     int mjIdJoint; // freejoint (if shape in free mode)
     shapeModes shapeMode;
-    C7Vector shapeComTr; // Shape's com transf rel to shape frame
     C7Vector staticShapeStart;
     C7Vector staticShapeGoal;
     itemTypes itemType;
