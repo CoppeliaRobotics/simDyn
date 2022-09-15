@@ -4,6 +4,8 @@
 #include "xmlser.h"
 #include <mujoco/mujoco.h>
 
+//#define testingArmature
+
 enum shapeModes{staticMode=0,kinematicMode=1,freeMode=2,attachedMode=3};
 
 enum itemTypes{shapeItem=0,particleItem=1,compositeItem=2,dummyShapeItem=3};
@@ -41,15 +43,21 @@ struct SMjJoint
     std::string name;
     CXSceneObject* object;
 
-    int mjId; // joint
-    int mjId2; // actuator
+    int mjId; // joint or tendon
+    int mjIdActuator; // actuator
     int actMode; // 0=free, 1=force/torque, 2=mixed(force/vel, using inverse dyn.)
     int jointType;
+    bool tendonJoint;
     float jointCtrlDv;
     float jointCtrlForceToApply;
     C4Vector initialBallQuat;
     int dependencyJointHandle;
     double polycoef[5];
+#ifdef testingArmature
+    std::vector<double> lastForces;
+    double armature;
+    double maxForceOverArmature;
+#endif
 };
 
 struct SMjFreejoint

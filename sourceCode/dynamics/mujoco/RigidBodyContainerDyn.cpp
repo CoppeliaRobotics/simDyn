@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 const bool useGlobalCoords=false; // global coords are easier, but composites require local coords!
 
@@ -294,9 +295,52 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
                     double springlength=simGetEngineFloatParam(sim_mujoco_dummy_springlength,-1,dummy1,nullptr);
                     double margin=simGetEngineFloatParam(sim_mujoco_dummy_margin,-1,dummy1,nullptr);
                     bool limited=simGetEngineBoolParam(sim_mujoco_dummy_limited,-1,dummy1,nullptr);
+                    int proxyJointId=simGetEngineInt32Param(sim_mujoco_dummy_proxyjointid,-1,dummy1,nullptr);
+                    CXSceneObject* proxyJoint=nullptr;
+                    if (proxyJointId>=0)
+                    {
+                        proxyJoint=(CXSceneObject*)_simGetObject(proxyJointId);
+                        if (_simGetObjectType(proxyJoint)==sim_object_joint_type)
+                        {
+                            if ( (_simGetJointMode(proxyJoint)!=sim_jointmode_dynamic)||(_simGetJointType(proxyJoint)!=sim_joint_prismatic_subtype) )
+                            {
+                                char* f=simGetObjectAlias(proxyJointId,5);
+                                std::string nm(f);
+                                simReleaseBuffer(f);
+                                std::string msg("joint '");
+                                msg+=nm+"' is referenced from a tendon constraint, but is not in dynamic mode, or is not a prismatic joint. The tendon will not operate as expected.";
+                                simAddLog(LIBRARY_NAME,sim_verbosity_warnings,msg.c_str());
+                                proxyJoint=nullptr;
+                            }
+                        }
+                        else
+                            proxyJoint=nullptr; // should never happen
+                    }
 
-                    xmlDoc->setAttr("limited",limited);
-                    xmlDoc->setAttr("range",range,2);
+                    if (proxyJoint!=nullptr)
+                    {
+                        SMjJoint gjoint;
+                        gjoint.dependencyJointHandle=-1;
+                        gjoint.objectHandle=proxyJointId;
+                        gjoint.name=_getObjectName(proxyJoint);
+                        gjoint.jointType=sim_joint_prismatic_subtype;
+                        gjoint.tendonJoint=true;
+                        _allJoints.push_back(gjoint);
+                        _simSetDynamicSimulationIconCode(proxyJoint,sim_dynamicsimicon_objectisdynamicallysimulated);
+                        _simSetDynamicObjectFlagForVisualization(proxyJoint,4);
+                        xmlDoc->setAttr("name",gjoint.name.c_str()); // name comes from the proxy joint
+                        float minp,rangep;
+                        bool limited=_simGetJointPositionInterval(proxyJoint,&minp,&rangep);
+                        xmlDoc->setAttr("limited",limited);
+                        if (limited)
+                            xmlDoc->setAttr("range",minp,minp+rangep);
+                    }
+                    else
+                    {
+                        xmlDoc->setAttr("name",_getObjectName(dummy1).c_str()); // name comes from the dummy with lowest handle
+                        xmlDoc->setAttr("limited",limited);
+                        xmlDoc->setAttr("range",range,2);
+                    }
                     xmlDoc->setAttr("solreflimit",solrefLimit,2);
                     xmlDoc->setAttr("solimplimit",solimpLimit,5);
                     xmlDoc->setAttr("margin",margin);
@@ -413,7 +457,10 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
                 xmlDoc->pushNewNode("motor");
                 std::string nm(_getObjectName(joint));
                 xmlDoc->setAttr("name",(nm+"act").c_str());
-                xmlDoc->setAttr("joint",nm.c_str());
+                if (_allJoints[i].tendonJoint)
+                    xmlDoc->setAttr("tendon",nm.c_str());
+                else
+                    xmlDoc->setAttr("joint",nm.c_str());
                 if (m==sim_jointdynctrl_free)
                     _allJoints[i].actMode=0; // not actuated
                 else if ( (m==sim_jointdynctrl_force)||(m==sim_jointdynctrl_spring) )
@@ -511,10 +558,11 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
         for (size_t i=0;i<_allJoints.size();i++)
         {
             _allJoints[i].object=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
-            int mjId=mj_name2id(_mjModel,mjOBJ_JOINT,_allJoints[i].name.c_str());
-            _allJoints[i].mjId=mjId;
-            mjId=mj_name2id(_mjModel,mjOBJ_ACTUATOR,(_allJoints[i].name+"act").c_str());
-            _allJoints[i].mjId2=mjId;
+            if (_allJoints[i].tendonJoint)
+                _allJoints[i].mjId=mj_name2id(_mjModel,mjOBJ_TENDON,_allJoints[i].name.c_str());
+            else
+                _allJoints[i].mjId=mj_name2id(_mjModel,mjOBJ_JOINT,_allJoints[i].name.c_str());
+            _allJoints[i].mjIdActuator=mj_name2id(_mjModel,mjOBJ_ACTUATOR,(_allJoints[i].name+"act").c_str());
             sceneJoints[_allJoints[i].name]=true;
         }
         for (size_t i=0;i<_allFreejoints.size();i++)
@@ -526,17 +574,14 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
         for (size_t i=0;i<_allForceSensors.size();i++)
         {
             _allForceSensors[i].object=(CXSceneObject*)_simGetObject(_allForceSensors[i].objectHandle);
-            int mjId=mj_name2id(_mjModel,mjOBJ_SENSOR,(_allForceSensors[i].name+"force").c_str());
-            _allForceSensors[i].mjId=mjId;
-            mjId=mj_name2id(_mjModel,mjOBJ_SENSOR,(_allForceSensors[i].name+"torque").c_str());
-            _allForceSensors[i].mjId2=mjId;
+            _allForceSensors[i].mjId=mj_name2id(_mjModel,mjOBJ_SENSOR,(_allForceSensors[i].name+"force").c_str());
+            _allForceSensors[i].mjId2=mj_name2id(_mjModel,mjOBJ_SENSOR,(_allForceSensors[i].name+"torque").c_str());
         }
         std::map<int,size_t> tempShapeMap;
         for (size_t i=0;i<_allShapes.size();i++)
         {
             tempShapeMap[_allShapes[i].objectHandle]=i;
-            int mjId=mj_name2id(_mjModel,mjOBJ_BODY,_allShapes[i].name.c_str());
-            _allShapes[i].mjId=mjId;
+            _allShapes[i].mjId=mj_name2id(_mjModel,mjOBJ_BODY,_allShapes[i].name.c_str());
             _allShapes[i].mjIdStatic=-1;
             _allShapes[i].mjIdJoint=-1;
             if (_allShapes[i].itemType==shapeItem)
@@ -556,8 +601,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
                 }
                 if (_allShapes[i].shapeMode==shapeModes::freeMode)
                 { // handle initial velocity for free bodies:
-                    mjId=mj_name2id(_mjModel,mjOBJ_JOINT,(_allShapes[i].name+"freejoint").c_str());
-                    _allShapes[i].mjIdJoint=mjId;
+                    _allShapes[i].mjIdJoint=mj_name2id(_mjModel,mjOBJ_JOINT,(_allShapes[i].name+"freejoint").c_str());
                     int nvadr=_mjModel->body_dofadr[_allShapes[i].mjId];
                     C3Vector v;
                     _simGetInitialDynamicVelocity(_allShapes[i].object,v.data);
@@ -1438,7 +1482,10 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 xmlDoc->setAttr("name",jointName.c_str());
 
                 SMjJoint gjoint;
-
+#ifdef testingArmature
+                gjoint.armature=armature;
+                gjoint.maxForceOverArmature=0.0;
+#endif
                 if (jt==sim_joint_spherical_subtype)
                 {
                     xmlDoc->setAttr("type","ball");
@@ -1489,6 +1536,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 gjoint.objectHandle=_simGetObjectID(joint);
                 gjoint.name=jointName;
                 gjoint.jointType=jt;
+                gjoint.tendonJoint=false;
                 _allJoints.push_back(gjoint);
 
                 _simSetDynamicSimulationIconCode(joint,sim_dynamicsimicon_objectisdynamicallysimulated);
@@ -1997,8 +2045,27 @@ void CRigidBodyContainerDyn::handleDynamics(float dt,float simulationTime)
                     _simDynCallback(integers,floats);
                 }
             }
-
             _clearAdditionalForcesAndTorques();
+
+#ifdef testingArmature
+            for (size_t i=0;i<_allJoints.size();i++)
+            {
+                SMjJoint* m=&_allJoints[i];
+                if ( (m->lastForces.size()>0)&&(m->armature!=0.0) )
+                {
+                    if (m->lastForces.size()>21)
+                    {
+                        m->lastForces.erase(m->lastForces.begin(),m->lastForces.end()-21);
+                        std::vector<double> w(m->lastForces);
+                        std::sort(w.begin(),w.end());
+                        double d=w[10]/m->armature;
+                        if (d>m->maxForceOverArmature)
+                            m->maxForceOverArmature=d;
+                        printf("Max force/armature: %s, %f\n",m->name.c_str(),m->maxForceOverArmature);
+                    }
+                }
+            }
+#endif
         }
     }
 }
@@ -2198,11 +2265,17 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
     {
         SMjJoint* mujocoItem=jointMujocoItems[i];
         if (mujocoItem->actMode==1)
-            _mjDataCopy->ctrl[mujocoItem->mjId2]=mujocoItem->jointCtrlForceToApply;
-        else
+            _mjDataCopy->ctrl[mujocoItem->mjIdActuator]=mujocoItem->jointCtrlForceToApply;
+        if (mujocoItem->actMode==2)
         {
-            int vadr=m->jnt_dofadr[mujocoItem->mjId];
-            _mjDataCopy->qacc[vadr]=mujocoItem->jointCtrlDv/m->opt.timestep;
+            if (mujocoItem->tendonJoint)
+            { // TODO
+            }
+            else
+            {
+                int vadr=m->jnt_dofadr[mujocoItem->mjId];
+                _mjDataCopy->qacc[vadr]=mujocoItem->jointCtrlDv/m->opt.timestep;
+            }
         }
     }
     mj_inverse(m,_mjDataCopy);
@@ -2212,16 +2285,22 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
     {
         SMjJoint* mujocoItem=jointMujocoItems[i];
         if (mujocoItem->actMode==1)
-            d->ctrl[mujocoItem->mjId2]=mujocoItem->jointCtrlForceToApply;
+            d->ctrl[mujocoItem->mjIdActuator]=mujocoItem->jointCtrlForceToApply;
         if (mujocoItem->actMode==2)
         {
-            int vadr=m->jnt_dofadr[mujocoItem->mjId];
-            double f=_mjDataCopy->qfrc_inverse[vadr];
-            if (f>fabs(mujocoItem->jointCtrlForceToApply))
-                f=fabs(mujocoItem->jointCtrlForceToApply);
-            else if (f<-fabs(mujocoItem->jointCtrlForceToApply))
-                f=-fabs(mujocoItem->jointCtrlForceToApply);
-            d->ctrl[mujocoItem->mjId2]=f;
+            if (mujocoItem->tendonJoint)
+            { // TODO
+            }
+            else
+            {
+                int vadr=m->jnt_dofadr[mujocoItem->mjId];
+                double f=_mjDataCopy->qfrc_inverse[vadr];
+                if (f>fabs(mujocoItem->jointCtrlForceToApply))
+                    f=fabs(mujocoItem->jointCtrlForceToApply);
+                else if (f<-fabs(mujocoItem->jointCtrlForceToApply))
+                    f=-fabs(mujocoItem->jointCtrlForceToApply);
+                d->ctrl[mujocoItem->mjIdActuator]=f;
+            }
         }
     }
 
@@ -2240,11 +2319,21 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
     int ctrlMode=_simGetJointDynCtrlMode(joint);
     float dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
     float e=0.0f;
-    int padr=_mjModel->jnt_qposadr[mujocoItem->mjId];
-    float currentPos=_mjData->qpos[padr];
-    int vadr=_mjModel->jnt_dofadr[mujocoItem->mjId];
-    float currentVel=_mjData->qvel[vadr];
-    float currentAccel=_mjData->qacc[vadr];
+    float currentPos,currentVel,currentAccel;
+    int auxV=0;
+    if (mujocoItem->tendonJoint)
+    { // TODO
+        currentPos=_mjData->ten_length[mujocoItem->mjId];
+    }
+    else
+    {
+        int padr=_mjModel->jnt_qposadr[mujocoItem->mjId];
+        currentPos=_mjData->qpos[padr];
+        int vadr=_mjModel->jnt_dofadr[mujocoItem->mjId];
+        currentVel=_mjData->qvel[vadr];
+        currentAccel=_mjData->qacc[vadr];
+        auxV=2+4; // we provide vel and accel info too
+    }
     if (mujocoItem->jointType==sim_joint_revolute_subtype)
     {
         if (ctrlMode>=sim_jointdynctrl_position)
@@ -2261,7 +2350,6 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
             e=_simGetDynamicMotorTargetPosition(joint)-currentPos;
     }
 
-    int auxV=2+4; // we provide vel and accel info too
     if (_firstCtrlPass)
         auxV|=1;
     int inputValuesInt[5]={0,0,0,0,0};
@@ -2273,7 +2361,11 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
         inputValuesFloat[0]=currentPos;
     else
        inputValuesFloat[0]=currentPos;
-    inputValuesFloat[1]=_mjData->actuator_force[mujocoItem->mjId2];
+    double eff=_mjData->actuator_force[mujocoItem->mjIdActuator];
+    inputValuesFloat[1]=eff;
+#ifdef testingArmature
+    mujocoItem->lastForces.push_back(eff);
+#endif
     if (_rg4Cnt==0)
         inputValuesFloat[2]=dynStepSize;
     else
@@ -2294,7 +2386,7 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
     float outputValues[5];
     int res=_simHandleJointControl(joint,auxV,inputValuesInt,inputValuesFloat,outputValues);
 
-    if ((res&2)==0)
+//    if ((res&2)==0)
     { // motor is not locked
         if ((res&1)==1)
         {
@@ -2307,9 +2399,9 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
             mujocoItem->jointCtrlForceToApply=0.0;
         }
     }
-    else
-    { // motor is locked. Not supported by Mujoco?!
-    }
+//    else
+//    { // motor is locked. Not supported by Mujoco?!
+//    }
 }
 
 void CRigidBodyContainerDyn::_errorCallback(const char* err)
@@ -2527,23 +2619,37 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
         CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
         if (joint!=nullptr)
         {
-            int padr=_mjModel->jnt_qposadr[_allJoints[i].mjId];
-            int vadr=_mjModel->jnt_dofadr[_allJoints[i].mjId];
-            if (_allJoints[i].jointType==sim_joint_spherical_subtype)
-            {
-                C4Vector q(_mjData->qpos[padr+0],_mjData->qpos[padr+1],_mjData->qpos[padr+2],_mjData->qpos[padr+3]);
-                q=_allJoints[i].initialBallQuat*q;
-                q.normalize();
-                _simSetJointSphericalTransformation(joint,q.data,simulationTime);
-            }
-            else
-            {
-                _simSetJointPosition(joint,_mjData->qpos[padr]);
+            if (_allJoints[i].tendonJoint)
+            { // TODO
+                _simSetJointPosition(joint,_mjData->actuator_length[_allJoints[i].mjIdActuator]);
+                /*
                 int totalPassesCount=0;
                 if (currentPass==totalPasses-1)
                     totalPassesCount=totalPasses;
-                _simAddJointCumulativeForcesOrTorques(joint,-_mjData->actuator_force[_allJoints[i].mjId2],totalPassesCount,simulationTime);
+                _simAddJointCumulativeForcesOrTorques(joint,-_mjData->actuator_force[_allJoints[i].mjIdActuator],totalPassesCount,simulationTime);
                 _simSetJointVelocity(joint,_mjData->qvel[vadr]);
+                */
+            }
+            else
+            {
+                int padr=_mjModel->jnt_qposadr[_allJoints[i].mjId];
+                int vadr=_mjModel->jnt_dofadr[_allJoints[i].mjId];
+                if (_allJoints[i].jointType==sim_joint_spherical_subtype)
+                {
+                    C4Vector q(_mjData->qpos[padr+0],_mjData->qpos[padr+1],_mjData->qpos[padr+2],_mjData->qpos[padr+3]);
+                    q=_allJoints[i].initialBallQuat*q;
+                    q.normalize();
+                    _simSetJointSphericalTransformation(joint,q.data,simulationTime);
+                }
+                else
+                {
+                    _simSetJointPosition(joint,_mjData->qpos[padr]);
+                    int totalPassesCount=0;
+                    if (currentPass==totalPasses-1)
+                        totalPassesCount=totalPasses;
+                    _simAddJointCumulativeForcesOrTorques(joint,-_mjData->actuator_force[_allJoints[i].mjIdActuator],totalPassesCount,simulationTime);
+                    _simSetJointVelocity(joint,_mjData->qvel[vadr]);
+                }
             }
         }
     }
