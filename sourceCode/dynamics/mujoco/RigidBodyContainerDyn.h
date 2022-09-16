@@ -51,6 +51,7 @@ struct SMjJoint
     float jointCtrlDv;
     float jointCtrlForceToApply;
     C4Vector initialBallQuat;
+    C4Vector initialBallQuat2;
     int dependencyJointHandle;
     double polycoef[5];
 #ifdef testingArmature

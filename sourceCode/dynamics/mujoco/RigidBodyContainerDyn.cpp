@@ -1492,6 +1492,9 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                     float p[7];
                     simGetObjectChildPose(_simGetObjectID(joint),p);
                     gjoint.initialBallQuat=C4Vector(p+3,true);
+                    float p2[7];
+                    simGetObjectPose(_simGetObjectID(joint),_simGetObjectID(containingShape),p2);
+                    gjoint.initialBallQuat2=C4Vector(p2+3,true);
                     gjoint.dependencyJointHandle=-1;
                 }
                 else
@@ -2322,8 +2325,10 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
     float currentPos,currentVel,currentAccel;
     int auxV=0;
     if (mujocoItem->tendonJoint)
-    { // TODO
+    { // TODO tendon accel?
         currentPos=_mjData->ten_length[mujocoItem->mjId];
+        currentVel=_mjData->ten_velocity[mujocoItem->mjId];
+        auxV=2; // we provide vel info too
     }
     else
     {
@@ -2545,6 +2550,67 @@ void CRigidBodyContainerDyn::_handleKinematicBodies_step(float t,float cumulated
 
 void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int currentPass,int totalPasses)
 {
+    // First joints:
+    for (size_t i=0;i<_allJoints.size();i++)
+    {
+        CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
+        if (joint!=nullptr)
+        {
+            if (_allJoints[i].tendonJoint)
+            { // TODO
+                _simSetJointPosition(joint,_mjData->actuator_length[_allJoints[i].mjIdActuator]);
+                /*
+                int totalPassesCount=0;
+                if (currentPass==totalPasses-1)
+                    totalPassesCount=totalPasses;
+                _simAddJointCumulativeForcesOrTorques(joint,-_mjData->actuator_force[_allJoints[i].mjIdActuator],totalPassesCount,simulationTime);
+                _simSetJointVelocity(joint,_mjData->qvel[vadr]);
+                */
+            }
+            else
+            {
+                int padr=_mjModel->jnt_qposadr[_allJoints[i].mjId];
+                int vadr=_mjModel->jnt_dofadr[_allJoints[i].mjId];
+                if (_allJoints[i].jointType==sim_joint_spherical_subtype)
+                {
+                    C4Vector q(_mjData->qpos[padr+0],_mjData->qpos[padr+1],_mjData->qpos[padr+2],_mjData->qpos[padr+3]);
+                    q=_allJoints[i].initialBallQuat2.getInverse()*(q*_allJoints[i].initialBallQuat)*_allJoints[i].initialBallQuat2;
+                    // Something is still not right here, in situations where the joint is involved in loop closure, and has an initialBallQuat different from the identity quaternion
+                    // But this as only a visual effect on the spherical joint only (involved shapes are correctly placed)
+                    q.normalize();
+                    _simSetJointSphericalTransformation(joint,q.data,simulationTime);
+                }
+                else
+                {
+                    _simSetJointPosition(joint,_mjData->qpos[padr]);
+                    int totalPassesCount=0;
+                    if (currentPass==totalPasses-1)
+                        totalPassesCount=totalPasses;
+                    _simAddJointCumulativeForcesOrTorques(joint,-_mjData->actuator_force[_allJoints[i].mjIdActuator],totalPassesCount,simulationTime);
+                    _simSetJointVelocity(joint,_mjData->qvel[vadr]);
+                }
+            }
+        }
+    }
+
+    // Then force sensors:
+    for (size_t i=0;i<_allForceSensors.size();i++)
+    {
+        CXSceneObject* forceSens=(CXSceneObject*)_simGetObject(_allForceSensors[i].objectHandle);
+        if (forceSens!=nullptr)
+        {
+            int fadr=_mjModel->sensor_adr[_allForceSensors[i].mjId];
+            int tadr=_mjModel->sensor_adr[_allForceSensors[i].mjId2];
+            int totalPassesCount=0;
+            if (currentPass==totalPasses-1)
+                totalPassesCount=totalPasses;
+            float f[3]={float(-_mjData->sensordata[fadr+0]),float(-_mjData->sensordata[fadr+1]),float(-_mjData->sensordata[fadr+2])};
+            float t[3]={float(-_mjData->sensordata[tadr+0]),float(-_mjData->sensordata[tadr+1]),float(-_mjData->sensordata[tadr+2])};
+            _simAddForceSensorCumulativeForcesAndTorques(forceSens,f,t,totalPassesCount,simulationTime);
+        }
+    }
+
+    // Then shapes:
     for (size_t i=0;i<_allShapes.size();i++)
     { // objectHandle should be ordered so that each object's ancestor comes before
         if (_allShapes[i].itemType==shapeItem)
@@ -2614,61 +2680,7 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
         }
     }
 
-    for (size_t i=0;i<_allJoints.size();i++)
-    {
-        CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
-        if (joint!=nullptr)
-        {
-            if (_allJoints[i].tendonJoint)
-            { // TODO
-                _simSetJointPosition(joint,_mjData->actuator_length[_allJoints[i].mjIdActuator]);
-                /*
-                int totalPassesCount=0;
-                if (currentPass==totalPasses-1)
-                    totalPassesCount=totalPasses;
-                _simAddJointCumulativeForcesOrTorques(joint,-_mjData->actuator_force[_allJoints[i].mjIdActuator],totalPassesCount,simulationTime);
-                _simSetJointVelocity(joint,_mjData->qvel[vadr]);
-                */
-            }
-            else
-            {
-                int padr=_mjModel->jnt_qposadr[_allJoints[i].mjId];
-                int vadr=_mjModel->jnt_dofadr[_allJoints[i].mjId];
-                if (_allJoints[i].jointType==sim_joint_spherical_subtype)
-                {
-                    C4Vector q(_mjData->qpos[padr+0],_mjData->qpos[padr+1],_mjData->qpos[padr+2],_mjData->qpos[padr+3]);
-                    q=_allJoints[i].initialBallQuat*q;
-                    q.normalize();
-                    _simSetJointSphericalTransformation(joint,q.data,simulationTime);
-                }
-                else
-                {
-                    _simSetJointPosition(joint,_mjData->qpos[padr]);
-                    int totalPassesCount=0;
-                    if (currentPass==totalPasses-1)
-                        totalPassesCount=totalPasses;
-                    _simAddJointCumulativeForcesOrTorques(joint,-_mjData->actuator_force[_allJoints[i].mjIdActuator],totalPassesCount,simulationTime);
-                    _simSetJointVelocity(joint,_mjData->qvel[vadr]);
-                }
-            }
-        }
-    }
-
-    for (size_t i=0;i<_allForceSensors.size();i++)
-    {
-        CXSceneObject* forceSens=(CXSceneObject*)_simGetObject(_allForceSensors[i].objectHandle);
-        if (forceSens!=nullptr)
-        {
-            int fadr=_mjModel->sensor_adr[_allForceSensors[i].mjId];
-            int tadr=_mjModel->sensor_adr[_allForceSensors[i].mjId2];
-            int totalPassesCount=0;
-            if (currentPass==totalPasses-1)
-                totalPassesCount=totalPasses;
-            float f[3]={float(-_mjData->sensordata[fadr+0]),float(-_mjData->sensordata[fadr+1]),float(-_mjData->sensordata[fadr+2])};
-            float t[3]={float(-_mjData->sensordata[tadr+0]),float(-_mjData->sensordata[tadr+1]),float(-_mjData->sensordata[tadr+2])};
-            _simAddForceSensorCumulativeForcesAndTorques(forceSens,f,t,totalPassesCount,simulationTime);
-        }
-    }
+    // Finally particles:
     _particleCont->updateParticlesPosition(simulationTime);
 }
 
