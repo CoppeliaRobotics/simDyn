@@ -2208,7 +2208,6 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
 
     // Joints:
     std::vector<SMjJoint*> jointMujocoItems;
-    std::vector<int> jointOrders;
     for (size_t i=0;i<_allJoints.size();i++)
     {
         CXSceneObject* joint=(CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
@@ -2216,10 +2215,6 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
         {
             _allJoints[i].object=joint;
             jointMujocoItems.push_back(&_allJoints[i]);
-            if (_simGetJointDynCtrlMode(joint)==sim_jointdynctrl_callback)
-                jointOrders.push_back(_simGetJointCallbackCallOrder(joint));
-            else
-                jointOrders.push_back(sim_scriptexecorder_normal);
         }
     }
     for (size_t i=0;i<_allFreejoints.size();i++)
@@ -2233,26 +2228,9 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
         }
     }
 
-
     // First get control values:
-    // handle first the higher priority joints:
-    for (size_t i=0;i<jointOrders.size();i++)
-    {
-        if (jointOrders[i]<0)
-            _handleMotorControl(jointMujocoItems[i]);
-    }
-    // now the normal priority joints:
-    for (size_t i=0;i<jointOrders.size();i++)
-    {
-        if (jointOrders[i]==0)
-            _handleMotorControl(jointMujocoItems[i]);
-    }
-    // now the low priority joints:
-    for (size_t i=0;i<jointOrders.size();i++)
-    {
-        if (jointOrders[i]>0)
-            _handleMotorControl(jointMujocoItems[i]);
-    }
+    for (size_t i=0;i<jointMujocoItems.size();i++)
+        _handleMotorControl(jointMujocoItems[i]);
 
     // Compute inverse dynamics to figure out force/torque values for a perfect velocity control:
     // mj_copyData(_mjDataCopy,m,d); // very slow

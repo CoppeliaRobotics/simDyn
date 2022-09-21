@@ -890,46 +890,14 @@ void CRigidBodyContainerDyn_base::_getShapesToConsiderAsRigidBodies(std::set<CXS
 
 void CRigidBodyContainerDyn_base::_handleMotorControls(int passCnt,int totalPasses)
 {
-    std::vector<CConstraintDyn*> constraintsToHandle;
-    std::vector<CXJoint*> constraintsToHandle_joint;
-    std::vector<int> constraintsToHandle_order;
-
     auto it=_allConstraints.begin();
     while (it!=_allConstraints.end())
     {
         CConstraintDyn* constraint=it->second;
         CXJoint* joint=(CXJoint*)constraint->getJoint();
         if (joint!=nullptr)
-        {
-            constraintsToHandle.push_back(constraint);
-            constraintsToHandle_joint.push_back(joint);
-            if (_simGetJointDynCtrlMode(joint)==sim_jointdynctrl_callback)
-                constraintsToHandle_order.push_back(_simGetJointCallbackCallOrder(joint));
-            else
-                constraintsToHandle_order.push_back(sim_scriptexecorder_normal);
-        }
+            constraint->handleMotorControl(joint,passCnt,totalPasses);
         ++it;
-    }
-
-    // handle first the higher priority joints:
-    for (size_t i=0;i<constraintsToHandle.size();i++)
-    {
-        if (constraintsToHandle_order[i]<0)
-            constraintsToHandle[i]->handleMotorControl(constraintsToHandle_joint[i],passCnt,totalPasses);
-    }
-
-    // now the normal priority joints:
-    for (size_t i=0;i<constraintsToHandle.size();i++)
-    {
-        if (constraintsToHandle_order[i]==0)
-            constraintsToHandle[i]->handleMotorControl(constraintsToHandle_joint[i],passCnt,totalPasses);
-    }
-
-    // now the low priority joints:
-    for (size_t i=0;i<constraintsToHandle.size();i++)
-    {
-        if (constraintsToHandle_order[i]>0)
-            constraintsToHandle[i]->handleMotorControl(constraintsToHandle_joint[i],passCnt,totalPasses);
     }
 }
 
