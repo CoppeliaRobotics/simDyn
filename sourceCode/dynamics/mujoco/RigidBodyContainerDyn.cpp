@@ -2129,7 +2129,12 @@ int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,
             CXSceneObject* shapeB=(CXSceneObject*)_simGetObject(body2Handle);
             unsigned int collFA=gm1->respondableMask;
             unsigned int collFB=gm2->respondableMask;
-            canCollide=(_simIsShapeDynamicallyRespondable(shapeA)&&_simIsShapeDynamicallyRespondable(shapeB)&&((!gm1->belongsToStaticItem)||(!gm2->belongsToStaticItem)) );
+            canCollide=(_simIsShapeDynamicallyRespondable(shapeA)&&_simIsShapeDynamicallyRespondable(shapeB) );
+
+// Following does not have the expected effect: it adds strangely more contacts:
+//            if ( gm1->belongsToStaticItem&&gm2->belongsToStaticItem )
+//                canCollide=false;
+
             if (canCollide)
             {
                 CXSceneObject* lastPA=(CXSceneObject*)_simGetLastParentForLocalGlobalCollidable(shapeA);
