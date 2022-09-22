@@ -47,6 +47,7 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     xmlDoc->popNode();
 
     SMjGeom g;
+    g.belongsToStaticItem=false;
     g.itemType=particleItem;
     g.objectHandle=-2;//CRigidBodyContainerDyn::getDynWorld()->getDynamicParticlesIdStart()+_uniqueID;
     g.name=_name;

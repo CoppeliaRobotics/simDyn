@@ -975,6 +975,7 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
                 if ( (comp->type=="box")||(comp->type=="cylinder")||(comp->type=="ellipsoid") )
                 {
                     SMjGeom g;
+                    g.belongsToStaticItem=false;
                     g.name=comp->prefix+"Gcenter";
                     g.objectHandle=_nextCompositeHandle;
                     g.prefix=comp->prefix;
@@ -989,6 +990,7 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
                             for (size_t k=0;k<comp->count[2];k++)
                             {
                                 SMjGeom g;
+                                g.belongsToStaticItem=false;
                                 g.name=comp->prefix+"G"+std::to_string(i)+"_"+std::to_string(j)+"_"+std::to_string(k);
                                 g.objectHandle=_nextCompositeHandle;
                                 g.prefix=comp->prefix;
@@ -1006,6 +1008,7 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
                         for (size_t j=0;j<comp->count[1];j++)
                         {
                             SMjGeom g;
+                            g.belongsToStaticItem=false;
                             g.name=comp->prefix+"G"+std::to_string(i)+"_"+std::to_string(j);
                             g.objectHandle=_nextCompositeHandle;
                             g.prefix=comp->prefix;
@@ -1020,6 +1023,7 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
                     for (size_t i=0;i<comp->count[0];i++)
                     {
                         SMjGeom g;
+                        g.belongsToStaticItem=false;
                         g.name=comp->prefix+"G"+std::to_string(i);
                         g.objectHandle=_nextCompositeHandle;
                         g.prefix=comp->prefix;
@@ -1607,7 +1611,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
         }
         else
         {
-            if (!_addMeshes(object,xmlDoc,info,&_allGeoms))
+            if (!_addMeshes(object,xmlDoc,info,&_allGeoms,forceStatic||(_simIsShapeDynamicallyStatic(object)!=0)))
                 _simMakeDynamicAnnouncement(sim_announce_containsnonpurenonconvexshapes);
             if (g.shapeMode!=shapeModes::staticMode)
             {
@@ -1670,7 +1674,7 @@ float CRigidBodyContainerDyn::computeInertia(int shapeHandle,C7Vector& tr,C3Vect
     SInfo info;
     info.folder=dir;
     info.inertiaCalcRobust=addRobustness;
-    _addMeshes(shape,xmlDoc,&info,nullptr);
+    _addMeshes(shape,xmlDoc,&info,nullptr,false);
 
     xmlDoc->popNode(); // body
     xmlDoc->popNode(); // worldbody
@@ -1724,7 +1728,7 @@ float CRigidBodyContainerDyn::computeInertia(int shapeHandle,C7Vector& tr,C3Vect
     return(mass);
 }
 
-bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms)
+bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms,bool shapeIsStatic)
 { // retVal==false: display a warning if using non-pure non-convex shapes
     bool retVal=true;
     CXGeomProxy* geom=(CXGeomProxy*)_simGetGeomProxyFromShape(object); // even non respondable shapes have a geom
@@ -1773,6 +1777,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
         xmlDoc->setAttr("name",nm.c_str());
 
         SMjGeom g;
+        g.belongsToStaticItem=shapeIsStatic;
         g.itemType=shapeItem;
         g.objectHandle=_simGetObjectID(object);
         g.name=nm;
@@ -2124,7 +2129,7 @@ int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,
             CXSceneObject* shapeB=(CXSceneObject*)_simGetObject(body2Handle);
             unsigned int collFA=gm1->respondableMask;
             unsigned int collFB=gm2->respondableMask;
-            canCollide=(_simIsShapeDynamicallyRespondable(shapeA)&&_simIsShapeDynamicallyRespondable(shapeB));
+            canCollide=(_simIsShapeDynamicallyRespondable(shapeA)&&_simIsShapeDynamicallyRespondable(shapeB)&&((!gm1->belongsToStaticItem)||(!gm2->belongsToStaticItem)) );
             if (canCollide)
             {
                 CXSceneObject* lastPA=(CXSceneObject*)_simGetLastParentForLocalGlobalCollidable(shapeA);

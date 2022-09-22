@@ -32,6 +32,7 @@ struct SMjGeom
     std::string name; // shape, particle or composite name
     std::string prefix; // composite prefix
     int respondableMask; // for particles and composites only. 0xff00=collision with shapes, 0x00ff=particle-particle collision, 0x00f0=composite-other composite collision, 0x000f=composite-same composite collision
+    bool belongsToStaticItem;
     itemTypes itemType;
 
     int mjId; // geom
@@ -145,7 +146,7 @@ public:
 
 protected:
     static std::string _getObjectName(CXSceneObject* object);
-    static bool _addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms);
+    static bool _addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms,bool shapeIsStatic);
     int _hasContentChanged();
     void _addInjections(CXmlSer* xmlDoc,int objectHandle,const char* currentElement);
     void _addComposites(CXmlSer* xmlDoc,int shapeHandle,const char* currentElement);
