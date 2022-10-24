@@ -231,7 +231,6 @@ HEADERS += ../../coppeliaSimLib/sourceCode/interfaces/dummyClasses.h \
     ../simMath/7Vector.h \
     ../simMath/3X3Matrix.h \
     ../simMath/4X4Matrix.h \
-    ../simMath/4X4FullMatrix.h \
     ../simMath/MyMath.h \
     
 SOURCES += ../common/simLib.cpp \
@@ -240,7 +239,6 @@ SOURCES += ../common/simLib.cpp \
     ../simMath/7Vector.cpp \
     ../simMath/3X3Matrix.cpp \
     ../simMath/4X4Matrix.cpp \
-    ../simMath/4X4FullMatrix.cpp \
     ../simMath/MyMath.cpp \
 
 HEADERS += ../include/stack/stackBool.h \

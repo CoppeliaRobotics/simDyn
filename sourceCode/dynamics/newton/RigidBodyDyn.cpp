@@ -1,7 +1,7 @@
 #include "RigidBodyContainerDyn.h"
 #include "CollShapeDyn.h"
 #include "NewtonConvertUtil.h"
-#include "4X4FullMatrix.h"
+#include "4X4Matrix.h"
 #include "simLib.h"
 
 CRigidBodyDyn::CRigidBodyDyn()
@@ -158,8 +158,14 @@ void CRigidBodyDyn::handleKinematicBody_step(float t,float cumulatedTimeStep)
         dQuaternion rot;
         NewtonBodyGetRotation(_newtonBody, &rot.m_q0);
         NewtonBodyGetMatrix(_newtonBody, &posit[0][0]);
-        C4X4FullMatrix transform(tr.getMatrix());
-        dMatrix matrix(&transform(0, 0));
+        C4X4Matrix transf(tr.getMatrix());
+        float m[16];
+        m[12]=0.0;
+        m[13]=0.0;
+        m[14]=0.0;
+        m[15]=1.0;
+        transf.getInternalData(m);
+        dMatrix matrix(m);
         matrix = matrix.Transpose4X4();
         dQuaternion rot1 (matrix);
 

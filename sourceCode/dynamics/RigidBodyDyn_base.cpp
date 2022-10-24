@@ -1,7 +1,6 @@
 #include "RigidBodyDyn_base.h"
 #include "RigidBodyContainerDyn.h"
 #include "simLib.h"
-#include "4X4FullMatrix.h"
 
 CRigidBodyDyn_base::CRigidBodyDyn_base()
 {

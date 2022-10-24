@@ -1,6 +1,5 @@
 #include "CollShapeDyn.h"
 #include "simLib.h"
-#include "4X4FullMatrix.h"
 #include "NewtonConvertUtil.h"
 #include "RigidBodyContainerDyn.h"
 

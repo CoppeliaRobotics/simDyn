@@ -1,7 +1,6 @@
 #include "CollShapeDyn.h"
 #include "RigidBodyContainerDyn.h"
 #include "simLib.h"
-#include "4X4FullMatrix.h"
 #include "Vx/VxCollisionGeometry.h"
 #include "Vx/VxCompositeCollisionGeometry.h"
 #include "Vx/VxFrame.h"
