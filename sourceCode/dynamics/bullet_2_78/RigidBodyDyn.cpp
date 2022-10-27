@@ -176,8 +176,8 @@ void CRigidBodyDyn::reportVelocityToShape(float simulationTime)
     C3Vector lv,av;
     btVector3 btlv(_rigidBody->getLinearVelocity());
     btVector3 btav(_rigidBody->getAngularVelocity());
-    lv.set(btlv.x()/vs,btlv.y()/vs,btlv.z()/vs);
-    av.set(btav.x(),btav.y(),btav.z());
+    lv.setData(btlv.x()/vs,btlv.y()/vs,btlv.z()/vs);
+    av.setData(btav.x(),btav.y(),btav.z());
     _simSetShapeDynamicVelocity(_shape,lv.data,av.data,simulationTime);
 }
 

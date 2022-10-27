@@ -164,7 +164,7 @@ void CRigidBodyDyn::handleKinematicBody_step(float t,float cumulatedTimeStep)
         m[13]=0.0;
         m[14]=0.0;
         m[15]=1.0;
-        transf.getInternalData(m);
+        transf.getData(m);
         dMatrix matrix(m);
         matrix = matrix.Transpose4X4();
         dQuaternion rot1 (matrix);
@@ -197,9 +197,9 @@ C7Vector CRigidBodyDyn::getNewtonMatrix() const
     dMatrix matrix;
     NewtonBodyGetMatrix(_newtonBody, &matrix[0][0]);
     matrix = matrix.Transpose4X4();
-    float tmp[4][4];
-    memcpy(tmp, &matrix[0][0], sizeof (tmp));
-    return C7Vector(tmp);
+    C4X4Matrix m;
+    m.setData(&matrix[0][0]);
+    return m.getTransformation();
 }
 
 void CRigidBodyDyn::_setNewtonParameters(CXShape* shape)

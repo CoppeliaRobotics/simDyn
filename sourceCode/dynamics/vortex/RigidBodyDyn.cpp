@@ -362,8 +362,8 @@ void CRigidBodyDyn::reportVelocityToShape(float simulationTime)
 
     Vx::VxVector3 vlv=_vortexRigidBody->getLinearVelocity();
     Vx::VxVector3 vav=_vortexRigidBody->getAngularVelocity();
-    lv.set((float)vlv[0],(float)vlv[1],(float)vlv[2]);
-    av.set((float)vav[0], (float)vav[1], (float)vav[2]);
+    lv.setData((float)vlv[0],(float)vlv[1],(float)vlv[2]);
+    av.setData((float)vav[0], (float)vav[1], (float)vav[2]);
 
     _simSetShapeDynamicVelocity(_shape,lv.data,av.data,simulationTime);
 }

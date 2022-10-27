@@ -65,7 +65,7 @@ bool CParticleDyn_base::getRenderData(float* pos,float* size,int* objType,float*
 {
     if (_initializationState==1)
     {
-        _currentPosition.getInternalData(pos);
+        _currentPosition.getData(pos);
         objType[0]=_objectType;
         size[0]=_size;
         additionalColor[0]=_additionalColor;

@@ -93,7 +93,7 @@ void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector
         }
         C3Vector vVect;
         btVector3 btlv(_rigidBody->getLinearVelocity());
-        vVect.set(btlv.getX(),btlv.getY(),btlv.getZ());
+        vVect.setData(btlv.getX(),btlv.getY(),btlv.getZ());
         float v=vVect.getLength();
         if (v!=0.0f)
         {

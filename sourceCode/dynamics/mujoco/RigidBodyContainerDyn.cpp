@@ -1201,9 +1201,9 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
                         _simGetObjectCumulativeTransformation(object,objTr.X.data,objTr.Q.data,true);
                         tr=pTrInv*objTr;
                     }
-                    tr.X.getInternalData(pos);
+                    tr.X.getData(pos);
                     xmlDoc->setPosAttr("pos",pos);
-                    tr.Q.getInternalData(quat);
+                    tr.Q.getData(quat);
                     xmlDoc->setQuatAttr("quat",quat);
                     //-------------------
                     xmlDoc->popNode();
@@ -1410,9 +1410,9 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
             _simGetObjectCumulativeTransformation(containingShape,pTr.X.data,pTr.Q.data,true);
             tr=pTr.getInverse()*objectPose;
         }
-        tr.X.getInternalData(pos);
+        tr.X.getData(pos);
         xmlDoc->setPosAttr("pos",pos);
-        tr.Q.getInternalData(quat);
+        tr.Q.getData(quat);
         xmlDoc->setQuatAttr("quat",quat);
         // ------------------
 
@@ -1532,7 +1532,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                     _simGetObjectCumulativeTransformation(joint,jointTr.X.data,jointTr.Q.data,true);
                     tr=objectPose.getInverse()*jointTr;
                 }
-                tr.X.getInternalData(pos);
+                tr.X.getData(pos);
                 xmlDoc->setPosAttr("pos",pos);
                 C4X4Matrix m(tr);
                 xmlDoc->setPosAttr("axis",m.M.axis[2].data);
@@ -1576,9 +1576,9 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 _simGetObjectCumulativeTransformation(forceSensor,sensorTr.X.data,sensorTr.Q.data,true);
                 tr=objectPose.getInverse()*sensorTr;
             }
-            tr.X.getInternalData(pos);
+            tr.X.getData(pos);
             xmlDoc->setPosAttr("pos",pos);
-            tr.Q.getInternalData(quat);
+            tr.Q.getData(quat);
             xmlDoc->setQuatAttr("quat",quat);
             // -----------------
 

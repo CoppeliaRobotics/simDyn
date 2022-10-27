@@ -93,7 +93,7 @@ void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector
         C3Vector vVect;
 
         const dReal* lvel=dBodyGetLinearVel(_odeRigidBody);
-        vVect.set((float)lvel[0],(float)lvel[1],(float)lvel[2]);
+        vVect.setData((float)lvel[0],(float)lvel[1],(float)lvel[2]);
 
         float v=vVect.getLength();
         if (v!=0.0f)

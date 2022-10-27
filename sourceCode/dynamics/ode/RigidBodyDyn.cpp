@@ -154,9 +154,9 @@ void CRigidBodyDyn::reportVelocityToShape(float simulationTime)
     C3Vector lv,av;
 
     const dReal* lvd=dBodyGetLinearVel(_odeRigidBody);
-    lv.set(lvd[0]/vs,lvd[1]/vs,lvd[2]/vs);
+    lv.setData(lvd[0]/vs,lvd[1]/vs,lvd[2]/vs);
     const dReal* avd=dBodyGetAngularVel(_odeRigidBody);
-    av.set(avd[0],avd[1],avd[2]);
+    av.setData(avd[0],avd[1],avd[2]);
 
     _simSetShapeDynamicVelocity(_shape,lv.data,av.data,simulationTime);
 }

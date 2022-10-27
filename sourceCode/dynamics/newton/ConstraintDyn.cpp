@@ -1,6 +1,7 @@
 #include "ConstraintDyn.h"
 #include "RigidBodyContainerDyn.h"
 #include "simLib.h"
+#include "4X4Matrix.h"
 #include "NewtonConvertUtil.h"
 
 class CConstraintDyn::csimNewtonForceSensorJoint: public CustomHinge
@@ -426,9 +427,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
     dMatrix matrixI;
     NewtonBodyGetMatrix(cb,&matrixI[0][0]);
     dMatrix matrixT=matrixI.Transpose4X4();
-    float tmp[4][4];
-    memcpy(tmp,&matrixT[0][0],sizeof(tmp));
-    C7Vector cb_a(tmp);
+    C4X4Matrix mTemp;
+    mTemp.setData(&matrixT[0][0]);
+    C7Vector cb_a(mTemp.getTransformation());
     C7Vector alpha(jtr2.getInverse()*cb_a);
     C7Vector cb_b(jtr*alpha);
     matrixT=GetDMatrixFromCoppeliaSimTransformation(cb_b);
@@ -500,8 +501,8 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXDummy* d
     dMatrix matrixI;
     NewtonBodyGetMatrix(cb,&matrixI[0][0]);
     dMatrix matrixT=matrixI.Transpose4X4();
-    float tmp[4][4];
-    memcpy(tmp,&matrixT[0][0],sizeof(tmp));
+    C4X4Matrix tmp;
+    tmp.setData(&matrixT[0][0]);
     C7Vector cb_a(tmp);
     C7Vector x(cb_a.getInverse()*dtr2);
     C7Vector cb_b(dtr*x.getInverse());
@@ -588,8 +589,8 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
     dMatrix matrixI;
     NewtonBodyGetMatrix(cb,&matrixI[0][0]);
     dMatrix matrixT=matrixI.Transpose4X4();
-    float tmp[4][4];
-    memcpy(tmp,&matrixT[0][0],sizeof(tmp));
+    C4X4Matrix tmp;
+    tmp.setData(&matrixT[0][0]);
     C7Vector cb_a(tmp);
     C7Vector alpha(jtr2.getInverse()*cb_a);
     C7Vector cb_b(jtr*alpha);

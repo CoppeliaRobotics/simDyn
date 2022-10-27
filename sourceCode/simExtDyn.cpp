@@ -414,9 +414,9 @@ SIM_DLLEXPORT float mujocoPlugin_computeInertia(int shapeHandle,float* relPos,fl
     C7Vector tr;
     C3Vector diag;
     float mass=CRigidBodyContainerDyn::computeInertia(shapeHandle,tr,diag);
-    tr.X.getInternalData(relPos);
-    tr.Q.getInternalData(relQuat);
-    diag.getInternalData(diagI);
+    tr.X.getData(relPos);
+    tr.Q.getData(relQuat);
+    diag.getData(diagI);
     return(mass);
 }
 #endif
