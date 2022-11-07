@@ -302,7 +302,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
                         proxyJoint=(CXSceneObject*)_simGetObject(proxyJointId);
                         if (_simGetObjectType(proxyJoint)==sim_object_joint_type)
                         {
-                            if ( (_simGetJointMode(proxyJoint)!=sim_jointmode_dynamic)||(_simGetJointType(proxyJoint)!=sim_joint_prismatic_subtype) )
+                            if ( (!isJointInDynamicMode(proxyJoint))||(_simGetJointType(proxyJoint)!=sim_joint_prismatic_subtype) )
                             {
                                 char* f=simGetObjectAlias(proxyJointId,5);
                                 std::string nm(f);
@@ -1100,7 +1100,7 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
                                 addIt=true;
                                 break;
                             }
-                            if ( (_simGetObjectType(child)==sim_object_joint_type)&&((_simGetJointMode(child)==sim_jointmode_dynamic)&&((_simGetTreeDynamicProperty(child)&sim_objdynprop_dynamic)!=0)) )
+                            if ( (_simGetObjectType(child)==sim_object_joint_type)&&(isJointInDynamicMode(child)&&((_simGetTreeDynamicProperty(child)&sim_objdynprop_dynamic)!=0)) )
                             {
                                 addIt=true;
                                 break;
@@ -1120,10 +1120,10 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
         {
             int childrenCount;
             CXSceneObject** childrenPointer=(CXSceneObject**)_simGetObjectChildren(object,&childrenCount);
-            if ( (parent!=nullptr)&&((_simGetObjectType(parent)==sim_object_shape_type)||(_simGetObjectType(parent)==sim_object_joint_type))&&(childrenCount==1)&&((_simGetJointMode(object)==sim_jointmode_dynamic)||_simIsJointInHybridOperation(object))&&(dynProp&sim_objdynprop_dynamic) )
+            if ( (parent!=nullptr)&&((_simGetObjectType(parent)==sim_object_shape_type)||(_simGetObjectType(parent)==sim_object_joint_type))&&(childrenCount==1)&&(isJointInDynamicMode(object)||_simIsJointInHybridOperation(object))&&(dynProp&sim_objdynprop_dynamic) )
             { // parent is shape (or joint, consecutive joints are allowed!), joint is in correct mode, and has only one child
                 if ( ( (_simGetObjectType(childrenPointer[0])==sim_object_shape_type)&&(_simIsShapeDynamicallyStatic(childrenPointer[0])==0) ) ||
-                     ( (_simGetObjectType(childrenPointer[0])==sim_object_joint_type)&&(_simGetJointMode(childrenPointer[0])==sim_jointmode_dynamic) ) )
+                     ( (_simGetObjectType(childrenPointer[0])==sim_object_joint_type)&&isJointInDynamicMode(childrenPointer[0]) ) )
                 { // child is a dyn. shape (or a dyn. joint)
                     _addObjectBranch(childrenPointer[0],object,xmlDoc,info);
                     ignoreChildren=true;
@@ -1513,11 +1513,15 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                     if (limited)
                         xmlDoc->setAttr("range",minp,minp+rangep);
                     xmlDoc->setAttr("ref",_simGetJointPosition(joint));
-                    gjoint.dependencyJointHandle=simGetEngineInt32Param(sim_mujoco_joint_dependentobjectid,-1,joint,nullptr);
+                    float off,mult;
+                    simGetJointDependency(_simGetObjectID(joint),&gjoint.dependencyJointHandle,&off,&mult);
+                    //gjoint.dependencyJointHandle=simGetEngineInt32Param(sim_mujoco_joint_dependentobjectid,-1,joint,nullptr);
                     if (gjoint.dependencyJointHandle!=-1)
                     {
-                        for (size_t j=0;j<5;j++)
-                            gjoint.polycoef[j]=simGetEngineFloatParam(sim_mujoco_joint_polycoef1+j,-1,joint,nullptr);
+                        gjoint.polycoef[0]=off;
+                        gjoint.polycoef[1]=mult;
+                        for (size_t j=0;j<3;j++)
+                            gjoint.polycoef[2+j]=simGetEngineFloatParam(sim_mujoco_joint_polycoef3+j,-1,joint,nullptr);
                     }
                 }
 

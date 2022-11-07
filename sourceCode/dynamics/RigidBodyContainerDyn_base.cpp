@@ -129,6 +129,22 @@ float CRigidBodyContainerDyn_base::getSimulationTime() const
     return(_simulationTime);
 }
 
+bool CRigidBodyContainerDyn_base::isJointInDynamicMode(CXSceneObject* joint)
+{
+    int m=_simGetJointMode(joint);
+    while (m==sim_jointmode_dependent)
+    {
+        int masterJ;
+        float off,mult;
+        simGetJointDependency(_simGetObjectID(joint),&masterJ,&off,&mult);
+        if (masterJ==-1)
+            break;
+        joint=(CXSceneObject*)_simGetObject(masterJ);
+        m=_simGetJointMode(joint);
+    }
+    return(m==sim_jointmode_dynamic);
+}
+
 bool CRigidBodyContainerDyn_base::_addRigidBodyFromShape(CXShape* shape,bool forceStatic,bool forceNonRespondable)
 {
     bool retVal=false;
@@ -590,7 +606,7 @@ void CRigidBodyContainerDyn_base::_updateConstraintsFromJointsAndForceSensors()
         for (int i=0;i<objListSize;i++)
         {
             CXSceneObject* object=(CXSceneObject*)_simGetObjectFromIndex(obT[j],i);
-            if ( ( (obT[j]!=sim_object_joint_type)||(_simGetJointMode(object)==sim_jointmode_dynamic)||_simIsJointInHybridOperation(object) )&&(_simGetTreeDynamicProperty(object)&sim_objdynprop_dynamic) )
+            if ( ( (obT[j]!=sim_object_joint_type)||isJointInDynamicMode(object)||_simIsJointInHybridOperation(object) )&&(_simGetTreeDynamicProperty(object)&sim_objdynprop_dynamic) )
                 _addConstraintFromJointOrForceSensor(object,obT[j]==sim_object_joint_type);
             else
                 _simSetDynamicSimulationIconCode(object,sim_dynamicsimicon_none);
@@ -842,7 +858,7 @@ void CRigidBodyContainerDyn_base::_getShapesToConsiderAsRigidBodies(std::set<CXS
         for (int i=0;i<objectListSize;i++)
         {
             CXSceneObject* it=(CXSceneObject*)_simGetObjectFromIndex(objT[objTi],i);
-            if ( (objT[objTi]==sim_object_forcesensor_type)||(_simGetJointMode(it)==sim_jointmode_dynamic)||_simIsJointInHybridOperation(it) )
+            if ( (objT[objTi]==sim_object_forcesensor_type)||isJointInDynamicMode(it)||_simIsJointInHybridOperation(it) )
             { // we have a dynamic joint or fsensor here.
                 CXSceneObject* parentShape=(CXSceneObject*)_simGetParentObject(it);
                 if ( (parentShape!=nullptr)&&(_simGetObjectType(parentShape)==sim_object_shape_type) )
@@ -911,8 +927,8 @@ void CRigidBodyContainerDyn_base::_updateHybridJointTargetPositions_old()
         CXJoint* joint=constraint->getJoint();
         if ( (joint!=nullptr)&&_simIsJointInHybridOperation(joint) ) // we could have a dummy constraint!
         { 
-            if (_simGetJointMode(joint)==sim_jointmode_dependent)
-                _simSetJointPosition(joint,0.0f); // value doesn't matter. We just wanna refresh the value that is dependent!
+//            if (_simGetJointMode(joint)==sim_jointmode_dependent)
+//                _simSetJointPosition(joint,0.0f); // value doesn't matter. We just wanna refresh the value that is dependent!
             _simSetDynamicMotorPositionControlTargetPosition(joint,_simGetJointPosition(joint));
         }
     }

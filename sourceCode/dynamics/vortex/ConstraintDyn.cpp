@@ -826,10 +826,10 @@ void CConstraintDyn::_setVortexParameters(CXJoint* joint)
     const double A2_friction_coeff=getVortexUnsignedDouble(floatParams[44]);
     const double A2_friction_maxForce=getVortexUnsignedDouble(floatParams[45]);
     const double A2_friction_loss=getVortexUnsignedDouble(floatParams[46]);
-    const double dependencyFact=double(floatParams[47]);
-    const double dependencyOff=double(floatParams[48]);
-    const double reservedForFutureExt1=double(floatParams[49]);
-    const double reservedForFutureExt2=double(floatParams[50]);
+    //const double dependencyFact=double(floatParams[47]);
+    //const double dependencyOff=double(floatParams[48]);
+    //const double reservedForFutureExt1=double(floatParams[49]);
+    //const double reservedForFutureExt2=double(floatParams[50]);
 
     const bool motorFrictionEnabled=((intParams[0]&1)!=0);
     const bool motorFrictionProportional=((intParams[0]&2)!=0);
@@ -851,9 +851,9 @@ void CConstraintDyn::_setVortexParameters(CXJoint* joint)
     const bool A0_friction_proportional=((intParams[3]&8)!=0);
     const bool A1_friction_proportional=((intParams[3]&16)!=0);
     const bool A2_friction_proportional=((intParams[3]&32)!=0);
-    const int thisJointId=intParams[4];
-    const int dependentJointId=intParams[5];
-    const int reservedForFutureExt3=intParams[6];
+    //const int thisJointId=intParams[4];
+    // const int dependentJointId=intParams[5];
+    //const int reservedForFutureExt3=intParams[6];
 
     // if relaxXX = false or if stiffA1 > angular/linear stiff in solverparameters,
     // parameters as set in the VxSolverParameters are used. The loss parameters is not used
@@ -1059,9 +1059,13 @@ void CConstraintDyn::_setVortexParameters(CXJoint* joint)
     }
 
     // Store information about a dependent joint here. Constraint creation for that happens in the _createDependenciesBetweenJoints
-    _vortexDependencyJointId=dependentJointId;
-    _vortexDependencyFact=dependencyFact;
-    _vortexDependencyOff=dependencyOff;
+    float off,mult;
+    simGetJointDependency(_simGetObjectID(joint),&_vortexDependencyJointId,&off,&mult);
+    if (_vortexDependencyJointId!=-1)
+    {
+        _vortexDependencyFact=mult;
+        _vortexDependencyOff=off;
+    }
 }
 
 bool CConstraintDyn::getVortexDependencyInfo(int& linkedJoint,double& fact, double& off)

@@ -55,6 +55,8 @@ public:
     float getDynamicsInternalTimeStep() const;
     int getDynamicParticlesIdStart() const;
 
+    static bool isJointInDynamicMode(CXSceneObject* joint);
+
 protected:
     virtual void _applyGravity();
     virtual void _stepDynamics(float dt,int pass);
