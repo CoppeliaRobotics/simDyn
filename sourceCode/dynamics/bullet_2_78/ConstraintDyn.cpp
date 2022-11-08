@@ -560,25 +560,25 @@ dynReal CConstraintDyn::getRevoluteJointAngle()
             {
                 dynReal dx=jointPos-_lastJointPos;
                 if (dx>=0.0)
-                    dx=fmod(dx+piValue,piValTimes2)-piValue;
+                    dx=fmod(dx+piValue,piValT2)-piValue;
                 else
-                    dx=fmod(dx-piValue,piValTimes2)+piValue;
+                    dx=fmod(dx-piValue,piValT2)+piValue;
                 _jointPosAlt+=dx;
                 if (_jointPosAlt>=0.0)
                 {
                     float jp=jointPos+piValue;
                     float jap=_jointPosAlt+piValue;
                     jap=jap-jp+piValue;
-                    int cnt=int(jap/piValTimes2);
-                    _jointPosAlt=float(cnt)*piValTimes2+jp-piValue;
+                    int cnt=int(jap/piValT2);
+                    _jointPosAlt=float(cnt)*piValT2+jp-piValue;
                 }
                 else
                 {
                     float jp=jointPos-piValue;
                     float jap=_jointPosAlt-piValue;
                     jap=jap-jp-piValue;
-                    int cnt=int(jap/-piValTimes2);
-                    _jointPosAlt=float(cnt)*-piValTimes2+jp+piValue;
+                    int cnt=int(jap/-piValT2);
+                    _jointPosAlt=float(cnt)*-piValT2+jp+piValue;
                 }
             }
             retVal=_jointPosAlt;
@@ -667,7 +667,7 @@ void CConstraintDyn::_setForceSensorBrokenUnbrokenConstraints_bullet(btGeneric6D
         m->m_upperLimit[i]=0.0f;
         m->m_enableMotor[i]=true;
         m->m_targetVelocity[i]=0.0f;
-        m->m_maxMotorForce[i]=SIM_MAX_FLOAT;
+        m->m_maxMotorForce[i]=FLOAT_MAX;
     }
 
     for (size_t i=0;i<3;i++) // Now rotational constraints:
@@ -676,7 +676,7 @@ void CConstraintDyn::_setForceSensorBrokenUnbrokenConstraints_bullet(btGeneric6D
         r[i]->m_hiLimit=0.0f;
         r[i]->m_enableMotor=true;
         r[i]->m_targetVelocity=0.0f;
-        r[i]->m_maxMotorForce=SIM_MAX_FLOAT;
+        r[i]->m_maxMotorForce=FLOAT_MAX;
     }
 }
 

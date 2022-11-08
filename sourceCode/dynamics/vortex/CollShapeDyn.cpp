@@ -578,8 +578,8 @@ Vx::VxTriangleMeshUVGrid* CCollShapeDyn::_createVortexUVGridMesh(float* allVerti
     *  This UV plane are usually fit to the largest extension of the mesh for best efficiency. A Bounding box will be used for this
     *  Then the number of sell subdivision should be done so that there are not too many tringle in a cell.
     */
-    C3Vector minS(SIM_MAX_FLOAT,SIM_MAX_FLOAT,SIM_MAX_FLOAT);
-    C3Vector maxS(-SIM_MAX_FLOAT,-SIM_MAX_FLOAT,-SIM_MAX_FLOAT);
+    C3Vector minS(FLOAT_MAX,FLOAT_MAX,FLOAT_MAX);
+    C3Vector maxS(-FLOAT_MAX,-FLOAT_MAX,-FLOAT_MAX);
 
     for (int i=0;i<allVerticesSize/3;i++)
     { // We need to scale the vertices

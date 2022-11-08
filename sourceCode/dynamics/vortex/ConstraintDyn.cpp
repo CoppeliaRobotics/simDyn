@@ -662,25 +662,25 @@ dynReal CConstraintDyn::getRevoluteJointAngle()
             {
                 dynReal dx=jointPos-_lastJointPos;
                 if (dx>=0.0)
-                    dx=fmod(dx+piValue,piValTimes2)-piValue;
+                    dx=fmod(dx+piValue,piValT2)-piValue;
                 else
-                    dx=fmod(dx-piValue,piValTimes2)+piValue;
+                    dx=fmod(dx-piValue,piValT2)+piValue;
                 _jointPosAlt+=dx;
                 if (_jointPosAlt>=0.0)
                 {
                     float jp=jointPos+piValue;
                     float jap=_jointPosAlt+piValue;
                     jap=jap-jp+piValue;
-                    int cnt=int(jap/piValTimes2);
-                    _jointPosAlt=float(cnt)*piValTimes2+jp-piValue;
+                    int cnt=int(jap/piValT2);
+                    _jointPosAlt=float(cnt)*piValT2+jp-piValue;
                 }
                 else
                 {
                     float jp=jointPos-piValue;
                     float jap=_jointPosAlt-piValue;
                     jap=jap-jp-piValue;
-                    int cnt=int(jap/-piValTimes2);
-                    _jointPosAlt=float(cnt)*-piValTimes2+jp+piValue;
+                    int cnt=int(jap/-piValT2);
+                    _jointPosAlt=float(cnt)*-piValT2+jp+piValue;
                 }
             }
             retVal=_jointPosAlt;

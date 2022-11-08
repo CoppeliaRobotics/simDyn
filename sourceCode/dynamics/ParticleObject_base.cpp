@@ -210,7 +210,7 @@ void CParticleObject_base::addParticle(float simulationTime,const float* itemDat
         addColor[1]=itemData[off++];
         addColor[2]=itemData[off++];
     }
-    float killTime=SIM_MAX_FLOAT;
+    float killTime=FLOAT_MAX;
     if (_particlesLifeTime!=0.0f)
         killTime=simulationTime+_particlesLifeTime;
     C3Vector pos(itemData);
