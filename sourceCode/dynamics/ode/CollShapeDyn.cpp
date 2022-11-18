@@ -47,7 +47,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
         { // We a have a pure MULTISHAPE!!
             int componentListSize=_simGetGeometricCount(geomInfo);
             CXGeometric** componentList=new CXGeometric*[componentListSize];
-            _simGetAllGeometrics(geomInfo,(simVoid**)componentList);
+            _simGetAllGeometrics(geomInfo,(void**)componentList);
             for (int i=0;i<componentListSize;i++)
             {
                 CXGeometric* sc=componentList[i];
@@ -250,8 +250,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 _meshVertices_scaled.push_back(v(1));
                 _meshVertices_scaled.push_back(v(2));
             }
-            simReleaseBuffer((simChar*)allVertices);
-            simReleaseBuffer((simChar*)allIndices);
+            simReleaseBuffer((char*)allVertices);
+            simReleaseBuffer((char*)allIndices);
 
             _trimeshDataID=dGeomTriMeshDataCreate();
             dGeomTriMeshDataBuildSingle(_trimeshDataID,&_meshVertices_scaled[0],3*sizeof(float),_meshVertices_scaled.size()/3,&_meshIndices[0],_meshIndices.size(),3*sizeof(int));
@@ -279,7 +279,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             { // We a have a convex MULTISHAPE!!
                 int componentListSize=_simGetGeometricCount(geomInfo);
                 CXGeometric** componentList=new CXGeometric*[componentListSize];
-                _simGetAllGeometrics(geomInfo,(simVoid**)componentList);
+                _simGetAllGeometrics(geomInfo,(void**)componentList);
                 for (int comp=0;comp<componentListSize;comp++)
                 {
                     CXGeometric* sc=componentList[comp];
@@ -320,8 +320,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         _meshVertices_scaled.push_back(v(1));
                         _meshVertices_scaled.push_back(v(2));
                     }
-                    simReleaseBuffer((simChar*)allVertices);
-                    simReleaseBuffer((simChar*)allIndices);
+                    simReleaseBuffer((char*)allVertices);
+                    simReleaseBuffer((char*)allIndices);
 
                     // TODO: identify triangular faces that belong to the same logical plane. Same for triangular polygons. That will speed-up slightly calculations, and increase stability!
                     for (size_t i=0;i<_meshIndices.size()/3;i++)
@@ -405,8 +405,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     _meshVertices_scaled.push_back(v(2));
                 }
 
-                simReleaseBuffer((simChar*)allVertices);
-                simReleaseBuffer((simChar*)allIndices);
+                simReleaseBuffer((char*)allVertices);
+                simReleaseBuffer((char*)allIndices);
 
                 // TODO: identify triangular faces that belong to the same logical plane. Same for triangular polygons. That will speed-up slightly calculations, and increase stability!
                 for (size_t i=0;i<_meshIndices.size()/3;i++)

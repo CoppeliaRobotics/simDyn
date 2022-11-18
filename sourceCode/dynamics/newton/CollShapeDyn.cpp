@@ -30,7 +30,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             // We a have a pure MULTISHAPE!!
             int componentListSize=_simGetGeometricCount(geomInfo);
             CXGeometric** componentList=new CXGeometric*[componentListSize];
-            _simGetAllGeometrics(geomInfo,(simVoid**)componentList);
+            _simGetAllGeometrics(geomInfo,(void**)componentList);
 
             _shape = NewtonCreateCompoundCollision (world, 0);
             NewtonCompoundCollisionBeginAddRemove (_shape);    
@@ -274,8 +274,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             NewtonTreeCollisionEndBuild (_shape, 0);
 
 
-            simReleaseBuffer((simChar*)allVertices);
-            simReleaseBuffer((simChar*)allIndices);
+            simReleaseBuffer((char*)allVertices);
+            simReleaseBuffer((char*)allIndices);
         }
         else
         { // We have a convex shape or multishape:
@@ -284,7 +284,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             { // We a have a convex MULTISHAPE!!
                 int componentListSize=_simGetGeometricCount(geomInfo);
                 CXGeometric** componentList = new CXGeometric*[componentListSize];
-                _simGetAllGeometrics(geomInfo,(simVoid**)componentList);
+                _simGetAllGeometrics(geomInfo,(void**)componentList);
 
                 _shape = NewtonCreateCompoundCollision(world, 0);
                 NewtonCompoundCollisionBeginAddRemove(_shape);
@@ -324,8 +324,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         _meshVertices_scaled.push_back(v(1));
                         _meshVertices_scaled.push_back(v(2));
                     }
-                    simReleaseBuffer((simChar*)allVertices);
-                    simReleaseBuffer((simChar*)allIndices);
+                    simReleaseBuffer((char*)allVertices);
+                    simReleaseBuffer((char*)allIndices);
 
                     NewtonCollision* const childShape = NewtonCreateConvexHull (world, _meshVertices_scaled.size()/3, &_meshVertices_scaled[0], sizeof(float)*3, 1.0e-3f, 0, &localTransform[0][0]);
                     NewtonCompoundCollisionAddSubCollision(_shape, childShape);
@@ -368,8 +368,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     _meshVertices_scaled.push_back(v(1));
                     _meshVertices_scaled.push_back(v(2));
                 }
-                simReleaseBuffer((simChar*)allVertices);
-                simReleaseBuffer((simChar*)allIndices);
+                simReleaseBuffer((char*)allVertices);
+                simReleaseBuffer((char*)allIndices);
                 _shape = NewtonCreateConvexHull (world, _meshVertices_scaled.size()/3, &_meshVertices_scaled[0], sizeof(float)*3, 1.0e-3f, 0, &localTransform[0][0]);
             }
         }

@@ -1761,7 +1761,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
 
     int componentListSize=_simGetGeometricCount(geomInfo);
     CXGeometric** componentList=new CXGeometric*[componentListSize];
-    _simGetAllGeometrics(geomInfo,(simVoid**)componentList);
+    _simGetAllGeometrics(geomInfo,(void**)componentList);
     C7Vector objectPose;
     if (useGlobalCoords)
         _simGetObjectCumulativeTransformation(object,objectPose.X.data,objectPose.Q.data,1);
@@ -1963,8 +1963,8 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
                 simExportMesh(4,fn.c_str(),0,1.0f,1,(const float**)&mv,&allVerticesSize,(const int**)&mi,&allIndicesSize,nullptr,nullptr);
             delete[] mi;
             delete[] mv;
-            simReleaseBuffer((simChar*)allVertices);
-            simReleaseBuffer((simChar*)allIndices);
+            simReleaseBuffer((char*)allVertices);
+            simReleaseBuffer((char*)allIndices);
         }
 
         xmlDoc->popNode();

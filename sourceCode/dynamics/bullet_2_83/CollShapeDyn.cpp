@@ -58,7 +58,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
         { // We a have a pure MULTISHAPE!!
             int componentListSize=_simGetGeometricCount(geomInfo);
             CXGeometric** componentList=new CXGeometric*[componentListSize];
-            _simGetAllGeometrics(geomInfo,(simVoid**)componentList);
+            _simGetAllGeometrics(geomInfo,(void**)componentList);
 
             btCompoundShape* compoundShape=new btCompoundShape();
             for (int i=0;i<componentListSize;i++)
@@ -223,8 +223,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 _meshVertices_scaled.push_back(v(1));
                 _meshVertices_scaled.push_back(v(2));
             }
-            simReleaseBuffer((simChar*)allVertices);
-            simReleaseBuffer((simChar*)allIndices);
+            simReleaseBuffer((char*)allVertices);
+            simReleaseBuffer((char*)allIndices);
 
             _indexVertexArrays=new btTriangleIndexVertexArray(_meshIndices.size()/3,
                 &_meshIndices[0],3*sizeof(int),_meshVertices_scaled.size()/3,&_meshVertices_scaled[0],sizeof(float)*3);
@@ -245,7 +245,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             { // We a have a convex MULTISHAPE!!
                 int componentListSize=_simGetGeometricCount(geomInfo);
                 CXGeometric** componentList=new CXGeometric*[componentListSize];
-                _simGetAllGeometrics(geomInfo,(simVoid**)componentList);
+                _simGetAllGeometrics(geomInfo,(void**)componentList);
 
                 btCompoundShape* compoundShape=new btCompoundShape();
                 for (int comp=0;comp<componentListSize;comp++)
@@ -285,8 +285,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         _meshVertices_scaled.push_back(v(1));
                         _meshVertices_scaled.push_back(v(2));
                     }
-                    simReleaseBuffer((simChar*)allVertices);
-                    simReleaseBuffer((simChar*)allIndices);
+                    simReleaseBuffer((char*)allVertices);
+                    simReleaseBuffer((char*)allIndices);
 
                     btConvexHullShape* convexObj;
                     if (autoShrinkConvex)
@@ -372,8 +372,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     _meshVertices_scaled.push_back(v(1));
                     _meshVertices_scaled.push_back(v(2));
                 }
-                simReleaseBuffer((simChar*)allVertices);
-                simReleaseBuffer((simChar*)allIndices);
+                simReleaseBuffer((char*)allVertices);
+                simReleaseBuffer((char*)allIndices);
 
                 btConvexHullShape* convexObj;
                 if (autoShrinkConvex)

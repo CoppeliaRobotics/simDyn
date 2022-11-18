@@ -161,7 +161,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
         { // We a have a pure MULTISHAPE!! Here we have a compound of simple collision objects
             int componentListSize=_simGetGeometricCount(geomInfo);
             CXGeometric** componentList=new CXGeometric*[componentListSize];
-            _simGetAllGeometrics(geomInfo,(simVoid**)componentList);
+            _simGetAllGeometrics(geomInfo,(void**)componentList);
 
             Vx::VxCompositeCollisionGeometry* vortexCompositeCollisionGeom = new Vx::VxCompositeCollisionGeometry();
 
@@ -254,7 +254,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             { // We a have a grouping of random meshes.
                 int componentListSize=_simGetGeometricCount(geomInfo);
                 CXGeometric** componentList=new CXGeometric*[componentListSize];
-                _simGetAllGeometrics(geomInfo,(simVoid**)componentList);
+                _simGetAllGeometrics(geomInfo,(void**)componentList);
                 for (int comp=0;comp<componentListSize;comp++)
                 {
                     CXGeometric* sc=componentList[comp];
@@ -278,7 +278,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                             vortexVertices_scaled[i][1]=v(1);
                             vortexVertices_scaled[i][2]=v(2);
                         }
-                        simReleaseBuffer((simChar*)allVertices);
+                        simReleaseBuffer((char*)allVertices);
 
                         Vx::VxTriangleMeshBVTree* bvTreeMesh = new Vx::VxTriangleMeshBVTree(allIndicesSize/3);
                         for (int i=0;i<allIndicesSize/3;i++)
@@ -286,14 +286,14 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         vortexGeometry = bvTreeMesh;
 
                         delete[] vortexVertices_scaled;
-                        simReleaseBuffer((simChar*)allIndices);
+                        simReleaseBuffer((char*)allIndices);
                     }
                     else
                     { // we want a terrain here!
                         vortexGeometry = _createVortexUVGridMesh(allVertices,allVerticesSize,allIndices,allIndicesSize,1.0);
                         //vortexGeometry = _createVortexBVTreeMesh(allVertices,allVerticesSize,allIndices,allIndicesSize,linScaling);
-                        simReleaseBuffer((simChar*)allIndices);
-                        simReleaseBuffer((simChar*)allVertices);
+                        simReleaseBuffer((char*)allIndices);
+                        simReleaseBuffer((char*)allVertices);
                     }
 
                     Vx::VxTransform tm;
@@ -341,15 +341,15 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                             C3Vector2VxVector3(v2)[1],
                             C3Vector2VxVector3(v2)[2]); */
                     }
-                    simReleaseBuffer((simChar*)allVertices);
-                    simReleaseBuffer((simChar*)allIndices);
+                    simReleaseBuffer((char*)allVertices);
+                    simReleaseBuffer((char*)allIndices);
                 }
                 else
                 { // we want a terrain here!
                     vortexGeometry = _createVortexUVGridMesh(allVertices,allVerticesSize,allIndices,allIndicesSize,1.0);
                     //vortexGeometry = _createVortexBVTreeMesh(allVertices,allVerticesSize,allIndices,allIndicesSize,linScaling);
-                    simReleaseBuffer((simChar*)allIndices);
-                    simReleaseBuffer((simChar*)allVertices);
+                    simReleaseBuffer((char*)allIndices);
+                    simReleaseBuffer((char*)allVertices);
                 }
 
                 Vx::VxTransform tm;
@@ -368,7 +368,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             { // We a have a convex MULTISHAPE!! This is a compound of convex meshes
                 int componentListSize=_simGetGeometricCount(geomInfo);
                 CXGeometric** componentList=new CXGeometric*[componentListSize];
-                _simGetAllGeometrics(geomInfo,(simVoid**)componentList);
+                _simGetAllGeometrics(geomInfo,(void**)componentList);
                 for (int comp=0;comp<componentListSize;comp++)
                 {
                     CXGeometric* sc=componentList[comp];
@@ -388,7 +388,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         vortexVertices_scaled[i][1]=v(1);
                         vortexVertices_scaled[i][2]=v(2);
                     }
-                    simReleaseBuffer((simChar*)allVertices);
+                    simReleaseBuffer((char*)allVertices);
 
                     Vx::VxGeometry* vortexGeometry = nullptr;
 
@@ -418,7 +418,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     }
 
                     delete[] vortexVertices_scaled;
-                    simReleaseBuffer((simChar*)allIndices);
+                    simReleaseBuffer((char*)allIndices);
 
                     Vx::VxTransform tm;
                     Vx::VxQuaternion quat(inverseLocalInertiaFrame_scaled.Q(0), inverseLocalInertiaFrame_scaled.Q(1), inverseLocalInertiaFrame_scaled.Q(2), inverseLocalInertiaFrame_scaled.Q(3));
@@ -449,7 +449,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     vortexVertices_scaled[i][1]=v(1);
                     vortexVertices_scaled[i][2]=v(2);
                 }
-                simReleaseBuffer((simChar*)allVertices);
+                simReleaseBuffer((char*)allVertices);
 
                 Vx::VxGeometry* vortexGeometry = nullptr;
 
@@ -479,7 +479,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 }
 
                 delete[] vortexVertices_scaled;
-                simReleaseBuffer((simChar*)allIndices);
+                simReleaseBuffer((char*)allIndices);
 
                 Vx::VxTransform tm;
                 Vx::VxQuaternion quat(inverseLocalInertiaFrame_scaled.Q(0), inverseLocalInertiaFrame_scaled.Q(1), inverseLocalInertiaFrame_scaled.Q(2), inverseLocalInertiaFrame_scaled.Q(3));
