@@ -37,7 +37,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
     _odeMeshLastTransformThingIndex=2;
 
 
-    float linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
+    double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
     // Do we have a pure primitive?
     int primType=_simGetPurePrimitiveType(geomInfo);
@@ -52,8 +52,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             {
                 CXGeometric* sc=componentList[i];
                 int pType=_simGetPurePrimitiveType(sc);
-                float hollowScaling=_simGetPureHollowScaling(sc);
-                if (hollowScaling!=0.0f)
+                double hollowScaling=_simGetPureHollowScaling(sc);
+                if (hollowScaling!=0.0)
                     _simMakeDynamicAnnouncement(sim_announce_purehollowshapenotsupported);
 
                 C3Vector s;
@@ -65,9 +65,9 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 {
                     _odeGeom=dCreateGeomTransform(space);
                     dGeomTransformSetCleanup(_odeGeom,1);
-                    float z=s(2);
-                    if (z<0.0001f)
-                        z=0.0001f;
+                    double z=s(2);
+                    if (z<0.0001)
+                        z=0.0001;
                     odeGeom=dCreateBox(0,s(0),s(1),z);
                     dGeomTransformSetGeom(_odeGeom,odeGeom);
                 }
@@ -75,10 +75,10 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 {
                     _odeGeom=dCreateGeomTransform(space);
                     dGeomTransformSetCleanup(_odeGeom,1);
-                    float z=s(2);
-                    if (z<0.0001f)
-                        z=0.0001f;
-                    odeGeom=dCreateCylinder(0,s(0)*0.5f,z);
+                    double z=s(2);
+                    if (z<0.0001)
+                        z=0.0001;
+                    odeGeom=dCreateCylinder(0,s(0)*0.5,z);
                     dGeomTransformSetGeom(_odeGeom,odeGeom);
                 }
                 if (pType==sim_primitiveshape_cone)
@@ -87,24 +87,24 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     // We generate a cylinder instead:
                     _odeGeom=dCreateGeomTransform(space);
                     dGeomTransformSetCleanup(_odeGeom,1);
-                    odeGeom=dCreateCylinder(0,s(0)*0.5f,s(2));
+                    odeGeom=dCreateCylinder(0,s(0)*0.5,s(2));
                     dGeomTransformSetGeom(_odeGeom,odeGeom);
                 }
                 if (pType==sim_primitiveshape_spheroid)
                 {
-                    if ( ( ((s(0)-s(1))/s(0))>0.01f )||( ((s(0)-s(2))/s(0))>0.01f ) ) // Pure spheroids are not (yet) supported by ODE
+                    if ( ( ((s(0)-s(1))/s(0))>0.01 )||( ((s(0)-s(2))/s(0))>0.01 ) ) // Pure spheroids are not (yet) supported by ODE
                         _simMakeDynamicAnnouncement(sim_announce_purespheroidnotsupported);
                     _odeGeom=dCreateGeomTransform(space);
                     dGeomTransformSetCleanup(_odeGeom,1);
-                    odeGeom=dCreateSphere(0,(s(0)+s(1)+s(2))/6.0f); // in case we have a spheroid, we take the average sphere
+                    odeGeom=dCreateSphere(0,(s(0)+s(1)+s(2))/6.0); // in case we have a spheroid, we take the average sphere
                     dGeomTransformSetGeom(_odeGeom,odeGeom);
                 }
                 if (pType==sim_primitiveshape_capsule)
                 {
                     _odeGeom=dCreateGeomTransform(space);
                     dGeomTransformSetCleanup(_odeGeom,1);
-                    float r=(s(0)+s(1))/4.0f;
-                    odeGeom=dCreateCapsule(0,r,s(2)-r*2.0f);
+                    double r=(s(0)+s(1))/4.0;
+                    odeGeom=dCreateCapsule(0,r,s(2)-r*2.0);
                     dGeomTransformSetGeom(_odeGeom,odeGeom);
                 }
                 C7Vector aax;
@@ -124,8 +124,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
         }
         else
         { // we have a SIMPLE pure shape
-            float hollowScaling=_simGetPureHollowScaling((CXGeometric*)geomInfo);
-            if (hollowScaling!=0.0f)
+            double hollowScaling=_simGetPureHollowScaling((CXGeometric*)geomInfo);
+            if (hollowScaling!=0.0)
                 _simMakeDynamicAnnouncement(sim_announce_purehollowshapenotsupported);
             C3Vector s;
             _simGetPurePrimitiveSizes(geomInfo,s.data);
@@ -138,9 +138,9 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             {
                 _odeGeom=dCreateGeomTransform(space);
                 dGeomTransformSetCleanup(_odeGeom,1);
-                float z=s(2);
-                if (z<0.0001f)
-                    z=0.0001f;
+                double z=s(2);
+                if (z<0.0001)
+                    z=0.0001;
                 odeGeom=dCreateBox(0,s(0),s(1),z);
                 dGeomTransformSetGeom(_odeGeom,odeGeom);
             }
@@ -148,10 +148,10 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             {
                 _odeGeom=dCreateGeomTransform(space);
                 dGeomTransformSetCleanup(_odeGeom,1);
-                float z=s(2);
-                if (z<0.0001f)
-                    z=0.0001f;
-                odeGeom=dCreateCylinder(0,s(0)*0.5f,z);
+                double z=s(2);
+                if (z<0.0001)
+                    z=0.0001;
+                odeGeom=dCreateCylinder(0,s(0)*0.5,z);
                 dGeomTransformSetGeom(_odeGeom,odeGeom);
             }
             if (primType==sim_primitiveshape_cone)
@@ -160,48 +160,48 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 // We generate a cylinder instead:
                 _odeGeom=dCreateGeomTransform(space);
                 dGeomTransformSetCleanup(_odeGeom,1);
-                odeGeom=dCreateCylinder(0,s(0)*0.5f,s(2));
+                odeGeom=dCreateCylinder(0,s(0)*0.5,s(2));
                 dGeomTransformSetGeom(_odeGeom,odeGeom);
             }
             if (primType==sim_primitiveshape_spheroid)
             {
-                if ( ( ((s(0)-s(1))/s(0))>0.01f )||( ((s(0)-s(2))/s(0))>0.01f ) ) // Pure spheroids are not (yet) supported by ODE
+                if ( ( ((s(0)-s(1))/s(0))>0.01 )||( ((s(0)-s(2))/s(0))>0.01 ) ) // Pure spheroids are not (yet) supported by ODE
                     _simMakeDynamicAnnouncement(sim_announce_purespheroidnotsupported);
                 _odeGeom=dCreateGeomTransform(space);
                 dGeomTransformSetCleanup(_odeGeom,1);
-                odeGeom=dCreateSphere(0,(s(0)+s(1)+s(2))/6.0f); // in case we have a spheroid, we take the average sphere
+                odeGeom=dCreateSphere(0,(s(0)+s(1)+s(2))/6.0); // in case we have a spheroid, we take the average sphere
                 dGeomTransformSetGeom(_odeGeom,odeGeom);
             }
             if (primType==sim_primitiveshape_capsule)
             {
                 _odeGeom=dCreateGeomTransform(space);
                 dGeomTransformSetCleanup(_odeGeom,1);
-                float r=(s(0)+s(1))/4.0f;
-                odeGeom=dCreateCapsule(0,r,s(2)-r*2.0f);
+                double r=(s(0)+s(1))/4.0;
+                odeGeom=dCreateCapsule(0,r,s(2)-r*2.0);
                 dGeomTransformSetGeom(_odeGeom,odeGeom);
             }
             if (primType==sim_primitiveshape_heightfield)
             {
                 int xCnt,yCnt;
-                float minH,maxH;
-                const float* hData=_simGetHeightfieldData(geomInfo,&xCnt,&yCnt,&minH,&maxH);
+                double minH,maxH;
+                const double* hData=_simGetHeightfieldData(geomInfo,&xCnt,&yCnt,&minH,&maxH);
                 _odeHeightfieldDataID=dGeomHeightfieldDataCreate();
                 // Following corrects for the different diagonals between the Coppelia Simulator and ODE by internally rotating the HF by 90 degrees
                 for (int j=0;j<xCnt;j++)
                 {
                     for (int i=0;i<yCnt;i++)
                     {
-                        float h=hData[i*xCnt+j]-(minH+(maxH-minH)*0.5f); // Second part is because our hf mesh's origin (after the local transf) is in its center, and ODE needs data from bottom
-                        _odeHeightfieldData_scaled.push_back(h*linScaling); // ********** SCALING
+                        double h=hData[i*xCnt+j]-(minH+(maxH-minH)*0.5); // Second part is because our hf mesh's origin (after the local transf) is in its center, and ODE needs data from bottom
+                        _odeHeightfieldData_scaled.push_back(float(h*linScaling)); // ********** SCALING
                     }
                 }
-                dGeomHeightfieldDataBuildSingle(_odeHeightfieldDataID,&_odeHeightfieldData_scaled[0],0,s(1),s(0),yCnt,xCnt,1.0f,0.0f,(s(0)+s(1))*0.2f,0);
+                dGeomHeightfieldDataBuildSingle(_odeHeightfieldDataID,_odeHeightfieldData_scaled.data(),0,s(1),s(0),yCnt,xCnt,1.0,0.0,(s(0)+s(1))*0.2,0);
                 //      do not forget the offset if using this      dGeomHeightfieldDataSetBounds(_odeHeightfieldDataID,minH*linScaling,maxH*linScaling);
                 odeGeom=dCreateHeightfield(0,_odeHeightfieldDataID,1);
                 // Rotate so Z is up, not Y (which is the default orientation)
-                additionalRotation_forHeightfieldOnly.setEulerAngles(1.57079632f,0.0f,0.0f);
+                additionalRotation_forHeightfieldOnly.setEulerAngles(1.57079632,0.0,0.0);
                 C4Vector zRot;
-                zRot.setEulerAngles(0.0f,0.0f,1.57079632f);
+                zRot.setEulerAngles(0.0,0.0,1.57079632);
                 additionalRotation_forHeightfieldOnly=zRot*additionalRotation_forHeightfieldOnly;
 
 
@@ -234,7 +234,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
         // 3. a convex multishape
         if (_simIsGeomWrapConvex(geomInfo)==0)
         {     // We have a general-type geom object (trimesh) (or a heightfield that we treat as such since ODE heightfields are still buggy!!):
-            float* allVertices;
+            double* allVertices;
             int allVerticesSize;
             int* allIndices;
             int allIndicesSize;
@@ -254,7 +254,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             simReleaseBuffer((char*)allIndices);
 
             _trimeshDataID=dGeomTriMeshDataCreate();
-            dGeomTriMeshDataBuildSingle(_trimeshDataID,&_meshVertices_scaled[0],3*sizeof(float),_meshVertices_scaled.size()/3,&_meshIndices[0],_meshIndices.size(),3*sizeof(int));
+            dGeomTriMeshDataBuildSingle(_trimeshDataID,&_meshVertices_scaled[0],3*sizeof(double),_meshVertices_scaled.size()/3,&_meshIndices[0],_meshIndices.size(),3*sizeof(int));
 
             dGeomID odeGeom=dCreateTriMesh(space,_trimeshDataID,nullptr,nullptr,nullptr);
 
@@ -284,7 +284,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 {
                     CXGeometric* sc=componentList[comp];
 
-                    float* allVertices;
+                    double* allVertices;
                     int allVerticesSize;
                     int* allIndices;
                     int allIndicesSize;
@@ -303,7 +303,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         v*=linScaling; // ********** SCALING
                         c+=v;
                     }
-                    c/=float(allVerticesSize/3);
+                    c/=double(allVerticesSize/3);
 
                     C7Vector tr;
                     tr.X=c;
@@ -344,7 +344,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         C3Vector v1(p2-p0);
                         C3Vector n(v0^v1);
                         n.normalize();
-                        float d=p0*n;
+                        double d=p0*n;
                         _odeConvexPlanes_scaled.push_back(n(0));
                         _odeConvexPlanes_scaled.push_back(n(1));
                         _odeConvexPlanes_scaled.push_back(n(2));
@@ -371,7 +371,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             }
             else
             { // We have a convex SHAPE
-                float* allVertices;
+                double* allVertices;
                 int allVerticesSize;
                 int* allIndices;
                 int allIndicesSize;
@@ -387,7 +387,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     v*=linScaling; // ********** SCALING
                     c+=v;
                 }
-                c/=float(allVerticesSize/3);
+                c/=double(allVerticesSize/3);
 
                 C7Vector tr;
                 tr.X=c;
@@ -429,7 +429,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     C3Vector v1(p2-p0);
                     C3Vector n(v0^v1);
                     n.normalize();
-                    float d=p0*n;
+                    double d=p0*n;
                     _odeConvexPlanes_scaled.push_back(n(0));
                     _odeConvexPlanes_scaled.push_back(n(1));
                     _odeConvexPlanes_scaled.push_back(n(2));
@@ -472,22 +472,22 @@ void CCollShapeDyn::setOdeMeshLastTransform()
         m[0]=rot[0];
         m[1]=rot[1];
         m[2]=rot[2];
-        m[3]=0.0f;
+        m[3]=0.0;
 
         m[4]=rot[4];
         m[5]=rot[5];
         m[6]=rot[6];
-        m[7]=0.0f;
+        m[7]=0.0;
 
         m[8]=rot[8];
         m[9]=rot[9];
         m[10]=rot[10];
-        m[11]=0.0f;
+        m[11]=0.0;
 
         m[12]=pos[0];
         m[13]=pos[1];
         m[14]=pos[2];
-        m[15]=1.0f;
+        m[15]=1.0;
 
         _odeMeshLastTransformThingIndex=!_odeMeshLastTransformThingIndex;
         dReal* m2=_odeMeshLastTransformThingMatrix+_odeMeshLastTransformThingIndex*16;

@@ -30,7 +30,7 @@ CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
     _particleCont->removeAllObjects();
 }
 
-std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int intParams[20])
+std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int intParams[20])
 {
     CRigidBodyContainerDyn_base::init(floatParams,intParams);
 
@@ -38,13 +38,13 @@ std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int i
     // - simGetEngineFloatParameter
     // - simGetEngineInt32Parameter
     // - simGetEngineBoolParameter
-    float fParams[2];
+    double fParams[2];
     int iParams[2];
     int ver=0;
     _simGetNewtonParameters(nullptr,&ver,fParams,iParams);
 
-    const float stepSize=fParams[0];
-    const float contactMergeTolerance=fParams[1];
+    const double stepSize=fParams[0];
+    const double contactMergeTolerance=fParams[1];
 
     const int newtonIterationsCount=iParams[0];
     const bool multithreaded=(iParams[1]&1)!=false;
@@ -139,8 +139,8 @@ void CRigidBodyContainerDyn::_addNewtonContactPoints(int dynamicPassNumber)
                         C3Vector n(normal.m_x, normal.m_y, normal.m_z);
                         n.normalize();
                         C3Vector f(force.m_x, force.m_y, force.m_z);
-                        if (n*f<0.0f)
-                            n=n*-1.0f;
+                        if (n*f<0.0)
+                            n=n*-1.0;
                         ci.surfaceNormal =n;
                         ci.directionAndAmplitude = f;
                         _contactInfo.push_back(ci);
@@ -300,10 +300,10 @@ struct MaterialsPareamaters
 static MaterialsPareamaters materialGraph [4][4]=
 {
                    // steel                 concrete                wood                asphalt
-    // steel      { {0.5f, 0.7f, 0.6f},  {0.5f, 0.7f, 0.6f},    {0.5f, 0.7f, 0.6f}, {0.5f, 0.7f, 0.6f} },
-    // concrete  { {0.5f, 0.7f, 0.6f},  {0.5f, 0.7f, 0.6f},    {0.5f, 0.7f, 0.6f}, {0.5f, 0.7f, 0.6f} },
-    // wood      { {0.5f, 0.7f, 0.6f},  {0.5f, 0.7f, 0.6f},    {0.5f, 0.7f, 0.6f}, {0.5f, 0.7f, 0.6f} },
-    // asphalt   { {0.5f, 0.7f, 0.6f},  {0.5f, 0.7f, 0.6f},    {0.5f, 0.7f, 0.6f}, {0.5f, 0.7f, 0.6f} },
+    // steel      { {0.5, 0.7, 0.6},  {0.5, 0.7, 0.6},    {0.5, 0.7, 0.6}, {0.5, 0.7, 0.6} },
+    // concrete  { {0.5, 0.7, 0.6},  {0.5, 0.7, 0.6},    {0.5, 0.7, 0.6}, {0.5, 0.7, 0.6} },
+    // wood      { {0.5, 0.7, 0.6},  {0.5, 0.7, 0.6},    {0.5, 0.7, 0.6}, {0.5, 0.7, 0.6} },
+    // asphalt   { {0.5, 0.7, 0.6},  {0.5, 0.7, 0.6},    {0.5, 0.7, 0.6}, {0.5, 0.7, 0.6} },
 };
 */
 void CRigidBodyContainerDyn::NewtonOnUserContacts(const NewtonJoint* contactJoint, dFloat timestep, int threadIndex)
@@ -321,20 +321,20 @@ void CRigidBodyContainerDyn::NewtonOnUserContacts(const NewtonJoint* contactJoin
     bool collides=true; // was already checked previously, unless we have a user callback
     int id_A=((int*)userDataA[0])[0];
     int id_B=((int*)userDataB[0])[0];
-    float statFriction_A=0.0f;
-    float statFriction_B=0.0f;
-    float kinFriction_A=0.0f;
-    float kinFriction_B=0.0f;
-    float restit_A=0.0f;
-    float restit_B=0.0f;
+    double statFriction_A=0.0;
+    double statFriction_B=0.0;
+    double kinFriction_A=0.0;
+    double kinFriction_B=0.0;
+    double restit_A=0.0;
+    double restit_B=0.0;
     if ( (shapeA!=nullptr)&&(shapeB!=nullptr) )
     { // regular case (shape-shape)
-        statFriction_A=((float*)userDataA[2])[0];
-        statFriction_B=((float*)userDataB[2])[0];
-        kinFriction_A=((float*)userDataA[3])[0];
-        kinFriction_B=((float*)userDataB[3])[0];
-        restit_A=((float*)userDataA[4])[0];
-        restit_B=((float*)userDataB[4])[0];
+        statFriction_A=(double)((float*)userDataA[2])[0];
+        statFriction_B=(double)((float*)userDataB[2])[0];
+        kinFriction_A=(double)((float*)userDataA[3])[0];
+        kinFriction_B=(double)((float*)userDataB[3])[0];
+        restit_A=(double)((float*)userDataA[4])[0];
+        restit_B=(double)((float*)userDataB[4])[0];
     }
     else
     { // particle-shape or particle-particle case:
@@ -347,12 +347,12 @@ void CRigidBodyContainerDyn::NewtonOnUserContacts(const NewtonJoint* contactJoin
             if ( (pa!=nullptr)&&(pb!=nullptr) ) // added this condition on 08/02/2011 because of some crashes when scaling some models
             {
                 // Get the particle's user data:
-                statFriction_A=((float*)userDataA[2])[0];
-                statFriction_B=((float*)userDataB[2])[0];
-                kinFriction_A=((float*)userDataA[3])[0];
-                kinFriction_B=((float*)userDataB[3])[0];
-                restit_A=((float*)userDataA[4])[0];
-                restit_B=((float*)userDataB[4])[0];
+                statFriction_A=(double)((float*)userDataA[2])[0];
+                statFriction_B=(double)((float*)userDataB[2])[0];
+                kinFriction_A=(double)((float*)userDataA[3])[0];
+                kinFriction_B=(double)((float*)userDataB[3])[0];
+                restit_A=(double)((float*)userDataA[4])[0];
+                restit_B=(double)((float*)userDataB[4])[0];
             }
             else
                 collides=false; // not normal
@@ -361,9 +361,9 @@ void CRigidBodyContainerDyn::NewtonOnUserContacts(const NewtonJoint* contactJoin
         { // particle-shape case:
             if (shapeA!=nullptr)
             {
-                statFriction_A=((float*)userDataA[2])[0];
-                kinFriction_A=((float*)userDataA[3])[0];
-                restit_A=((float*)userDataA[4])[0];
+                statFriction_A=(double)((float*)userDataA[2])[0];
+                kinFriction_A=(double)((float*)userDataA[3])[0];
+                restit_A=(double)((float*)userDataA[4])[0];
             }
             else
             {
@@ -371,18 +371,18 @@ void CRigidBodyContainerDyn::NewtonOnUserContacts(const NewtonJoint* contactJoin
                 if (particle!=nullptr) // added this condition on 08/02/2011 because of some crashes when scaling some models
                 {
                     // Get the particle's user data:
-                    statFriction_B=((float*)userDataB[2])[0];
-                    kinFriction_B=((float*)userDataB[3])[0];
-                    restit_B=((float*)userDataB[4])[0];
+                    statFriction_B=(double)((float*)userDataB[2])[0];
+                    kinFriction_B=(double)((float*)userDataB[3])[0];
+                    restit_B=(double)((float*)userDataB[4])[0];
                 }
                 else
                     collides=false; // not normal
             }
             if (shapeB!=nullptr)
             {
-                statFriction_B=((float*)userDataB[2])[0];
-                kinFriction_B=((float*)userDataB[3])[0];
-                restit_B=((float*)userDataB[4])[0];
+                statFriction_B=(double)((float*)userDataB[2])[0];
+                kinFriction_B=(double)((float*)userDataB[3])[0];
+                restit_B=(double)((float*)userDataB[4])[0];
             }
             else
             {
@@ -390,9 +390,9 @@ void CRigidBodyContainerDyn::NewtonOnUserContacts(const NewtonJoint* contactJoin
                 if (particle!=nullptr) // added this condition on 08/02/2011 because of some crashes when scaling some models
                 {
                     // Get the particle's user data:
-                    statFriction_A=((float*)userDataA[2])[0];
-                    kinFriction_A=((float*)userDataA[3])[0];
-                    restit_A=((float*)userDataA[4])[0];
+                    statFriction_A=(double)((float*)userDataA[2])[0];
+                    kinFriction_A=(double)((float*)userDataA[3])[0];
+                    restit_A=(double)((float*)userDataA[4])[0];
                 }
                 else
                     collides=false; // not normal
@@ -400,12 +400,12 @@ void CRigidBodyContainerDyn::NewtonOnUserContacts(const NewtonJoint* contactJoin
         }
     }
 
-    float statFriction=statFriction_A*statFriction_B;
-    float kinFriction=kinFriction_A*kinFriction_B;
-    float restit=(restit_A+restit_B)/2.0f;
+    double statFriction=statFriction_A*statFriction_B;
+    double kinFriction=kinFriction_A*kinFriction_B;
+    double restit=(restit_A+restit_B)/2.0;
 
     int dataInt[3]={0,0,0};
-    float dataFloat[14]={statFriction,kinFriction,restit,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+    double dataFloat[14]={statFriction,kinFriction,restit,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 
     if (collides)
     {
@@ -483,7 +483,7 @@ void CRigidBodyContainerDyn::NewtonFreeMemory(void* const ptr, int sizeInBytes)
     ptrSimReleaseBuffer((char*) ptr);
 }
 
-void CRigidBodyContainerDyn::_stepDynamics(float dt,int pass)
+void CRigidBodyContainerDyn::_stepDynamics(double dt,int pass)
 {
     NewtonUpdate(_dynamicsWorld,dt);
     _addNewtonContactPoints(pass);

@@ -37,21 +37,21 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
 {
 }
 
-dynReal CConstraintDyn::getPrismaticJointPosition() const
+double CConstraintDyn::getPrismaticJointPosition() const
 {
     return(0.0);
 }
 
-dynReal CConstraintDyn::getRevoluteJointAngle()
+double CConstraintDyn::getRevoluteJointAngle()
 {
     return(0.0);
 }
 
-dynReal CConstraintDyn::getRevoluteJointAngle_forCoppeliaSim()
+double CConstraintDyn::getRevoluteJointAngle_forCoppeliaSim()
 {
     return(0.0);
 }
 
-void CConstraintDyn::reportStateToCoppeliaSim(float simulationTime,int currentPass,int totalPasses)
+void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime,int currentPass,int totalPasses)
 {
 }

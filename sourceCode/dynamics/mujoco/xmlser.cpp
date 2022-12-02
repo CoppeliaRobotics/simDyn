@@ -149,13 +149,13 @@ void CXmlSer::setAttr(const char* name,const double* value,size_t size)
     setAttr(name,tmp.c_str());
 }
 
-void CXmlSer::setPosAttr(const char* name,const float value[3])
+void CXmlSer::setPosAttr(const char* name,const double value[3])
 {
     std::string tmp(std::to_string(value[0])+" "+std::to_string(value[1])+" "+std::to_string(value[2]));
     setAttr(name,tmp.c_str());
 }
 
-void CXmlSer::setQuatAttr(const char* name,const float value[4])
+void CXmlSer::setQuatAttr(const char* name,const double value[4])
 {
     std::string tmp(std::to_string(value[0])+" "+std::to_string(value[1])+" "+std::to_string(value[2])+" "+std::to_string(value[3]));
     setAttr(name,tmp.c_str());

@@ -17,7 +17,7 @@ CRigidBodyContainerDyn_base::~CRigidBodyContainerDyn_base()
     delete _particleCont;
 }
 
-std::string CRigidBodyContainerDyn_base::init(const float floatParams[20],const int intParams[20])
+std::string CRigidBodyContainerDyn_base::init(const double floatParams[20],const int intParams[20])
 {
     _positionScalingFactorDyn=floatParams[0];
     _linearVelocityScalingFactorDyn=floatParams[1];
@@ -47,7 +47,7 @@ void CRigidBodyContainerDyn_base::serializeDynamicContent(const std::string& fil
 {
 }
 
-void CRigidBodyContainerDyn_base::_stepDynamics(float dt,int pass)
+void CRigidBodyContainerDyn_base::_stepDynamics(double dt,int pass)
 {
 }
 
@@ -74,42 +74,42 @@ CParticleObjectContainer_base* CRigidBodyContainerDyn_base::getParticleCont()
     return(_particleCont);
 }
 
-float CRigidBodyContainerDyn_base::getPositionScalingFactorDyn() const
+double CRigidBodyContainerDyn_base::getPositionScalingFactorDyn() const
 {
     return(_positionScalingFactorDyn);
 }
 
-float CRigidBodyContainerDyn_base::getLinearVelocityScalingFactorDyn() const
+double CRigidBodyContainerDyn_base::getLinearVelocityScalingFactorDyn() const
 {
     return(_linearVelocityScalingFactorDyn);
 }
 
-float CRigidBodyContainerDyn_base::getMassScalingFactorDyn() const
+double CRigidBodyContainerDyn_base::getMassScalingFactorDyn() const
 {
     return(_massScalingFactorDyn);
 }
 
-float CRigidBodyContainerDyn_base::getMasslessInertiaScalingFactorDyn() const
+double CRigidBodyContainerDyn_base::getMasslessInertiaScalingFactorDyn() const
 {
     return(_masslessInertiaScalingFactorDyn);
 }
 
-float CRigidBodyContainerDyn_base::getForceScalingFactorDyn() const
+double CRigidBodyContainerDyn_base::getForceScalingFactorDyn() const
 {
     return(_forceScalingFactorDyn);
 }
 
-float CRigidBodyContainerDyn_base::getTorqueScalingFactorDyn() const
+double CRigidBodyContainerDyn_base::getTorqueScalingFactorDyn() const
 {
     return(_torqueScalingFactorDyn);
 }
 
-float CRigidBodyContainerDyn_base::getGravityScalingFactorDyn() const
+double CRigidBodyContainerDyn_base::getGravityScalingFactorDyn() const
 {
     return(_gravityScalingFactorDyn);
 }
 
-float CRigidBodyContainerDyn_base::getDynamicsInternalTimeStep() const
+double CRigidBodyContainerDyn_base::getDynamicsInternalTimeStep() const
 {
     return(_dynamicsInternalStepSize);
 }
@@ -124,7 +124,7 @@ int CRigidBodyContainerDyn_base::getDynamicsCalculationPasses() const
     return(_dynamicsCalculationPasses);
 }
 
-float CRigidBodyContainerDyn_base::getSimulationTime() const
+double CRigidBodyContainerDyn_base::getSimulationTime() const
 {
     return(_simulationTime);
 }
@@ -135,7 +135,7 @@ bool CRigidBodyContainerDyn_base::isJointInDynamicMode(CXSceneObject* joint)
     while (m==sim_jointmode_dependent)
     {
         int masterJ;
-        float off,mult;
+        double off,mult;
         simGetJointDependency(_simGetObjectID(joint),&masterJ,&off,&mult);
         if (masterJ==-1)
             break;
@@ -339,15 +339,15 @@ bool CRigidBodyContainerDyn_base::isDynamicContentAvailable()
     return(false);
 }
 
-void CRigidBodyContainerDyn_base::handleDynamics(float dt,float simulationTime)
+void CRigidBodyContainerDyn_base::handleDynamics(double dt,double simulationTime)
 {
-    float maxDynStep;
+    double maxDynStep;
     simGetFloatParam(sim_floatparam_physicstimestep,&maxDynStep);
 
-    _dynamicsCalculationPasses=int((dt/maxDynStep)+0.5f);
+    _dynamicsCalculationPasses=int((dt/maxDynStep)+0.5);
     if (_dynamicsCalculationPasses<1)
         _dynamicsCalculationPasses=1;
-    _dynamicsInternalStepSize=dt/float(_dynamicsCalculationPasses);
+    _dynamicsInternalStepSize=dt/double(_dynamicsCalculationPasses);
     _simulationTime=simulationTime;
     bool particlesPresent=_updateWorldFromCoppeliaSim();
     _createDependenciesBetweenJoints();
@@ -361,9 +361,9 @@ void CRigidBodyContainerDyn_base::handleDynamics(float dt,float simulationTime)
         for (int i=0;i<_dynamicsCalculationPasses;i++)
         {
             int integers[4]={0,i+1,_dynamicsCalculationPasses,0};
-            float floats[1]={_dynamicsInternalStepSize};
+            double floats[1]={_dynamicsInternalStepSize};
             _simDynCallback(integers,floats);
-            _handleKinematicBodies_step(float(i+1)/float(_dynamicsCalculationPasses),dt);
+            _handleKinematicBodies_step(double(i+1)/double(_dynamicsCalculationPasses),dt);
             _handleMotorControls(i+1,_dynamicsCalculationPasses); // to enable/disable motors, to update target velocities, target positions and position control
             _handleAdditionalForcesAndTorques(); // for shapes but also for "anti-gravity" particles or particels with fluid friction force!
             _contactPoints.clear();
@@ -432,14 +432,14 @@ void CRigidBodyContainerDyn_base::handleDynamics(float dt,float simulationTime)
     }
 }
 
-void CRigidBodyContainerDyn_base::_reportWorldToCoppeliaSim(float simulationTime,int currentPass,int totalPasses)
+void CRigidBodyContainerDyn_base::_reportWorldToCoppeliaSim(double simulationTime,int currentPass,int totalPasses)
 {
     _reportConstraintStatesToCoppeliaSim(simulationTime,currentPass,totalPasses);
     _reportRigidBodyStatesToCoppeliaSim(simulationTime);
     _particleCont->updateParticlesPosition(simulationTime);
 }
 
-void CRigidBodyContainerDyn_base::_reportRigidBodyStatesToCoppeliaSim(float simulationTime)
+void CRigidBodyContainerDyn_base::_reportRigidBodyStatesToCoppeliaSim(double simulationTime)
 {
     // It is important that we update shapes from base to tip, otherwise we get wrong positions!
     std::vector<CXSceneObject*> toExplore;
@@ -470,7 +470,7 @@ void CRigidBodyContainerDyn_base::_reportRigidBodyStatesToCoppeliaSim(float simu
     }
 }
 
-void CRigidBodyContainerDyn_base::_reportConstraintStatesToCoppeliaSim(float simulationTime,int currentPass,int totalPasses)
+void CRigidBodyContainerDyn_base::_reportConstraintStatesToCoppeliaSim(double simulationTime,int currentPass,int totalPasses)
 {
     auto it=_allConstraints.begin();
     while (it!=_allConstraints.end())
@@ -481,7 +481,7 @@ void CRigidBodyContainerDyn_base::_reportConstraintStatesToCoppeliaSim(float sim
     }
 }
 
-void CRigidBodyContainerDyn_base::_handleKinematicBodies_init(float dt)
+void CRigidBodyContainerDyn_base::_handleKinematicBodies_init(double dt)
 {
     auto it=_allRigidBodies.begin();
     while (it!=_allRigidBodies.end())
@@ -493,7 +493,7 @@ void CRigidBodyContainerDyn_base::_handleKinematicBodies_init(float dt)
     }
 }
 
-void CRigidBodyContainerDyn_base::_handleKinematicBodies_step(float t,float cumulatedTimeStep)
+void CRigidBodyContainerDyn_base::_handleKinematicBodies_step(double t,double cumulatedTimeStep)
 {
     auto it=_allRigidBodies.begin();
     while (it!=_allRigidBodies.end())
@@ -928,13 +928,13 @@ void CRigidBodyContainerDyn_base::_updateHybridJointTargetPositions_old()
         if ( (joint!=nullptr)&&_simIsJointInHybridOperation(joint) ) // we could have a dummy constraint!
         { 
 //            if (_simGetJointMode(joint)==sim_jointmode_dependent)
-//                _simSetJointPosition(joint,0.0f); // value doesn't matter. We just wanna refresh the value that is dependent!
+//                _simSetJointPosition(joint,0.0); // value doesn't matter. We just wanna refresh the value that is dependent!
             _simSetDynamicMotorPositionControlTargetPosition(joint,_simGetJointPosition(joint));
         }
     }
 }
 
-float* CRigidBodyContainerDyn_base::getContactPoints(int* cnt)
+double* CRigidBodyContainerDyn_base::getContactPoints(int* cnt)
 {
     cnt[0]=_contactPoints.size()/3;
     if (cnt[0]==0)
@@ -942,7 +942,7 @@ float* CRigidBodyContainerDyn_base::getContactPoints(int* cnt)
     return(&_contactPoints[0]);
 }
 
-bool CRigidBodyContainerDyn_base::getContactForce(int dynamicPass,int objectHandle,int index,int objectHandles[2],float* contactInfo)
+bool CRigidBodyContainerDyn_base::getContactForce(int dynamicPass,int objectHandle,int index,int objectHandles[2],double* contactInfo)
 {
     int scanIndex=0;
     int ind=(index|sim_handleflag_extended)-sim_handleflag_extended;

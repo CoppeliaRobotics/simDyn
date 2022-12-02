@@ -221,7 +221,7 @@ SIM_DLLEXPORT void* simMessage(int message,int* auxiliaryData,void* customData,i
     return(nullptr);
 }
 
-SIM_DLLEXPORT char dynPlugin_startSimulation(int engine,int version,const float floatParams[20],const int intParams[20])
+SIM_DLLEXPORT char dynPlugin_startSimulation_D(int engine,int version,const double floatParams[20],const int intParams[20])
 {
     char retVal=0;
 #ifdef INCLUDE_BULLET_2_78_CODE
@@ -267,7 +267,7 @@ SIM_DLLEXPORT void dynPlugin_endSimulation()
     CRigidBodyContainerDyn::setDynWorld(nullptr);
 }
 
-SIM_DLLEXPORT void dynPlugin_step(float timeStep,float simulationTime)
+SIM_DLLEXPORT void dynPlugin_step_D(double timeStep,double simulationTime)
 {
     CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
     if (dynWorld!=nullptr)
@@ -289,7 +289,7 @@ SIM_DLLEXPORT void dynPlugin_serializeDynamicContent(const char* filenameAndPath
         dynWorld->serializeDynamicContent(filenameAndPath,bulletSerializationBuffer);
 }
 
-SIM_DLLEXPORT int dynPlugin_addParticleObject(int objectType,float size,float massOverVolume,const void* params,float lifeTime,int maxItemCount,const float* ambient,const float* diffuse,const float* specular,const float* emission)
+SIM_DLLEXPORT int dynPlugin_addParticleObject_D(int objectType,double size,double massOverVolume,const void* params,double lifeTime,int maxItemCount,const float* ambient,const float* diffuse,const float* specular,const float* emission)
 {
     CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
     if (dynWorld!=nullptr)
@@ -332,7 +332,7 @@ SIM_DLLEXPORT char dynPlugin_removeParticleObject(int objectHandle)
     return(false); // error
 }
 
-SIM_DLLEXPORT char dynPlugin_addParticleObjectItem(int objectHandle,const float* itemData,float simulationTime)
+SIM_DLLEXPORT char dynPlugin_addParticleObjectItem_D(int objectHandle,const double* itemData,double simulationTime)
 {
     CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
     if (dynWorld!=nullptr)
@@ -364,9 +364,9 @@ SIM_DLLEXPORT int dynPlugin_getParticleObjectOtherFloatsPerItem(int objectHandle
     return(retVal);
 }
 
-SIM_DLLEXPORT float* dynPlugin_getContactPoints(int* count)
+SIM_DLLEXPORT double* dynPlugin_getContactPoints_D(int* count)
 {
-    float* retVal=nullptr;
+    double* retVal=nullptr;
     CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
     count[0]=0;
     if (dynWorld!=nullptr)
@@ -385,14 +385,14 @@ SIM_DLLEXPORT void** dynPlugin_getParticles(int index,int* particlesCount,int* o
     return(retVal);
 }
 
-SIM_DLLEXPORT char dynPlugin_getParticleData(const void* particle,float* pos,float* size,int* objectType,float** additionalColor)
+SIM_DLLEXPORT char dynPlugin_getParticleData_D(const void* particle,double* pos,double* size,int* objectType,float** additionalColor)
 {
     if (particle==nullptr)
         return(0);
     return(((CParticleDyn*)particle)->getRenderData(pos,size,objectType,additionalColor));
 }
 
-SIM_DLLEXPORT char dynPlugin_getContactForce(int dynamicPass,int objectHandle,int index,int objectHandles[2],float* contactInfo)
+SIM_DLLEXPORT char dynPlugin_getContactForce_D(int dynamicPass,int objectHandle,int index,int objectHandles[2],double* contactInfo)
 {
     CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
     if (dynWorld!=nullptr)
@@ -409,11 +409,11 @@ SIM_DLLEXPORT int dynPlugin_getDynamicStepDivider()
 }
 
 #ifdef INCLUDE_MUJOCO_CODE
-SIM_DLLEXPORT float mujocoPlugin_computeInertia(int shapeHandle,float* relPos,float* relQuat,float* diagI)
+SIM_DLLEXPORT double mujocoPlugin_computeInertia(int shapeHandle,double* relPos,double* relQuat,double* diagI)
 { // returns the diagonal massless inertia (and mass, for a density of 1000)
     C7Vector tr;
     C3Vector diag;
-    float mass=CRigidBodyContainerDyn::computeInertia(shapeHandle,tr,diag);
+    double mass=CRigidBodyContainerDyn::computeInertia(shapeHandle,tr,diag);
     tr.X.getData(relPos);
     tr.Q.getData(relQuat);
     diag.getData(diagI);

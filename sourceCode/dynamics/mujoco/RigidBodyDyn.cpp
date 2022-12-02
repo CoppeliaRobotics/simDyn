@@ -27,7 +27,7 @@ C7Vector CRigidBodyDyn::getShapeFrameTransformation()
     return(tr);
 }
 
-void CRigidBodyDyn::reportVelocityToShape(float simulationTime)
+void CRigidBodyDyn::reportVelocityToShape(double simulationTime)
 {
 }
 
@@ -35,7 +35,7 @@ void CRigidBodyDyn::handleAdditionalForcesAndTorques()
 {
 }
 
-void CRigidBodyDyn::handleKinematicBody_step(float t,float cumulatedTimeStep)
+void CRigidBodyDyn::handleKinematicBody_step(double t,double cumulatedTimeStep)
 {
 }
 

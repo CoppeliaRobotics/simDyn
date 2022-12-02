@@ -3,7 +3,7 @@
 #include "NewtonConvertUtil.h"
 #include "simLib.h"
 
-CParticleDyn::CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,float size,float massOverVolume,float killTime,float addColor[3]) : CParticleDyn_base(position,velocity,objType,size,massOverVolume,killTime,addColor)
+CParticleDyn::CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,double size,double massOverVolume,double killTime,float addColor[3]) : CParticleDyn_base(position,velocity,objType,size,massOverVolume,killTime,addColor)
 {
 }
 
@@ -11,7 +11,7 @@ CParticleDyn::~CParticleDyn()
 {
 }
 
-bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
+bool CParticleDyn::addToEngineIfNeeded(double parameters[18],int objectID)
 {
     if (_initializationState!=0)
         return(_initializationState==1);
@@ -25,13 +25,13 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     tr.X=_currentPosition;
     dMatrix matrix (GetDMatrixFromCoppeliaSimTransformation(tr));
 
-    NewtonCollision* const collision = NewtonCreateSphere(world,_size*0.5f,0,nullptr);
+    NewtonCollision* const collision = NewtonCreateSphere(world,_size*0.5,0,nullptr);
     _newtonBody = NewtonCreateDynamicBody (world,collision,&matrix[0][0]);
     NewtonDestroyCollision (collision);
     
-    _particleMass=_massOverVolume*(4.0f*piValue*(_size*0.5f)*(_size*0.5f)*(_size*0.5f)/3.0f);
+    _particleMass=_massOverVolume*(4.0*piValue*(_size*0.5)*(_size*0.5)*(_size*0.5)/3.0);
     _ignoreGravity=false;
-    float I=2.0f*(_size*0.5f)*(_size*0.5f)/5.0f;
+    double I=2.0*(_size*0.5)*(_size*0.5)/5.0;
     C3Vector im(I,I,I);
     im*=_particleMass;
     NewtonBodySetMassMatrix(_newtonBody,_particleMass,im(0),im(1),im(2));
@@ -40,9 +40,12 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     _particleObjectID_withOffset=objectID+CRigidBodyContainerDyn::getDynWorld()->getDynamicParticlesIdStart();
     _newtonParticleUserData[0]=&_particleObjectID_withOffset;
     _newtonParticleUserData[1]=this;
-    _newtonParticleUserData[2]=&parameters[15];
-    _newtonParticleUserData[3]=&parameters[16];
-    _newtonParticleUserData[4]=&parameters[17];
+    statFric=parameters[15];
+    kinFric=parameters[16];
+    rest=parameters[17];
+    _newtonParticleUserData[2]=&statFric;
+    _newtonParticleUserData[3]=&kinFric;
+    _newtonParticleUserData[4]=&rest;
     NewtonBodySetUserData(_newtonBody, _newtonParticleUserData);
 
     // disable auto sleep at all time
@@ -65,19 +68,19 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     return(true);
 }
 
-void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,float linearFluidFrictionCoeff,float quadraticFluidFrictionCoeff,float linearAirFrictionCoeff,float quadraticAirFrictionCoeff)
+void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,double linearFluidFrictionCoeff,double quadraticFluidFrictionCoeff,double linearAirFrictionCoeff,double quadraticAirFrictionCoeff)
 {
     bool isWaterButInAir=false;
     if ( (_objectType&sim_particle_ignoresgravity)||(_objectType&sim_particle_water) )
     {
-        float mass=_massOverVolume*((piValue*_size*_size*_size)/6.0f);
+        double mass=_massOverVolume*((piValue*_size*_size*_size)/6.0);
         C3Vector f=gravity*-mass;
         bool reallyIgnoreGravity=true;
         if (_objectType&sim_particle_water)
         { // We ignore gravity only if we are in the water (z<0) (New since 27/6/2011):
             C3Vector pos;
             NewtonBodyGetPosition(_newtonBody,pos.data);
-            if (pos(2)>=0.0f)
+            if (pos(2)>=0.0)
             {
                 reallyIgnoreGravity=false;
                 isWaterButInAir=true;
@@ -90,10 +93,10 @@ void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector
 
         }
     }
-    if ((linearFluidFrictionCoeff!=0.0f)||(quadraticFluidFrictionCoeff!=0.0f)||(linearAirFrictionCoeff!=0.0f)||(quadraticAirFrictionCoeff!=0.0f))
+    if ((linearFluidFrictionCoeff!=0.0)||(quadraticFluidFrictionCoeff!=0.0)||(linearAirFrictionCoeff!=0.0)||(quadraticAirFrictionCoeff!=0.0))
     { // New since 27/6/2011
-        float lfc=linearFluidFrictionCoeff;
-        float qfc=quadraticFluidFrictionCoeff;
+        double lfc=linearFluidFrictionCoeff;
+        double qfc=quadraticFluidFrictionCoeff;
         if (isWaterButInAir)
         {
             lfc=linearAirFrictionCoeff;
@@ -103,10 +106,10 @@ void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector
 
         NewtonBodyGetVelocity(_newtonBody,vVect.data);
 
-        float v=vVect.getLength();
-        if (v!=0.0f)
+        double v=vVect.getLength();
+        if (v!=0.0)
         {
-            C3Vector nv(vVect.getNormalized()*-1.0f);
+            C3Vector nv(vVect.getNormalized()*-1.0);
             C3Vector f(nv*(v*lfc+v*v*qfc));
             m_externForce=f;
         }
@@ -152,10 +155,10 @@ void CParticleDyn::ApplyExtenalForceCallback(const NewtonBody* body, dFloat time
     NewtonBodyAddForce(body, &gravity.data[0]);
 /*
 // for testing codename system alignments
-if (mass != 0.0f) {
+if (mass != 0.0) {
     dVector omega;
     NewtonBodyGetOmega (body, &omega[0]);
-    dVector torque (dVector (0, 0, 1, 0) - omega.Scale (0.1f));
+    dVector torque (dVector (0, 0, 1, 0) - omega.Scale (0.1));
     NewtonBodyAddTorque(body, &torque[0]);
 }
 */

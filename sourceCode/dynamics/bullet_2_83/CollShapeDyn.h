@@ -19,6 +19,6 @@ protected:
     btCollisionShape* _collisionShape;
 
     // Following few maybe need to remain valid throughout the lifetime of Bullet CollShapeDyn:
-    std::vector<dynReal> _meshVertices_scaled;
+    std::vector<double> _meshVertices_scaled;
     std::vector<int> _meshIndices;
 };

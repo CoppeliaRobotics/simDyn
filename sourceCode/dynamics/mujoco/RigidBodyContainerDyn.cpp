@@ -55,13 +55,13 @@ CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
     }
 }
 
-std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int intParams[20])
+std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int intParams[20])
 {
     CRigidBodyContainerDyn_base::init(floatParams,intParams);
     return("");
 }
 
-std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTime,bool rebuild)
+std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep,double simTime,bool rebuild)
 {
     mju_user_warning=nullptr;
     mju_user_error=nullptr;
@@ -329,7 +329,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
                         _simSetDynamicSimulationIconCode(proxyJoint,sim_dynamicsimicon_objectisdynamicallysimulated);
                         _simSetDynamicObjectFlagForVisualization(proxyJoint,4);
                         xmlDoc->setAttr("name",gjoint.name.c_str()); // name comes from the proxy joint
-                        float minp,rangep;
+                        double minp,rangep;
                         bool limited=_simGetJointPositionInterval(proxyJoint,&minp,&rangep);
                         xmlDoc->setAttr("limited",limited);
                         if (limited)
@@ -595,7 +595,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
                     C3Vector lv,av;
                     _simGetInitialDynamicVelocity(_allShapes[i].object,lv.data);
                     _simGetInitialDynamicAngVelocity(_allShapes[i].object,av.data);
-                    if ( (lv.getLength()>0.0f)||(av.getLength()>0.0f) )
+                    if ( (lv.getLength()>0.0)||(av.getLength()>0.0) )
                         simAddLog(LIBRARY_NAME,sim_verbosity_warnings,"detected an initial static shape velocity. This will not work as expected with the MuJoCo engine.");
                         */
                 }
@@ -605,7 +605,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
                     int nvadr=_mjModel->body_dofadr[_allShapes[i].mjId];
                     C3Vector v;
                     _simGetInitialDynamicVelocity(_allShapes[i].object,v.data);
-                    if (v.getLength()>0.0f)
+                    if (v.getLength()>0.0)
                     {
                         _mjData->qvel[nvadr+0]=v(0);
                         _mjData->qvel[nvadr+1]=v(1);
@@ -613,7 +613,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(float timeStep,float simTi
                         _simSetInitialDynamicVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
                     }
                     _simGetInitialDynamicAngVelocity(_allShapes[i].object,v.data);
-                    if (v.getLength()>0.0f)
+                    if (v.getLength()>0.0)
                     {
                         _mjData->qvel[nvadr+3]=v(0);
                         _mjData->qvel[nvadr+4]=v(1);
@@ -1188,8 +1188,8 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
                     xmlDoc->pushNewNode("site");
                     xmlDoc->setAttr("name",_getObjectName(object).c_str());
                     //-------------------
-                    float pos[3];
-                    float quat[4];
+                    double pos[3];
+                    double quat[4];
                     C7Vector tr;
                     if (useGlobalCoords)
                         _simGetObjectCumulativeTransformation(object,tr.X.data,tr.Q.data,1);
@@ -1325,8 +1325,8 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                         xmlDoc->pushNewNode("body");
                         xmlDoc->setAttr("name",(objectName+"staticCounterpart").c_str());
                         // -------------------
-                        float pos[3];
-                        float quat[4];
+                        double pos[3];
+                        double quat[4];
                         _simGetObjectCumulativeTransformation(object,pos,quat,1);
                         xmlDoc->setPosAttr("pos",pos);
                         xmlDoc->setQuatAttr("quat",quat);
@@ -1399,8 +1399,8 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
             _simGetObjectCumulativeTransformation(object,objectPose.X.data,objectPose.Q.data,1);
 
         // ------------------
-        float pos[3];
-        float quat[4];
+        double pos[3];
+        double quat[4];
         C7Vector tr;
         if ( useGlobalCoords||(parent==nullptr) )
             tr=objectPose;
@@ -1493,10 +1493,10 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 if (jt==sim_joint_spherical_subtype)
                 {
                     xmlDoc->setAttr("type","ball");
-                    float p[7];
+                    double p[7];
                     simGetObjectChildPose(_simGetObjectID(joint),p);
                     gjoint.initialBallQuat=C4Vector(p+3,true);
-                    float p2[7];
+                    double p2[7];
                     simGetObjectPose(_simGetObjectID(joint),_simGetObjectID(containingShape),p2);
                     gjoint.initialBallQuat2=C4Vector(p2+3,true);
                     gjoint.dependencyJointHandle=-1;
@@ -1507,13 +1507,13 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                         xmlDoc->setAttr("type","hinge");
                     if (jt==sim_joint_prismatic_subtype)
                         xmlDoc->setAttr("type","slide");
-                    float minp,rangep;
+                    double minp,rangep;
                     bool limited=_simGetJointPositionInterval(joint,&minp,&rangep);
                     xmlDoc->setAttr("limited",limited);
                     if (limited)
                         xmlDoc->setAttr("range",minp,minp+rangep);
                     xmlDoc->setAttr("ref",_simGetJointPosition(joint));
-                    float off,mult;
+                    double off,mult;
                     simGetJointDependency(_simGetObjectID(joint),&gjoint.dependencyJointHandle,&off,&mult);
                     //gjoint.dependencyJointHandle=simGetEngineInt32Param(sim_mujoco_joint_dependentobjectid,-1,joint,nullptr);
                     if (gjoint.dependencyJointHandle!=-1)
@@ -1526,7 +1526,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 }
 
                 // ---------------------
-                float pos[3];
+                double pos[3];
                 C7Vector tr;
                 if (useGlobalCoords)
                     _simGetObjectCumulativeTransformation(joint,tr.X.data,tr.Q.data,1);
@@ -1569,8 +1569,8 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
             xmlDoc->setAttr("name",forceSensorName.c_str());
 
             // -----------------
-            float pos[3];
-            float quat[4];
+            double pos[3];
+            double quat[4];
             C7Vector tr;
             if (useGlobalCoords)
                 _simGetObjectCumulativeTransformation(forceSensor,tr.X.data,tr.Q.data,1);
@@ -1606,9 +1606,9 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
 
             C7Vector tr;
             C3Vector im;
-            float mass=_simGetLocalInertiaInfo(linkedDummyParent,tr.X.data,tr.Q.data,im.data); // im includes the mass!
-            mass/=float(info->massDividers[linkedDummyParent]);
-            im/=float(info->massDividers[linkedDummyParent]);
+            double mass=_simGetLocalInertiaInfo(linkedDummyParent,tr.X.data,tr.Q.data,im.data); // im includes the mass!
+            mass/=double(info->massDividers[linkedDummyParent]);
+            im/=double(info->massDividers[linkedDummyParent]);
             if (useGlobalCoords)
                 tr=objectPose*tr;
             _addInertiaElement(xmlDoc,mass,tr,im);
@@ -1621,15 +1621,15 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
             {
                 C7Vector tr;
                 C3Vector im;
-                float mass=_simGetLocalInertiaInfo(object,tr.X.data,tr.Q.data,im.data); // im includes the mass!
-                mass/=float(info->massDividers[object]); // the mass is possibly shared with a loop closure of type shape1 --> joint/fsensor --> dummy1(becomes aux. body) -- dummy2 <-- shape2
-                im/=float(info->massDividers[object]);
+                double mass=_simGetLocalInertiaInfo(object,tr.X.data,tr.Q.data,im.data); // im includes the mass!
+                mass/=double(info->massDividers[object]); // the mass is possibly shared with a loop closure of type shape1 --> joint/fsensor --> dummy1(becomes aux. body) -- dummy2 <-- shape2
+                im/=double(info->massDividers[object]);
                 if (useGlobalCoords)
                     tr=objectPose*tr;
                 if (g.shapeMode==shapeModes::kinematicMode)
                 {
                     mass=simGetEngineFloatParam(sim_mujoco_global_kinmass,-1,nullptr,nullptr);
-                    float inertia=simGetEngineFloatParam(sim_mujoco_global_kininertia,-1,nullptr,nullptr);
+                    double inertia=simGetEngineFloatParam(sim_mujoco_global_kininertia,-1,nullptr,nullptr);
                     im=C3Vector(inertia,inertia,inertia);
                 }
                 _addInertiaElement(xmlDoc,mass,tr,im);
@@ -1638,7 +1638,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
     }
 }
 
-void CRigidBodyContainerDyn::_addInertiaElement(CXmlSer* xmlDoc,float mass,const C7Vector& tr,const C3Vector diagI)
+void CRigidBodyContainerDyn::_addInertiaElement(CXmlSer* xmlDoc,double mass,const C7Vector& tr,const C3Vector diagI)
 {
     xmlDoc->pushNewNode("inertial");
     xmlDoc->setAttr("mass",mass);
@@ -1648,13 +1648,13 @@ void CRigidBodyContainerDyn::_addInertiaElement(CXmlSer* xmlDoc,float mass,const
     xmlDoc->popNode();
 }
 
-float CRigidBodyContainerDyn::computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness)
+double CRigidBodyContainerDyn::computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness)
 { // returns the diagonal mass-less inertia, for a density of 1000
     // Errors are silent here. Function can be reentrant (max. 1 time)
     mju_user_warning=nullptr;
     mju_user_error=nullptr;
 
-    float mass=0.0;
+    double mass=0.0;
     CXSceneObject* shape=(CXSceneObject*)_simGetObject(shapeHandle);
     char* _dir=simGetStringParam(sim_stringparam_tempdir);
     std::string dir(_dir);
@@ -1666,8 +1666,8 @@ float CRigidBodyContainerDyn::computeInertia(int shapeHandle,C7Vector& tr,C3Vect
     xmlDoc->pushNewNode("body");
     xmlDoc->setAttr("name","inertia");
     // ---------------
-    float pos[3];
-    float quat[4];
+    double pos[3];
+    double quat[4];
     _simGetObjectCumulativeTransformation(shape,pos,quat,1);
     xmlDoc->setPosAttr("pos",pos);
     xmlDoc->setQuatAttr("quat",quat);
@@ -1806,22 +1806,25 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
             fn+=".bin";
 
             int xCnt,yCnt;
-            float minH,maxH;
-            const float* hData=_simGetHeightfieldData(geomInfo,&xCnt,&yCnt,&minH,&maxH);
+            double minH,maxH;
+            const double* hData=_simGetHeightfieldData(geomInfo,&xCnt,&yCnt,&minH,&maxH);
 
-            float mmin=1000.0f;
-            float mmax=-1000.0f;
+            double mmin=1000.0;
+            double mmax=-1000.0;
+            std::vector<float> hDataF;
+            hDataF.resize(xCnt*yCnt);
             for (size_t j=0;j<xCnt*yCnt;j++)
             {
-                float v=hData[j];
+                hDataF[j]=hData[j];
+                double v=hData[j];
                 if (v>mmax)
                     mmax=v;
                 if (v<mmin)
                     mmin=v;
             }
 
-            float mjhfbaseHeight=0.1*(s(0)+s(1));
-            C3Vector pos(objectPose.X-objectPose.Q.getMatrix().axis[2]*(0.5f*(maxH-minH)));
+            double mjhfbaseHeight=0.1*(s(0)+s(1));
+            C3Vector pos(objectPose.X-objectPose.Q.getMatrix().axis[2]*(0.5*(maxH-minH)));
             xmlDoc->setPosAttr("pos",pos.data);
             xmlDoc->setQuatAttr("quat",objectPose.Q.data);
 
@@ -1837,7 +1840,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
             std::ofstream f(fn.c_str(),std::ios::out|std::ios::binary);
             f.write((char*)&yCnt,sizeof(int));
             f.write((char*)&xCnt,sizeof(int));
-            f.write((char*)hData,sizeof(float)*xCnt*yCnt);
+            f.write((char*)hDataF.data(),sizeof(float)*xCnt*yCnt);
         }
         else
             _simGetVerticesLocalFrame(sc,geomPose.X.data,geomPose.Q.data);
@@ -1845,21 +1848,21 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
 
         if ( (pType==sim_primitiveshape_plane)||(pType==sim_primitiveshape_cuboid) )
         {
-            float z=s(2);
-            if (z<0.0001f)
-                z=0.0001f;
+            double z=s(2);
+            if (z<0.0001)
+                z=0.0001;
             xmlDoc->setAttr("type","box");
-            xmlDoc->setAttr("size",s(0)*0.5f,s(1)*0.5f,z*0.5f);
+            xmlDoc->setAttr("size",s(0)*0.5,s(1)*0.5,z*0.5);
             xmlDoc->setPosAttr("pos",geomPose.X.data);
             xmlDoc->setQuatAttr("quat",geomPose.Q.data);
         }
         if ( (pType==sim_primitiveshape_disc)||(pType==sim_primitiveshape_cylinder) )
         {
-            float z=s(2);
-            if (z<0.0001f)
-                z=0.0001f;
+            double z=s(2);
+            if (z<0.0001)
+                z=0.0001;
             xmlDoc->setAttr("type","cylinder");
-            xmlDoc->setAttr("size",s(0)*0.5f,z*0.5f);
+            xmlDoc->setAttr("size",s(0)*0.5,z*0.5);
             xmlDoc->setPosAttr("pos",geomPose.X.data);
             xmlDoc->setQuatAttr("quat",geomPose.Q.data);
         }
@@ -1869,17 +1872,17 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
         }
         if (pType==sim_primitiveshape_spheroid)
         {
-            if ( (fabs((s(0)-s(1))/s(0))<0.001f)&&(fabs((s(0)-s(2))/s(0))<0.001f) )
+            if ( (fabs((s(0)-s(1))/s(0))<0.001)&&(fabs((s(0)-s(2))/s(0))<0.001) )
             {
                 xmlDoc->setAttr("type","sphere");
-                xmlDoc->setAttr("size",s(0)*0.5f);
+                xmlDoc->setAttr("size",s(0)*0.5);
                 xmlDoc->setPosAttr("pos",geomPose.X.data);
                 xmlDoc->setQuatAttr("quat",geomPose.Q.data);
             }
             else
             { // We have a spheroid
                 xmlDoc->setAttr("type","ellipsoid");
-                xmlDoc->setAttr("size",s(0)*0.5f,s(1)*0.5f,s(2)*0.5f);
+                xmlDoc->setAttr("size",s(0)*0.5,s(1)*0.5,s(2)*0.5);
                 xmlDoc->setPosAttr("pos",geomPose.X.data);
                 xmlDoc->setQuatAttr("quat",geomPose.Q.data);
             }
@@ -1887,8 +1890,8 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
         if (pType==sim_primitiveshape_capsule)
         {
             xmlDoc->setAttr("type","capsule");
-            float avgR=(s(0)+s(1))*0.25f;
-            xmlDoc->setAttr("size",avgR,s(2)*0.5f-avgR);
+            double avgR=(s(0)+s(1))*0.25;
+            xmlDoc->setAttr("size",avgR,s(2)*0.5-avgR);
             xmlDoc->setPosAttr("pos",geomPose.X.data);
             xmlDoc->setQuatAttr("quat",geomPose.Q.data);
         }
@@ -1899,16 +1902,16 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
             xmlDoc->setAttr("mesh",fn.c_str());
             fn+=".stl";
             info->meshFiles.push_back(fn);
-            float* allVertices;
+            double* allVertices;
             int allVerticesSize;
             int* allIndices;
             int allIndicesSize;
             _simGetCumulativeMeshes(sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
-            float* mv=new float[allVerticesSize*4];
+            double* mv=new double[allVerticesSize*4];
             int* mi=new int[allIndicesSize*4];
-            float xmm[2]={9999.0,-9999.0};
-            float ymm[2]={9999.0,-9999.0};
-            float zmm[2]={9999.0,-9999.0};
+            double xmm[2]={9999.0,-9999.0};
+            double ymm[2]={9999.0,-9999.0};
+            double zmm[2]={9999.0,-9999.0};
             for (int j=0;j<allVerticesSize/3;j++)
             { // relative to the shape's frame
                 C3Vector v(allVertices+3*j+0);
@@ -1933,7 +1936,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
                 mi[j]=allIndices[j];
             if (info->inertiaCalcRobust)
             { // give mesh an artifical volume (is grown in 3 directions by 10%)
-                float dxyz=0.1*(xmm[1]-xmm[0]+ymm[1]-ymm[0]+zmm[1]-zmm[0])/3;
+                double dxyz=0.1*(xmm[1]-xmm[0]+ymm[1]-ymm[0]+zmm[1]-zmm[0])/3;
                 int voff=allVerticesSize;
                 int ioff=allIndicesSize;
                 int ioi=allVerticesSize/3;
@@ -1960,7 +1963,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
             }
             fn=info->folder+"/"+fn;
             if (simDoesFileExist(fn.c_str())==0)
-                simExportMesh(4,fn.c_str(),0,1.0f,1,(const float**)&mv,&allVerticesSize,(const int**)&mi,&allIndicesSize,nullptr,nullptr);
+                simExportMesh(4,fn.c_str(),0,1.0,1,(const double**)&mv,&allVerticesSize,(const int**)&mi,&allIndicesSize,nullptr,nullptr);
             delete[] mi;
             delete[] mv;
             simReleaseBuffer((char*)allVertices);
@@ -2015,17 +2018,17 @@ int CRigidBodyContainerDyn::_hasContentChanged()
     return(retVal);
 }
 
-void CRigidBodyContainerDyn::handleDynamics(float dt,float simulationTime)
+void CRigidBodyContainerDyn::handleDynamics(double dt,double simulationTime)
 {
     if (!_simulationHalted)
     {
-        float maxDynStep;
+        double maxDynStep;
         simGetFloatParam(sim_floatparam_physicstimestep,&maxDynStep);
 
-        _dynamicsCalculationPasses=int((dt/maxDynStep)+0.5f);
+        _dynamicsCalculationPasses=int((dt/maxDynStep)+0.5);
         if (_dynamicsCalculationPasses<1)
             _dynamicsCalculationPasses=1;
-        _dynamicsInternalStepSize=dt/float(_dynamicsCalculationPasses);
+        _dynamicsInternalStepSize=dt/double(_dynamicsCalculationPasses);
         int contentChanged=_hasContentChanged();
         if (contentChanged>0)
         {
@@ -2046,9 +2049,9 @@ void CRigidBodyContainerDyn::handleDynamics(float dt,float simulationTime)
                 {
                     _currentPass=i+1;
                     int integers[4]={0,i+1,_dynamicsCalculationPasses,0};
-                    float floats[1]={_dynamicsInternalStepSize};
+                    double floats[1]={_dynamicsInternalStepSize};
                     _simDynCallback(integers,floats);
-                    _handleKinematicBodies_step(float(i+1)/float(_dynamicsCalculationPasses),dt);
+                    _handleKinematicBodies_step(double(i+1)/double(_dynamicsCalculationPasses),dt);
                     _stepDynamics(_dynamicsInternalStepSize,i);
                     _handleContactPoints(i);
                     _simulationTime+=_dynamicsInternalStepSize;
@@ -2152,7 +2155,7 @@ int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,
         if (canCollide)
         {
             int dataInt[3]={0,0,0};
-            float dataFloat[14]={1.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+            double dataFloat[14]={1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 
             int customHandleRes=_simHandleCustomContact(body1Handle,body2Handle,sim_physics_mujoco,dataInt,dataFloat);
             if (customHandleRes!=0)
@@ -2203,15 +2206,15 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m,mjData* d)
                     double mass=m->body_mass[bodyId];
                     double avgI=(m->body_inertia[bodyId+0]+m->body_inertia[bodyId+1]+m->body_inertia[bodyId+2])/3.0;
                     // Disable gravity:
-                    d->xfrc_applied[6*bodyId+2]=mass*gravity(2)*-1.0f;
+                    d->xfrc_applied[6*bodyId+2]=mass*gravity(2)*-1.0;
                     // Apply add. force inv. prop. to the velocity:
-                    d->xfrc_applied[6*bodyId+0]-=mass*_mjData->cvel[6*bodyId+3]*1.0f;
-                    d->xfrc_applied[6*bodyId+1]-=mass*_mjData->cvel[6*bodyId+4]*1.0f;
-                    d->xfrc_applied[6*bodyId+2]-=mass*_mjData->cvel[6*bodyId+5]*1.0f;
+                    d->xfrc_applied[6*bodyId+0]-=mass*_mjData->cvel[6*bodyId+3]*1.0;
+                    d->xfrc_applied[6*bodyId+1]-=mass*_mjData->cvel[6*bodyId+4]*1.0;
+                    d->xfrc_applied[6*bodyId+2]-=mass*_mjData->cvel[6*bodyId+5]*1.0;
                     // Apply add. torque inv. prop. to the velocity:
-                    d->xfrc_applied[6*bodyId+3]-=avgI*_mjData->cvel[6*bodyId+0]*0.00001f;
-                    d->xfrc_applied[6*bodyId+4]-=avgI*_mjData->cvel[6*bodyId+1]*0.00001f;
-                    d->xfrc_applied[6*bodyId+5]-=avgI*_mjData->cvel[6*bodyId+2]*0.00001f;
+                    d->xfrc_applied[6*bodyId+3]-=avgI*_mjData->cvel[6*bodyId+0]*0.00001;
+                    d->xfrc_applied[6*bodyId+4]-=avgI*_mjData->cvel[6*bodyId+1]*0.00001;
+                    d->xfrc_applied[6*bodyId+5]-=avgI*_mjData->cvel[6*bodyId+2]*0.00001;
                     // Disable collision response:
                     for (size_t j=0;j<_allShapes[i].geomIndices.size();j++)
                         _allGeoms[_allShapes[i].geomIndices[j]].respondableMask=0;
@@ -2312,9 +2315,9 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
 {
     CXSceneObject* joint=mujocoItem->object;
     int ctrlMode=_simGetJointDynCtrlMode(joint);
-    float dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
-    float e=0.0f;
-    float currentPos,currentVel,currentAccel;
+    double dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
+    double e=0.0;
+    double currentPos,currentVel,currentAccel;
     int auxV=0;
     if (mujocoItem->tendonJoint)
     { // TODO tendon accel?
@@ -2353,7 +2356,7 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
     inputValuesInt[0]=_currentPass;
     inputValuesInt[1]=_dynamicsCalculationPasses;
     inputValuesInt[2]=_rg4Cnt;
-    float inputValuesFloat[7]={0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+    double inputValuesFloat[7]={0.0,0.0,0.0,0.0,0.0,0.0,0.0};
     if (mujocoItem->jointType==sim_joint_revolute_subtype)
         inputValuesFloat[0]=currentPos;
     else
@@ -2380,7 +2383,7 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
     inputValuesFloat[3]=e;
     inputValuesFloat[4]=currentVel;
     inputValuesFloat[5]=currentAccel;
-    float outputValues[5];
+    double outputValues[5];
     int res=_simHandleJointControl(joint,auxV,inputValuesInt,inputValuesFloat,outputValues);
 
 //    if ((res&2)==0)
@@ -2449,15 +2452,15 @@ void CRigidBodyContainerDyn::_handleContactPoints(int dynPass)
     }
 }
 
-dynReal CRigidBodyContainerDyn::_getAngleMinusAlpha(dynReal angle,dynReal alpha)
+double CRigidBodyContainerDyn::_getAngleMinusAlpha(double angle,double alpha)
 {    // Returns angle-alpha. Angle and alpha are cyclic angles!!
-    dynReal sinAngle0 = sinf (angle);
-    dynReal sinAngle1 = sinf (alpha);
-    dynReal cosAngle0 = cosf(angle);
-    dynReal cosAngle1 = cosf(alpha);
-    dynReal sin_da = sinAngle0 * cosAngle1 - cosAngle0 * sinAngle1;
-    dynReal cos_da = cosAngle0 * cosAngle1 + sinAngle0 * sinAngle1;
-    dynReal angle_da = atan2(sin_da, cos_da);
+    double sinAngle0 = sinf (angle);
+    double sinAngle1 = sinf (alpha);
+    double cosAngle0 = cosf(angle);
+    double cosAngle1 = cosf(alpha);
+    double sin_da = sinAngle0 * cosAngle1 - cosAngle0 * sinAngle1;
+    double cos_da = cosAngle0 * cosAngle1 + sinAngle0 * sinAngle1;
+    double angle_da = atan2(sin_da, cos_da);
     return angle_da;
 }
 
@@ -2489,11 +2492,11 @@ bool CRigidBodyContainerDyn::_updateWorldFromCoppeliaSim()
                     C3Vector lv,av;
                     _simGetInitialDynamicVelocity(_allShapes[i].object,lv.data);
                     _simGetInitialDynamicAngVelocity(_allShapes[i].object,av.data);
-                    if ( (lv.getLength()>0.0f)||(av.getLength()>0.0f) )
+                    if ( (lv.getLength()>0.0)||(av.getLength()>0.0) )
                     { // when a static shape has an initial velocity (e.g. simple conveyor)
                         _simSetInitialDynamicVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
                         _simSetInitialDynamicAngVelocity(_allShapes[i].object,C3Vector::zeroVector.data); // important to reset it
-                        float dt=_dynamicsInternalStepSize*float(_dynamicsCalculationPasses);
+                        double dt=_dynamicsInternalStepSize*double(_dynamicsCalculationPasses);
                         _allShapes[i].staticShapeGoal.X(0)+=lv(0)*dt;
                         _allShapes[i].staticShapeGoal.X(1)+=lv(1)*dt;
                         _allShapes[i].staticShapeGoal.X(2)+=lv(2)*dt;
@@ -2513,7 +2516,7 @@ bool CRigidBodyContainerDyn::_updateWorldFromCoppeliaSim()
     return(true);
 }
 
-void CRigidBodyContainerDyn::_handleKinematicBodies_step(float t,float cumulatedTimeStep)
+void CRigidBodyContainerDyn::_handleKinematicBodies_step(double t,double cumulatedTimeStep)
 {
     for (size_t i=0;i<_allShapes.size();i++)
     {
@@ -2540,7 +2543,7 @@ void CRigidBodyContainerDyn::_handleKinematicBodies_step(float t,float cumulated
     }
 }
 
-void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int currentPass,int totalPasses)
+void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(double simulationTime,int currentPass,int totalPasses)
 {
     // First joints:
     for (size_t i=0;i<_allJoints.size();i++)
@@ -2596,8 +2599,8 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
             int totalPassesCount=0;
             if (currentPass==totalPasses-1)
                 totalPassesCount=totalPasses;
-            float f[3]={float(-_mjData->sensordata[fadr+0]),float(-_mjData->sensordata[fadr+1]),float(-_mjData->sensordata[fadr+2])};
-            float t[3]={float(-_mjData->sensordata[tadr+0]),float(-_mjData->sensordata[tadr+1]),float(-_mjData->sensordata[tadr+2])};
+            double f[3]={-_mjData->sensordata[fadr+0],-_mjData->sensordata[fadr+1],-_mjData->sensordata[fadr+2]};
+            double t[3]={-_mjData->sensordata[tadr+0],-_mjData->sensordata[tadr+1],-_mjData->sensordata[tadr+2]};
             _simAddForceSensorCumulativeForcesAndTorques(forceSens,f,t,totalPassesCount,simulationTime);
         }
     }
@@ -2637,8 +2640,8 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
                 /*
                 printf("body:      %s\n",_mjModel->names+_mjModel->name_bodyadr[bodyId]);
                 printf("parent:    %s\n",_mjModel->names+_mjModel->name_bodyadr[parentId]);
-                printf("av:        %.4f, %.4f, %.4f\n",av[0],av[1],av[2]);
-                printf("lv:        %.4f, %.4f, %.4f\n",lv[0],lv[1],lv[2]);
+                printf("av:        %.4, %.4, %.4\n",av[0],av[1],av[2]);
+                printf("lv:        %.4, %.4, %.4\n",lv[0],lv[1],lv[2]);
                 //*/
                 double llv[3];
                 if (parentId!=bodyId)
@@ -2654,8 +2657,8 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
                     llv[1]=lv[1]-x[1];
                     llv[2]=lv[2]-x[2];
                     /*
-                    printf("comPos:    %.4f, %.4f, %.4f\n",comPos[0],comPos[1],comPos[2]);
-                    printf("comPos^av: %.4f, %.4f, %.4f\n",x[0],x[1],x[2]);
+                    printf("comPos:    %.4, %.4, %.4\n",comPos[0],comPos[1],comPos[2]);
+                    printf("comPos^av: %.4, %.4, %.4\n",x[0],x[1],x[2]);
                     //*/
                 }
                 else
@@ -2664,10 +2667,7 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(float simulationTime,int 
                     llv[1]=lv[1];
                     llv[2]=lv[2];
                 }
-
-                float a[3]={float(av[0]),float(av[1]),float(av[2])};
-                float l[3]={float(llv[0]),float(llv[1]),float(llv[2])};
-                _simSetShapeDynamicVelocity(shape,l,a,simulationTime);
+                _simSetShapeDynamicVelocity(shape,llv,av,simulationTime);
             }
         }
     }
@@ -2681,7 +2681,7 @@ bool CRigidBodyContainerDyn::isDynamicContentAvailable()
     return(_allShapes.size()>0);
 }
 
-void CRigidBodyContainerDyn::_stepDynamics(float dt,int pass)
+void CRigidBodyContainerDyn::_stepDynamics(double dt,int pass)
 {
     mj_step(_mjModel,_mjData);
 }

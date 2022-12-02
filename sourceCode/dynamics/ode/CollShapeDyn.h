@@ -22,7 +22,7 @@ protected:
     unsigned char _odeMeshLastTransformThingIndex;
 
     // Following few need to remain valid throughout the lifetime of ODE CollShapeDyn:
-    std::vector<dynReal> _meshVertices_scaled;
+    std::vector<double> _meshVertices_scaled;
     std::vector<int> _meshIndices;
     std::vector<float> _odeHeightfieldData_scaled;
     std::vector<dReal> _odeConvexPlanes_scaled;

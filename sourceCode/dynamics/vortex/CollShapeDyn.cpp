@@ -27,7 +27,6 @@
 #include <boost/lexical_cast.hpp>
 
 // when adding the triangles, we want to make sure we can merge vertices shared by more than one triangle.
-// because of float to double conversion, we better have a value > 0 here.
 static const Vx::VxReal MergeEpsilon = 0.0;//0.001; see email from Martin on 29/1/2014
 
 CCollShapeDyn::CCollShapeDyn()
@@ -66,7 +65,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
     // - simGetEngineFloatParameter
     // - simGetEngineInt32Parameter
     // - simGetEngineBoolParameter
-    float floatParams[36];
+    double floatParams[36];
     int intParams[8];
     _simGetVortexParameters(shape,3,floatParams,intParams);
 
@@ -169,19 +168,19 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             { // we go through all individual collision object components and add them to a compound collision object:
                 CXGeometric* sc=componentList[i];
                 int pType=_simGetPurePrimitiveType(sc);
-                float hollowScaling=_simGetPureHollowScaling(sc); // this represents a value between 0.0 and 0.9999. When multiplying the shape dimensions with that value, we obtain the negative shape dimensions (if 0.0, there is no negative shape).
+                double hollowScaling=_simGetPureHollowScaling(sc); // this represents a value between 0.0 and 0.9999. When multiplying the shape dimensions with that value, we obtain the negative shape dimensions (if 0.0, there is no negative shape).
                 C3Vector s;
                 _simGetPurePrimitiveSizes(sc,s.data);
 
                 int loopCnt=1;
 
-                if (hollowScaling!=0.0f)
+                if (hollowScaling!=0.0)
                     loopCnt=2;
 
                 for (int j=0;j<loopCnt;j++)
                 {
                     if (j>0)
-                        hollowScaling=0.0f;
+                        hollowScaling=0.0;
 
                     Vx::VxGeometry* vortexGeom = _createVortexSimpleGeometry(pType, s,hollowScaling, nullptr, 1.0);
 
@@ -207,9 +206,9 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             _simGetPurePrimitiveSizes(geomInfo,s.data);
             Vx::VxCompositeCollisionGeometry* vortexCompositeCollisionGeom=nullptr;
 
-            float hollowScaling=_simGetPureHollowScaling((CXGeometric*)geomInfo); // this represents a value between 0.0 and 0.9999. When multiplying the shape dimensions with that value, we obtain the negative shape dimensions (if 0.0, there is no negative shape).
+            double hollowScaling=_simGetPureHollowScaling((CXGeometric*)geomInfo); // this represents a value between 0.0 and 0.9999. When multiplying the shape dimensions with that value, we obtain the negative shape dimensions (if 0.0, there is no negative shape).
             int loopCnt=1;
-            if (hollowScaling!=0.0f)
+            if (hollowScaling!=0.0)
             {
                 loopCnt=2;
                 vortexCompositeCollisionGeom=new Vx::VxCompositeCollisionGeometry();
@@ -218,7 +217,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             for (int j=0;j<loopCnt;j++)
             {
                 if (j>0)
-                    hollowScaling=0.0f;
+                    hollowScaling=0.0;
                 Vx::VxGeometry* vortexGeom=_createVortexSimpleGeometry(primType, s, hollowScaling, geomInfo, 1.0);
 
                 C7Vector aax;
@@ -259,7 +258,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 {
                     CXGeometric* sc=componentList[comp];
 
-                    float* allVertices;
+                    double* allVertices;
                     int allVerticesSize;
                     int* allIndices;
                     int allIndicesSize;
@@ -309,7 +308,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             }
             else
             {    // Single random mesh
-                float* allVertices;
+                double* allVertices;
                 int allVerticesSize;
                 int* allIndices;
                 int allIndicesSize;
@@ -373,7 +372,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 {
                     CXGeometric* sc=componentList[comp];
 
-                    float* allVertices;
+                    double* allVertices;
                     int allVerticesSize;
                     int* allIndices;
                     int allIndicesSize;
@@ -434,7 +433,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             }
             else
             { // We have a convex SHAPE. This is a single convex mesh
-                float* allVertices;
+                double* allVertices;
                 int allVerticesSize;
                 int* allIndices;
                 int allIndicesSize;
@@ -494,7 +493,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
     }
 }
 
-Vx::VxGeometry* CCollShapeDyn::_createVortexSimpleGeometry(int pType, const C3Vector& ins,float hollowScaling, CXGeomWrap* geomInfo, float linScaling)
+Vx::VxGeometry* CCollShapeDyn::_createVortexSimpleGeometry(int pType, const C3Vector& ins,double hollowScaling, CXGeomWrap* geomInfo, double linScaling)
 {
     Vx::VxGeometry* vortexGeom = nullptr;
 
@@ -504,9 +503,9 @@ Vx::VxGeometry* CCollShapeDyn::_createVortexSimpleGeometry(int pType, const C3Ve
     {
     case sim_primitiveshape_plane:
     case sim_primitiveshape_cuboid:
-        if (s(2)<0.0001f)
-            s(2)=0.0001f;
-        if (hollowScaling==0.0f)
+        if (s(2)<0.0001)
+            s(2)=0.0001;
+        if (hollowScaling==0.0)
             vortexGeom = new Vx::VxBox(C3Vector2VxVector3(s));
         else
             vortexGeom = new Vx::VxBoxHole(C3Vector2VxVector3(s*hollowScaling));
@@ -515,45 +514,45 @@ Vx::VxGeometry* CCollShapeDyn::_createVortexSimpleGeometry(int pType, const C3Ve
         _simMakeDynamicAnnouncement(sim_announce_pureconenotsupported);
     case sim_primitiveshape_disc:
     case sim_primitiveshape_cylinder:
-        if (s(2)<0.0001f)
-            s(2)=0.0001f;
-        if (hollowScaling==0.0f)
-            vortexGeom = new Vx::VxCylinder((Vx::VxReal)(s(0)*0.5f),(Vx::VxReal)s(2));
+        if (s(2)<0.0001)
+            s(2)=0.0001;
+        if (hollowScaling==0.0)
+            vortexGeom = new Vx::VxCylinder((Vx::VxReal)(s(0)*0.5),(Vx::VxReal)s(2));
         else
         {
-            vortexGeom = new Vx::VxCylinderHole((Vx::VxReal)(s(0)*0.5f*hollowScaling),(Vx::VxReal)s(2));
+            vortexGeom = new Vx::VxCylinderHole((Vx::VxReal)(s(0)*0.5*hollowScaling),(Vx::VxReal)s(2));
             ((Vx::VxCylinderHole*)vortexGeom)->setFaceRemoved(true,true);
         }
         break;
     case sim_primitiveshape_spheroid:
         // Here we have a spheroid (or sphere)
-        if ( ( ((s(0)-s(1))/s(0))>0.01f )||( ((s(0)-s(2))/s(0))>0.01f ) ) // Pure spheroids are not (yet) supported by Vortex
+        if ( ( ((s(0)-s(1))/s(0))>0.01 )||( ((s(0)-s(2))/s(0))>0.01 ) ) // Pure spheroids are not (yet) supported by Vortex
             _simMakeDynamicAnnouncement(sim_announce_purespheroidnotsupported);
-        if (hollowScaling==0.0f)
-            vortexGeom = new Vx::VxSphere((s(0)+s(1)+s(2))/6.0f);
+        if (hollowScaling==0.0)
+            vortexGeom = new Vx::VxSphere((s(0)+s(1)+s(2))/6.0);
         else
-            vortexGeom = new Vx::VxSphereHole((s(0)+s(1)+s(2))*hollowScaling/6.0f);
+            vortexGeom = new Vx::VxSphereHole((s(0)+s(1)+s(2))*hollowScaling/6.0);
         break;
     case sim_primitiveshape_capsule:
         {
-            float r=(s(0)+s(1))/4.0f;
-            vortexGeom = new Vx::VxCapsule((Vx::VxReal)r,(Vx::VxReal)(s(2)-r*2.0f));
+            double r=(s(0)+s(1))/4.0;
+            vortexGeom = new Vx::VxCapsule((Vx::VxReal)r,(Vx::VxReal)(s(2)-r*2.0));
         }
         break;
     case sim_primitiveshape_heightfield:
         {
             int xCnt,yCnt;
-            float minH,maxH;
-            const float* hData=_simGetHeightfieldData(geomInfo,&xCnt,&yCnt,&minH,&maxH);
+            double minH,maxH;
+            const double* hData=_simGetHeightfieldData(geomInfo,&xCnt,&yCnt,&minH,&maxH);
             Vx::VxArray<Vx::VxReal> _vortexHeightfieldData_scaled;
-            float vShift=-(minH+maxH)/2.0f;
+            double vShift=-(minH+maxH)/2.0;
             for (int i=0;i<yCnt;i++)
             {
                 for (int j=0;j<xCnt;j++)
                     _vortexHeightfieldData_scaled.push_back((Vx::VxReal)(hData[i*xCnt+j]+vShift)*linScaling); // ********** SCALING
             }
 
-            const Vx::VxReal sizeCellX = s(0)/(xCnt-1), sizeCellY = s(1)/(yCnt-1), originX = -s(0)/2.0f, originY = -s(1)/2.0f;
+            const Vx::VxReal sizeCellX = s(0)/(xCnt-1), sizeCellY = s(1)/(yCnt-1), originX = -s(0)/2.0, originY = -s(1)/2.0;
             vortexGeom = new Vx::VxHeightField(xCnt-1, yCnt-1, sizeCellX, sizeCellY, originX, originY, _vortexHeightfieldData_scaled);
             static_cast<Vx::VxHeightField*>(vortexGeom)->setUpdateAdjacentTriangles(true);
         }
@@ -566,7 +565,7 @@ Vx::VxGeometry* CCollShapeDyn::_createVortexSimpleGeometry(int pType, const C3Ve
     return vortexGeom;
 }
 
-Vx::VxTriangleMeshUVGrid* CCollShapeDyn::_createVortexUVGridMesh(float* allVertices, int allVerticesSize, int* allIndices, int allIndicesSize, float linScaling)
+Vx::VxTriangleMeshUVGrid* CCollShapeDyn::_createVortexUVGridMesh(double* allVertices, int allVerticesSize, int* allIndices, int allIndicesSize, double linScaling)
 {
     Vx::VxTriangleMeshUVGrid* uvGridMesh = new Vx::VxTriangleMeshUVGrid();
 
@@ -644,7 +643,7 @@ Vx::VxTriangleMeshUVGrid* CCollShapeDyn::_createVortexUVGridMesh(float* allVerti
     return uvGridMesh;
 }
 
-Vx::VxTriangleMeshBVTree* CCollShapeDyn::_createVortexBVTreeMesh(float* allVertices, int allVerticesSize, int* allIndices, int allIndicesSize, float linScaling)
+Vx::VxTriangleMeshBVTree* CCollShapeDyn::_createVortexBVTreeMesh(double* allVertices, int allVerticesSize, int* allIndices, int allIndicesSize, double linScaling)
 {
     Vx::VxTriangleMeshBVTree* bvTreeMesh = new Vx::VxTriangleMeshBVTree(allIndicesSize/3);
 
@@ -682,7 +681,7 @@ Vx::VxTriangleMeshBVTree* CCollShapeDyn::_createVortexBVTreeMesh(float* allVerti
     return bvTreeMesh;
 }
 
-Vx::VxCollisionGeometry* CCollShapeDyn::_createVortexCollisionGeometry(Vx::VxUniverse* universe,CXGeomWrap* geomInfo,Vx::VxGeometry* vxGeometry,const Vx::VxTransform& vxTransform,const float* floatParams,const int* intParams)
+Vx::VxCollisionGeometry* CCollShapeDyn::_createVortexCollisionGeometry(Vx::VxUniverse* universe,CXGeomWrap* geomInfo,Vx::VxGeometry* vxGeometry,const Vx::VxTransform& vxTransform,const double* floatParams,const int* intParams)
 {
     const double frictionCoeff_primary_linearAxis=getVortexUnsignedDouble(floatParams[0]);
     const double frictionCoeff_secondary_linearAxis=getVortexUnsignedDouble(floatParams[1]);
@@ -864,7 +863,7 @@ Vx::VxCollisionGeometry* CCollShapeDyn::_createVortexCollisionGeometry(Vx::VxUni
         material->setSlide(Vx::VxMaterial::kFrictionAxisLinear,0.0);
 
         // friction coeff. Vortex default: 0.0
-        material->setFrictionCoefficient(Vx::VxMaterial::kFrictionAxisLinear,0.5f);
+        material->setFrictionCoefficient(Vx::VxMaterial::kFrictionAxisLinear,0.5);
 
         // Slip. Vortex default: 0.0
         // When 0.0: hexapod jumps

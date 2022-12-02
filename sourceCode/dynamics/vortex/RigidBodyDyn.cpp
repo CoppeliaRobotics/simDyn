@@ -117,7 +117,7 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
     // - simGetEngineFloatParameter
     // - simGetEngineInt32Parameter
     // - simGetEngineBoolParameter
-    float floatParams[36];
+    double floatParams[36];
     int intParams[8];
     _simGetVortexParameters(shape,3,floatParams,intParams);
 
@@ -207,7 +207,7 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
     C7Vector tr(cumulPart1_scaled*_localInertiaFrame_scaled);
     CXGeomProxy* geomData=(CXGeomProxy*)_simGetGeomProxyFromShape(shape);
     CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
-    float mass=_mass_scaled;
+    double mass=_mass_scaled;
 
     _vortexRigidBody = new Vx::VxPart(mass);
     vortexWorld->addPart(_vortexRigidBody);
@@ -225,13 +225,13 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
 
         C3Vector v;
         _simGetInitialDynamicVelocity(shape,v.data);
-        if (v.getLength()>0.0f)
+        if (v.getLength()>0.0)
         {
             _vortexRigidBody->setLinearVelocity(C3Vector2VxVector3(v));
             _simSetInitialDynamicVelocity(shape,C3Vector::zeroVector.data); // important to reset it
         }
         _simGetInitialDynamicAngVelocity(shape,v.data);
-        if (v.getLength()>0.0f)
+        if (v.getLength()>0.0)
         {
             _vortexRigidBody->setAngularVelocity(C3Vector2VxVector3(v));
             _simSetInitialDynamicAngVelocity(shape,C3Vector::zeroVector.data); // important to reset it
@@ -316,13 +316,13 @@ C7Vector CRigidBodyDyn::getInertiaFrameTransformation()
     Vx::VxReal4 quat;
     _vortexRigidBody->getOrientationQuaternion(quat);
     const Vx::VxTransform& tm = _vortexRigidBody->getTransform();
-    tr.X(0)=(float)tm.t()[0];
-    tr.X(1)=(float)tm.t()[1];
-    tr.X(2)=(float)tm.t()[2];
-    tr.Q(0)=(float)quat[0];
-    tr.Q(1)=(float)quat[1];
-    tr.Q(2)=(float)quat[2];
-    tr.Q(3)=(float)quat[3];
+    tr.X(0)=tm.t()[0];
+    tr.X(1)=tm.t()[1];
+    tr.X(2)=tm.t()[2];
+    tr.Q(0)=quat[0];
+    tr.Q(1)=quat[1];
+    tr.Q(2)=quat[2];
+    tr.Q(3)=quat[3];
 
     return(tr);
 }
@@ -336,13 +336,13 @@ C7Vector CRigidBodyDyn::getShapeFrameTransformation()
         Vx::VxReal4 quat;
         _vortexRigidBody->getOrientationQuaternion(quat);
         const Vx::VxTransform& tm = _vortexRigidBody->getTransform();
-        tr.X(0)=(float)tm.t()[0];
-        tr.X(1)=(float)tm.t()[1];
-        tr.X(2)=(float)tm.t()[2];
-        tr.Q(0)=(float)quat[0];
-        tr.Q(1)=(float)quat[1];
-        tr.Q(2)=(float)quat[2];
-        tr.Q(3)=(float)quat[3];
+        tr.X(0)=tm.t()[0];
+        tr.X(1)=tm.t()[1];
+        tr.X(2)=tm.t()[2];
+        tr.Q(0)=quat[0];
+        tr.Q(1)=quat[1];
+        tr.Q(2)=quat[2];
+        tr.Q(3)=quat[3];
 
         tr*=_inverseLocalInertiaFrame_scaled;
     }
@@ -356,14 +356,14 @@ Vx::VxPart* CRigidBodyDyn::getVortexRigidBody()
     return(_vortexRigidBody);
 }
 
-void CRigidBodyDyn::reportVelocityToShape(float simulationTime)
+void CRigidBodyDyn::reportVelocityToShape(double simulationTime)
 {
     C3Vector lv,av;
 
     Vx::VxVector3 vlv=_vortexRigidBody->getLinearVelocity();
     Vx::VxVector3 vav=_vortexRigidBody->getAngularVelocity();
-    lv.setData((float)vlv[0],(float)vlv[1],(float)vlv[2]);
-    av.setData((float)vav[0], (float)vav[1], (float)vav[2]);
+    lv.setData(vlv[0],vlv[1],vlv[2]);
+    av.setData(vav[0],vav[1],vav[2]);
 
     _simSetShapeDynamicVelocity(_shape,lv.data,av.data,simulationTime);
 }
@@ -373,7 +373,7 @@ void CRigidBodyDyn::handleAdditionalForcesAndTorques()
     C3Vector vf,vt;
     _simGetAdditionalForceAndTorque(_shape,vf.data,vt.data);
 
-    if ((vf.getLength()!=0.0f)||(vt.getLength()!=0.0f))
+    if ((vf.getLength()!=0.0)||(vt.getLength()!=0.0))
     { // We should wake the body!!
         if (_vortexRigidBody->getControl()==Vx::VxPart::kControlDynamic)
         {
@@ -384,7 +384,7 @@ void CRigidBodyDyn::handleAdditionalForcesAndTorques()
     }
 }
 
-void CRigidBodyDyn::handleKinematicBody_step(float t,float cumulatedTimeStep)
+void CRigidBodyDyn::handleKinematicBody_step(double t,double cumulatedTimeStep)
 {
     if (_isStatic&&_applyBodyToShapeTransf_kinematicBody)
     { // static & moved (the desired movement was large enough)

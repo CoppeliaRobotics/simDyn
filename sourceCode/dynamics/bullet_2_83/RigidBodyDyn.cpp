@@ -3,7 +3,6 @@
 #include "CollShapeDyn.h"
 #include "simLib.h"
 
-
 CRigidBodyDyn::CRigidBodyDyn()
 {
 }
@@ -24,8 +23,8 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
 
     btDiscreteDynamicsWorld* bulletWorld=CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
-    float linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
-    float linVelScaling=CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn();
+    double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
+    double linVelScaling=CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn();
 
     C7Vector cumulPart1_scaled;
     _simGetObjectCumulativeTransformation(shape,cumulPart1_scaled.X.data,cumulPart1_scaled.Q.data,true);
@@ -34,7 +33,7 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
     C7Vector tr(cumulPart1_scaled*_localInertiaFrame_scaled);
     CXGeomProxy* geomData=(CXGeomProxy*)_simGetGeomProxyFromShape(shape);
     CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
-    float mass=_mass_scaled;
+    double mass=_mass_scaled;
 
     btVector3 localInertia(0,0,0);
     if (!_isStatic)
@@ -44,7 +43,7 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
         localInertia.setZ(_diagonalInertia_scaled(2));
     }
     else
-        mass=0.0f;
+        mass=0.0;
 
     btDefaultMotionState* myMotionState = new btDefaultMotionState(btTransform(btQuaternion(tr.Q(1),tr.Q(2),tr.Q(3),tr.Q(0)),btVector3(tr.X(0),tr.X(1),tr.X(2))));
     btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,((CCollShapeDyn*)_collisionShapeDyn)->getBtCollisionShape(),localInertia);
@@ -65,22 +64,22 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
         // Following few lines added on 11/03/2011:
         C3Vector v;
         _simGetInitialDynamicVelocity(shape,v.data);
-        if (v.getLength()>0.0f)
+        if (v.getLength()>0.0)
         {
             _rigidBody->setLinearVelocity(btVector3(v(0)*linVelScaling,v(1)*linVelScaling,v(2)*linVelScaling)); // ********** SCALING
             _simSetInitialDynamicVelocity(shape,C3Vector::zeroVector.data); // important to reset it
         }
         // Following few lines added on 25/03/2013:
         _simGetInitialDynamicAngVelocity(shape,v.data);
-        if (v.getLength()>0.0f)
+        if (v.getLength()>0.0)
         {
             _rigidBody->setAngularVelocity(btVector3(v(0),v(1),v(2)));
             _simSetInitialDynamicAngVelocity(shape,C3Vector::zeroVector.data); // important to reset it
         }
         // Kinematic objects are handled elsewhere (at the end of the file)
     }
-    float linD=simGetEngineFloatParameter(sim_bullet_body_lineardamping,-1,_shape,nullptr);
-    float angD=simGetEngineFloatParameter(sim_bullet_body_angulardamping,-1,_shape,nullptr);
+    double linD=simGetEngineFloatParameter(sim_bullet_body_lineardamping,-1,_shape,nullptr);
+    double angD=simGetEngineFloatParameter(sim_bullet_body_angulardamping,-1,_shape,nullptr);
     _rigidBody->setDamping(linD,angD);
     _rigidBody->setRestitution(simGetEngineFloatParameter(sim_bullet_body_restitution,-1,_shape,nullptr));
     _rigidBody->setFriction(simGetEngineFloatParameter(sim_bullet_body_friction,-1,_shape,nullptr));
@@ -165,9 +164,9 @@ btRigidBody* CRigidBodyDyn::getBtRigidBody()
     return(_rigidBody);
 }
 
-void CRigidBodyDyn::reportVelocityToShape(float simulationTime)
+void CRigidBodyDyn::reportVelocityToShape(double simulationTime)
 {
-    float vs=CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn(); // ********** SCALING
+    double vs=CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn(); // ********** SCALING
     C3Vector lv,av;
 
     btVector3 btlv(_rigidBody->getLinearVelocity());
@@ -180,12 +179,12 @@ void CRigidBodyDyn::reportVelocityToShape(float simulationTime)
 
 void CRigidBodyDyn::handleAdditionalForcesAndTorques()
 {
-    float fs=CRigidBodyContainerDyn::getDynWorld()->getForceScalingFactorDyn(); // ********** SCALING
-    float ts=CRigidBodyContainerDyn::getDynWorld()->getTorqueScalingFactorDyn(); // ********** SCALING
+    double fs=CRigidBodyContainerDyn::getDynWorld()->getForceScalingFactorDyn(); // ********** SCALING
+    double ts=CRigidBodyContainerDyn::getDynWorld()->getTorqueScalingFactorDyn(); // ********** SCALING
     C3Vector vf,vt;
     _simGetAdditionalForceAndTorque(_shape,vf.data,vt.data);
 
-    if ((vf.getLength()!=0.0f)||(vt.getLength()!=0.0f))
+    if ((vf.getLength()!=0.0)||(vt.getLength()!=0.0))
     { // We should wake the body!!
         _rigidBody->activate(false);
         btVector3 f;
@@ -201,7 +200,7 @@ void CRigidBodyDyn::handleAdditionalForcesAndTorques()
     }
 }
 
-void CRigidBodyDyn::handleKinematicBody_step(float t,float cumulatedTimeStep)
+void CRigidBodyDyn::handleKinematicBody_step(double t,double cumulatedTimeStep)
 {
     if (_isStatic&&_applyBodyToShapeTransf_kinematicBody)
     { // static & moved (the desired movement was large enough)

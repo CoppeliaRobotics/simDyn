@@ -11,7 +11,7 @@
 #include "VortexConvertUtil.h"
 #include <boost/lexical_cast.hpp>
 
-CParticleDyn::CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,float size,float massOverVolume,float killTime,float addColor[3]) : CParticleDyn_base(position,velocity,objType,size,massOverVolume,killTime,addColor)
+CParticleDyn::CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,double size,double massOverVolume,double killTime,float addColor[3]) : CParticleDyn_base(position,velocity,objType,size,massOverVolume,killTime,addColor)
 {
 }
 
@@ -19,7 +19,7 @@ CParticleDyn::~CParticleDyn()
 {
 }
 
-bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
+bool CParticleDyn::addToEngineIfNeeded(double parameters[18],int objectID)
 { // return value indicates if there are particles that need to be simulated
 
     if (_initializationState!=0)
@@ -30,9 +30,9 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     Vx::VxUniverse* vortexWorld=rbc->getWorld();
 
     // Create a simple sphere that will act as a particle:
-    float mass=_massOverVolume*(4.0f*piValue*(_size*0.5f)*(_size*0.5f)*(_size*0.5f)/3.0f);
+    double mass=_massOverVolume*(4.0*piValue*(_size*0.5)*(_size*0.5)*(_size*0.5)/3.0);
 
-    float I=2.0f*(_size*0.5f)*(_size*0.5f)/5.0f;
+    double I=2.0*(_size*0.5)*(_size*0.5)/5.0;
     _vortexRigidBody = new Vx::VxPart(mass);
     Vx::VxReal33 inertia = { {I, 0, 0}, {0, I, 0}, {0, 0, I} };
     _vortexRigidBody->setMassAndInertia(mass, inertia);
@@ -50,7 +50,7 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     {
         material = responseModel->getMaterialTable()->registerMaterial(materialString.c_str());
 
-        if (parameters[9]!=0.0f)
+        if (parameters[9]!=0.0)
         {
             material->setFrictionModel(Vx::VxMaterial::kFrictionAxisLinear,Vx::VxMaterial::kFrictionModelScaledBoxFast);
         }
@@ -82,7 +82,7 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
         // material->setSlip(Vx::VxMaterial::kFrictionAxisLinear,slip_primary_linearAxis);
     }
 
-    Vx::VxCollisionGeometry* cg = new Vx::VxCollisionGeometry(new Vx::VxSphere(_size/2.0f), material);
+    Vx::VxCollisionGeometry* cg = new Vx::VxCollisionGeometry(new Vx::VxSphere(_size/2.0), material);
     _vortexRigidBody->addCollisionGeometry(cg);
     cg->enableFastMoving(true);
     vortexWorld->addPart(_vortexRigidBody);
@@ -94,17 +94,17 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     return(true);
 }
 
-void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,float linearFluidFrictionCoeff,float quadraticFluidFrictionCoeff,float linearAirFrictionCoeff,float quadraticAirFrictionCoeff)
+void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,double linearFluidFrictionCoeff,double quadraticFluidFrictionCoeff,double linearAirFrictionCoeff,double quadraticAirFrictionCoeff)
 {
     bool isWaterButInAir=false;
     if ( (_objectType&sim_particle_ignoresgravity)||(_objectType&sim_particle_water) )
     {
-        float mass=_massOverVolume*((piValue*_size*_size*_size)/6.0f);
+        double mass=_massOverVolume*((piValue*_size*_size*_size)/6.0);
         C3Vector f=gravity*-mass;
         bool reallyIgnoreGravity=true;
         if (_objectType&sim_particle_water)
         { // We ignore gravity only if we are in the water (z<0) (New since 27/6/2011):
-            if (float(_vortexRigidBody->getTransform().t()[2])>=0.0f)
+            if (double(_vortexRigidBody->getTransform().t()[2])>=0.0)
             {
                 reallyIgnoreGravity=false;
                 isWaterButInAir=true;
@@ -116,10 +116,10 @@ void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector
             _vortexRigidBody->addForce(C3Vector2VxVector3(f)); // TODO f is -gravity?
         }
     }
-    if ((linearFluidFrictionCoeff!=0.0f)||(quadraticFluidFrictionCoeff!=0.0f)||(linearAirFrictionCoeff!=0.0f)||(quadraticAirFrictionCoeff!=0.0f))
+    if ((linearFluidFrictionCoeff!=0.0)||(quadraticFluidFrictionCoeff!=0.0)||(linearAirFrictionCoeff!=0.0)||(quadraticAirFrictionCoeff!=0.0))
     { // New since 27/6/2011
-        float lfc=linearFluidFrictionCoeff;
-        float qfc=quadraticFluidFrictionCoeff;
+        double lfc=linearFluidFrictionCoeff;
+        double qfc=quadraticFluidFrictionCoeff;
         if (isWaterButInAir)
         {
             lfc=linearAirFrictionCoeff;
@@ -129,10 +129,10 @@ void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector
 
         vVect = VxVector32C3Vector(_vortexRigidBody->getLinearVelocity());
 
-        float v=vVect.getLength();
-        if (v!=0.0f)
+        double v=vVect.getLength();
+        if (v!=0.0)
         {
-            C3Vector nv(vVect.getNormalized()*-1.0f);
+            C3Vector nv(vVect.getNormalized()*-1.0);
             C3Vector f(nv*(v*lfc+v*v*qfc));
             _vortexRigidBody->addForce(C3Vector2VxVector3(f));
         }
@@ -155,8 +155,8 @@ void CParticleDyn::updatePosition()
     if (_initializationState==1)
     {
         const Vx::VxVector3& pos=_vortexRigidBody->getTransform().t();
-        _currentPosition(0)=float(pos[0]);
-        _currentPosition(1)=float(pos[1]);
-        _currentPosition(2)=float(pos[2]);
+        _currentPosition(0)=pos[0];
+        _currentPosition(1)=pos[1];
+        _currentPosition(2)=pos[2];
     }
 }

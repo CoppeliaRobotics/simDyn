@@ -34,7 +34,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         jointOffsetThing.setIdentity();
         if (_simGetJointPositionInterval(joint,nullptr,nullptr))
         { // We are using an offset between CoppeliaSim joint position and Bullet/ODE joint position, since low/high rev. limits are symmetric with those engines
-            _nonCyclicRevoluteJointPositionOffset=-_nonCyclicRevoluteJointPositionMinimum-_nonCyclicRevoluteJointPositionRange*0.5f;
+            _nonCyclicRevoluteJointPositionOffset=-_nonCyclicRevoluteJointPositionMinimum-_nonCyclicRevoluteJointPositionRange*0.5;
             jointOffsetThing.buildZRotation(_nonCyclicRevoluteJointPositionOffset);
             _jointPosAlt=_simGetJointPosition(joint)+_nonCyclicRevoluteJointPositionOffset;
         }
@@ -68,7 +68,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     bbtr=bodyB->getInertiaFrameTransformation();
     jtrRelToBodyB=bbtr.getInverse()*jtr2;
 
-    float linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
+    double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     jtrRelToBodyA.X*=linScaling; // ********** SCALING
     jtrRelToBodyB.X*=linScaling; // ********** SCALING
 
@@ -80,7 +80,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     // - simGetEngineFloatParameter
     // - simGetEngineInt32Parameter
     // - simGetEngineBoolParameter
-    float stopERP,stopCFM,bounce,fudge,normalCFM;
+    double stopERP,stopCFM,bounce,fudge,normalCFM;
     _simGetJointOdeParameters(joint,&stopERP,&stopCFM,&bounce,&fudge,&normalCFM);
     if (_simGetJointType(joint)==sim_joint_revolute_subtype)
     {
@@ -93,7 +93,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
 
         // Set the configuration of the child as if the joint was at 0 position:
         dBodyID cb=childRigidBody;
-        C7Vector cb_a(C4Vector(((float*)dBodyGetQuaternion(cb))),C3Vector(((float*)dBodyGetPosition(cb))));
+        C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))),C3Vector(((double*)dBodyGetPosition(cb))));
         C7Vector alpha(jtr2.getInverse()*cb_a);
         C7Vector cb_b(jtr*alpha);
         dBodySetPosition(cb,cb_b.X(0),cb_b.X(1),cb_b.X(2));
@@ -132,7 +132,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
 
         // Set the configuration of the child as if the joint was at 0 position:
         dBodyID cb=childRigidBody;
-        C7Vector cb_a(C4Vector(((float*)dBodyGetQuaternion(cb))),C3Vector(((float*)dBodyGetPosition(cb))));
+        C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))),C3Vector(((double*)dBodyGetPosition(cb))));
         C7Vector alpha(jtr2.getInverse()*cb_a);
         C7Vector cb_b(jtr*alpha);
         dBodySetPosition(cb,cb_b.X(0),cb_b.X(1),cb_b.X(2));
@@ -169,7 +169,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
 
         // Set the configuration of the child as if the joint was at 0 position:
         dBodyID cb=childRigidBody;
-        C7Vector cb_a(C4Vector(((float*)dBodyGetQuaternion(cb))),C3Vector(((float*)dBodyGetPosition(cb))));
+        C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))),C3Vector(((double*)dBodyGetPosition(cb))));
         C7Vector alpha(jtr2.getInverse()*cb_a);
         C7Vector cb_b(jtr*alpha);
         dBodySetPosition(cb,cb_b.X(0),cb_b.X(1),cb_b.X(2));
@@ -226,7 +226,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         jointOffsetThing.setIdentity();
         if (_simGetJointPositionInterval(joint,nullptr,nullptr))
         { // We are using an offset between CoppeliaSim joint position and Bullet/ODE joint position, since low/high rev. limits are symmetric with those engines
-            _nonCyclicRevoluteJointPositionOffset=-_nonCyclicRevoluteJointPositionMinimum-_nonCyclicRevoluteJointPositionRange*0.5f;
+            _nonCyclicRevoluteJointPositionOffset=-_nonCyclicRevoluteJointPositionMinimum-_nonCyclicRevoluteJointPositionRange*0.5;
             jointOffsetThing.buildZRotation(_nonCyclicRevoluteJointPositionOffset);
             _jointPosAlt=_simGetJointPosition(joint)+_nonCyclicRevoluteJointPositionOffset;
         }
@@ -260,7 +260,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     bbtr=bodyB->getInertiaFrameTransformation();
     jtrRelToBodyB=bbtr.getInverse()*jtr2;
 
-    float linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
+    double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     jtrRelToBodyA.X*=linScaling; // ********** SCALING
     jtrRelToBodyB.X*=linScaling; // ********** SCALING
 
@@ -272,7 +272,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     // - simGetEngineFloatParameter
     // - simGetEngineInt32Parameter
     // - simGetEngineBoolParameter
-    float stopERP,stopCFM,bounce,fudge,normalCFM;
+    double stopERP,stopCFM,bounce,fudge,normalCFM;
     _simGetJointOdeParameters(joint,&stopERP,&stopCFM,&bounce,&fudge,&normalCFM);
 
     if (_simGetJointType(joint)==sim_joint_revolute_subtype)
@@ -286,7 +286,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
 
         // Set the configuration of the child as if the joint was at 0 position:
         dBodyID cb=childRigidBody;
-        C7Vector cb_a(C4Vector(((float*)dBodyGetQuaternion(cb))),C3Vector(((float*)dBodyGetPosition(cb))));
+        C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))),C3Vector(((double*)dBodyGetPosition(cb))));
         C7Vector alpha(jtr2.getInverse()*cb_a);
         C7Vector cb_b(jtr*alpha);
         dBodySetPosition(cb,cb_b.X(0),cb_b.X(1),cb_b.X(2));
@@ -325,7 +325,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
 
         // Set the configuration of the child as if the joint was at 0 position:
         dBodyID cb=childRigidBody;
-        C7Vector cb_a(C4Vector(((float*)dBodyGetQuaternion(cb))),C3Vector(((float*)dBodyGetPosition(cb))));
+        C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))),C3Vector(((double*)dBodyGetPosition(cb))));
         C7Vector alpha(jtr2.getInverse()*cb_a);
         C7Vector cb_b(jtr*alpha);
         dBodySetPosition(cb,cb_b.X(0),cb_b.X(1),cb_b.X(2));
@@ -362,7 +362,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
 
         // Set the configuration of the child as if the joint was at 0 position:
         dBodyID cb=childRigidBody;
-        C7Vector cb_a(C4Vector(((float*)dBodyGetQuaternion(cb))),C3Vector(((float*)dBodyGetPosition(cb))));
+        C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))),C3Vector(((double*)dBodyGetPosition(cb))));
         C7Vector alpha(jtr2.getInverse()*cb_a);
         C7Vector cb_b(jtr*alpha);
         dBodySetPosition(cb,cb_b.X(0),cb_b.X(1),cb_b.X(2));
@@ -407,7 +407,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXDummy* dum
     C7Vector dtrRelToBodyA;
     C7Vector dtrRelToBodyB;
 
-    float linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
+    double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
 
     dtr.X*=linScaling; // ********** SCALING
     dtr2.X*=linScaling; // ********** SCALING
@@ -419,7 +419,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXDummy* dum
 
     // Set the configuration of the child as if the dummies were overlapping:
     dBodyID cb=childRigidBody;
-    C7Vector cb_a(C4Vector(((float*)dBodyGetQuaternion(cb))),C3Vector(((float*)dBodyGetPosition(cb))));
+    C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))),C3Vector(((double*)dBodyGetPosition(cb))));
     C7Vector x(cb_a.getInverse()*dtr2);
     C7Vector cb_b(dtr*x.getInverse());
     dBodySetPosition(cb,cb_b.X(0),cb_b.X(1),cb_b.X(2));
@@ -466,7 +466,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSenso
     bbtr=bodyB->getInertiaFrameTransformation();
     jtrRelToBodyB=bbtr.getInverse()*jtr2;
 
-    float linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
+    double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     jtrRelToBodyA.X*=linScaling; // ********** SCALING
     jtrRelToBodyB.X*=linScaling; // ********** SCALING
 
@@ -511,7 +511,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSenso
     bbtr=bodyB->getInertiaFrameTransformation();
     jtrRelToBodyB=bbtr.getInverse()*jtr2;
 
-    float linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
+    double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     jtrRelToBodyA.X*=linScaling; // ********** SCALING
     jtrRelToBodyB.X*=linScaling; // ********** SCALING
 
@@ -525,7 +525,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSenso
 
     // Set the configuration of the child as if the joint was at 0 position:
     dBodyID cb=childRigidBody;
-    C7Vector cb_a(C4Vector(((float*)dBodyGetQuaternion(cb))),C3Vector(((float*)dBodyGetPosition(cb))));
+    C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))),C3Vector(((double*)dBodyGetPosition(cb))));
     C7Vector alpha(jtr2.getInverse()*cb_a);
     C7Vector cb_b(jtr*alpha);
     dBodySetPosition(cb,cb_b.X(0),cb_b.X(1),cb_b.X(2));
@@ -567,25 +567,25 @@ void CConstraintDyn::_updateJointLimits(CXJoint* joint)
         else
         {
             // Limits are symmetric since 18/11/2012, since we are using an offset between CoppeliaSim joint position and Bullet/ODE joint position to avoid problems  (revolute joints only)
-            if (_nonCyclicRevoluteJointPositionRange<=359.0f*piValue*2.0f/360.0f)
+            if (_nonCyclicRevoluteJointPositionRange<=359.0*piValue*2.0/360.0)
             { // when the range is <359, we keep the limits on all the time
-                dJointSetHingeParam(_odeConstraint,dParamLoStop,-_nonCyclicRevoluteJointPositionRange*0.5f);
-                dJointSetHingeParam(_odeConstraint,dParamHiStop,+_nonCyclicRevoluteJointPositionRange*0.5f);
+                dJointSetHingeParam(_odeConstraint,dParamLoStop,-_nonCyclicRevoluteJointPositionRange*0.5);
+                dJointSetHingeParam(_odeConstraint,dParamHiStop,+_nonCyclicRevoluteJointPositionRange*0.5);
             }
             else
             { // since 23/3/2014: some rev. joints need to be limited to a range>360deg (e.g. for motion planning), so we keep it pseudo-cyclic on the dynamic side
                 // ODE doesn't support a range > 360. So we manually turn limits on/off as needed:
                 // That doesn't work in ODE. We leave it unlimited:
-                // float a=getRevoluteJointAngle();
-                if (false)//a<-_nonCyclicRevoluteJointPositionRange*0.5f+3.14159265f)
+                // double a=getRevoluteJointAngle();
+                if (false)//a<-_nonCyclicRevoluteJointPositionRange*0.5+3.14159265)
                 {
-                    float m=fmod(-_nonCyclicRevoluteJointPositionRange*0.5f,3.14159265f);
+                    double m=fmod(-_nonCyclicRevoluteJointPositionRange*0.5,3.14159265);
                     dJointSetHingeParam(_odeConstraint,dParamLoStop,m); // low limit on
                 }
                 else
                     dJointSetHingeParam(_odeConstraint,dParamLoStop,-dInfinity); // low limit off
-                if (false)//a>_nonCyclicRevoluteJointPositionRange*0.5f-3.14159265f)
-                    dJointSetHingeParam(_odeConstraint,dParamHiStop,+_nonCyclicRevoluteJointPositionRange*0.5f); // high limit on
+                if (false)//a>_nonCyclicRevoluteJointPositionRange*0.5-3.14159265)
+                    dJointSetHingeParam(_odeConstraint,dParamHiStop,+_nonCyclicRevoluteJointPositionRange*0.5); // high limit on
                 else
                     dJointSetHingeParam(_odeConstraint,dParamHiStop,+dInfinity); // high limit off
             }
@@ -593,8 +593,8 @@ void CConstraintDyn::_updateJointLimits(CXJoint* joint)
     }
     else
     {
-        float linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
-        float jiMin,jiRange;
+        double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
+        double jiMin,jiRange;
         _simGetJointPositionInterval(joint,&jiMin,&jiRange);
 
         dJointSetSliderParam(_odeConstraint,dParamLoStop,jiMin*linScaling); // ********** SCALING
@@ -608,12 +608,12 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     if (jointType==sim_joint_spherical_subtype)
         return;
     int ctrlMode=_simGetJointDynCtrlMode(joint);
-    float posScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
-    float forceScaling=CRigidBodyContainerDyn::getDynWorld()->getForceScalingFactorDyn();
-    float torqueScaling=CRigidBodyContainerDyn::getDynWorld()->getTorqueScalingFactorDyn();
-    float linVelocityScaling=CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn();
-    float dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
-    float e=0.0f;
+    double posScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
+    double forceScaling=CRigidBodyContainerDyn::getDynWorld()->getForceScalingFactorDyn();
+    double torqueScaling=CRigidBodyContainerDyn::getDynWorld()->getTorqueScalingFactorDyn();
+    double linVelocityScaling=CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn();
+    double dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
+    double e=0.0;
     if (jointType==sim_joint_revolute_subtype)
     {
         if (ctrlMode>=sim_jointdynctrl_position)
@@ -636,7 +636,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     int inputValuesInt[5]={0,0,0,0,0};
     inputValuesInt[0]=passCnt;
     inputValuesInt[1]=totalPasses;
-    float inputValuesFloat[7]={0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+    double inputValuesFloat[7]={0.0,0.0,0.0,0.0,0.0,0.0,0.0};
     if (jointType==sim_joint_revolute_subtype)
         inputValuesFloat[0]=getRevoluteJointAngle()-_nonCyclicRevoluteJointPositionOffset;
     else
@@ -648,10 +648,10 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     //inputValuesFloat[4]=currentVel;
     //inputValuesFloat[5]=currentAccel;
     // auxV|=2+4; // 2: vel, 4: accel
-    float outputValues[5];
+    double outputValues[5];
     int res=_simHandleJointControl(joint,auxV,inputValuesInt,inputValuesFloat,outputValues);
-    float velocityToApply=outputValues[0];
-    float forceToApply=fabs(outputValues[1]);
+    double velocityToApply=outputValues[0];
+    double forceToApply=fabs(outputValues[1]);
     if ((res&2)==0)
     { // motor is not locked
         if (jointType==sim_joint_revolute_subtype)
@@ -662,7 +662,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
                 dJointSetHingeParam(_odeConstraint,dParamVel,velocityToApply);
             }
             else
-                dJointSetHingeParam(_odeConstraint,dParamFMax,0.0f); // Motor off
+                dJointSetHingeParam(_odeConstraint,dParamFMax,0.0); // Motor off
         }
         else
         {
@@ -672,7 +672,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
                 dJointSetSliderParam(_odeConstraint,dParamVel,velocityToApply*linVelocityScaling); // ********** SCALING
             }
             else
-                dJointSetSliderParam(_odeConstraint,dParamFMax,0.0f); // Motor off
+                dJointSetSliderParam(_odeConstraint,dParamFMax,0.0); // Motor off
         }
         _targetPositionToHoldAtZeroVelOn_velocityMode=false;
     }
@@ -686,14 +686,14 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
             _targetPositionToHoldAtZeroVelOn_velocityMode=true;
             dJointSetHingeParam(_odeConstraint,dParamLoStop,_targetPositionToHoldAtZeroVel_velocityMode);
             dJointSetHingeParam(_odeConstraint,dParamHiStop,_targetPositionToHoldAtZeroVel_velocityMode);
-            dJointSetHingeParam(_odeConstraint,dParamFMax,0.0f); // Motor off
+            dJointSetHingeParam(_odeConstraint,dParamFMax,0.0); // Motor off
         }
         else
         {
             if (!_targetPositionToHoldAtZeroVelOn_velocityMode)
                 _targetPositionToHoldAtZeroVel_velocityMode=getPrismaticJointPosition();
             _targetPositionToHoldAtZeroVelOn_velocityMode=true;
-            dJointSetSliderParam(_odeConstraint,dParamFMax,0.0f); // Motor off
+            dJointSetSliderParam(_odeConstraint,dParamFMax,0.0); // Motor off
             dJointSetSliderParam(_odeConstraint,dParamLoStop,_targetPositionToHoldAtZeroVel_velocityMode*posScaling); // ********** SCALING
             dJointSetSliderParam(_odeConstraint,dParamHiStop,_targetPositionToHoldAtZeroVel_velocityMode*posScaling); // ********** SCALING
         }
@@ -702,17 +702,17 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
 }
 
 
-dynReal CConstraintDyn::getPrismaticJointPosition() const
+double CConstraintDyn::getPrismaticJointPosition() const
 { // important! The slider pos is not initialized when added!
     return(dJointGetSliderPosition(_odeConstraint)/CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn());
 }
 
-dynReal CConstraintDyn::getRevoluteJointAngle()
+double CConstraintDyn::getRevoluteJointAngle()
 {
-    dynReal retVal=(dynReal)0.0;
+    double retVal=(double)0.0;
     if (true)
     { // Bullet and ODE do not take into account turn count. So we need to handle this manually here:
-        dynReal jointPos=(dynReal)0.0;
+        double jointPos=(double)0.0;
 
         jointPos=dJointGetHingeAngle(_odeConstraint);
         
@@ -724,7 +724,7 @@ dynReal CConstraintDyn::getRevoluteJointAngle()
         {
             if (_lastJointPosSet)
             {
-                dynReal dx=jointPos-_lastJointPos;
+                double dx=jointPos-_lastJointPos;
                 if (dx>=0.0)
                     dx=fmod(dx+piValue,piValT2)-piValue;
                 else
@@ -732,19 +732,19 @@ dynReal CConstraintDyn::getRevoluteJointAngle()
                 _jointPosAlt+=dx;
                 if (_jointPosAlt>=0.0)
                 {
-                    float jp=jointPos+piValue;
-                    float jap=_jointPosAlt+piValue;
+                    double jp=jointPos+piValue;
+                    double jap=_jointPosAlt+piValue;
                     jap=jap-jp+piValue;
                     int cnt=int(jap/piValT2);
-                    _jointPosAlt=float(cnt)*piValT2+jp-piValue;
+                    _jointPosAlt=double(cnt)*piValT2+jp-piValue;
                 }
                 else
                 {
-                    float jp=jointPos-piValue;
-                    float jap=_jointPosAlt-piValue;
+                    double jp=jointPos-piValue;
+                    double jap=_jointPosAlt-piValue;
                     jap=jap-jp-piValue;
                     int cnt=int(jap/-piValT2);
-                    _jointPosAlt=float(cnt)*-piValT2+jp+piValue;
+                    _jointPosAlt=double(cnt)*-piValT2+jp+piValue;
                 }
             }
             retVal=_jointPosAlt;
@@ -755,12 +755,12 @@ dynReal CConstraintDyn::getRevoluteJointAngle()
     return(retVal);
 }
 
-dynReal CConstraintDyn::getRevoluteJointAngle_forCoppeliaSim()
+double CConstraintDyn::getRevoluteJointAngle_forCoppeliaSim()
 {
     return(getRevoluteJointAngle()-_nonCyclicRevoluteJointPositionOffset);
 }
 
-void CConstraintDyn::reportStateToCoppeliaSim(float simulationTime,int currentPass,int totalPasses)
+void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime,int currentPass,int totalPasses)
 {
     CConstraintDyn_base::reportStateToCoppeliaSim(simulationTime,currentPass,totalPasses);
     int totalPassesCount=0;
@@ -768,10 +768,10 @@ void CConstraintDyn::reportStateToCoppeliaSim(float simulationTime,int currentPa
         totalPassesCount=totalPasses;
     if (_jointHandle!=-1)
     {
-        float forceScaling=CRigidBodyContainerDyn::getDynWorld()->getForceScalingFactorDyn();
-        float torqueScaling=CRigidBodyContainerDyn::getDynWorld()->getTorqueScalingFactorDyn();
+        double forceScaling=CRigidBodyContainerDyn::getDynWorld()->getForceScalingFactorDyn();
+        double torqueScaling=CRigidBodyContainerDyn::getDynWorld()->getTorqueScalingFactorDyn();
         // Now report forces and torques acting on the joint:
-        float forceOrTorque=0.0f;
+        double forceOrTorque=0.0;
 
         if (_simGetJointType(_joint)!=sim_joint_spherical_subtype)
         { // Spherical joints are not supported here!
@@ -788,8 +788,8 @@ void CConstraintDyn::reportStateToCoppeliaSim(float simulationTime,int currentPa
             absT+=absF^absCorrectionV;
 
             C4Vector sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
-            C3Vector forces(sensorAbsInverseQ*(absF*-1.0f));
-            C3Vector torques(sensorAbsInverseQ*(absT*-1.0f));
+            C3Vector forces(sensorAbsInverseQ*(absF*-1.0));
+            C3Vector torques(sensorAbsInverseQ*(absT*-1.0));
             if (_simGetJointType(_joint)==sim_joint_revolute_subtype)
                 forceOrTorque=torques(2);
             if (_simGetJointType(_joint)==sim_joint_prismatic_subtype)
@@ -801,8 +801,8 @@ void CConstraintDyn::reportStateToCoppeliaSim(float simulationTime,int currentPa
     if (_forceSensorHandle!=-1)
     {
         // Report force/torque here, but do NOT report the sensor's intrinsic pose error:
-        float forceScaling=CRigidBodyContainerDyn::getDynWorld()->getForceScalingFactorDyn();
-        float torqueScaling=CRigidBodyContainerDyn::getDynWorld()->getTorqueScalingFactorDyn();
+        double forceScaling=CRigidBodyContainerDyn::getDynWorld()->getForceScalingFactorDyn();
+        double torqueScaling=CRigidBodyContainerDyn::getDynWorld()->getTorqueScalingFactorDyn();
         C3Vector forces;
         forces.clear();
         C3Vector torques;
@@ -821,8 +821,8 @@ void CConstraintDyn::reportStateToCoppeliaSim(float simulationTime,int currentPa
         absT+=absF^absCorrectionV;
 
         C4Vector sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
-        forces=sensorAbsInverseQ*(absF*-1.0f);
-        torques=sensorAbsInverseQ*(absT*-1.0f);
+        forces=sensorAbsInverseQ*(absF*-1.0);
+        torques=sensorAbsInverseQ*(absT*-1.0);
         _simAddForceSensorCumulativeForcesAndTorques(_forceSensor,forces.data,torques.data,totalPassesCount,simulationTime);
     }
 }

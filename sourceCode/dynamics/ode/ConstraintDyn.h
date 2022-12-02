@@ -19,10 +19,10 @@ public:
     // ShapeA -> force sensor -> dummyA - dummyB <- shapeB
     void init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSensor* forceSensor,CXDummy* dummyA,CXDummy* dummyB);
 
-    void reportStateToCoppeliaSim(float simulationTime,int currentPass,int totalPasses);
-    dynReal getPrismaticJointPosition() const; // important! The slider pos is not initialized when added (Bullet)!
-    dynReal getRevoluteJointAngle();
-    dynReal getRevoluteJointAngle_forCoppeliaSim();
+    void reportStateToCoppeliaSim(double simulationTime,int currentPass,int totalPasses);
+    double getPrismaticJointPosition() const; // important! The slider pos is not initialized when added (Bullet)!
+    double getRevoluteJointAngle();
+    double getRevoluteJointAngle_forCoppeliaSim();
 
 protected:
     void _updateJointLimits(CXJoint* joint);

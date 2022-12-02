@@ -2,11 +2,11 @@
 #include "simLib.h"
 #include "ParticleDyn.h"
 
-CParticleObject_base::CParticleObject_base(int theObjectType,float size,float massVolumic,const void* params,float lifeTime,int maxItemCount)
+CParticleObject_base::CParticleObject_base(int theObjectType,double size,double massVolumic,const void* params,double lifeTime,int maxItemCount)
 {
     _objectId=0;
-    if (size>100.0f)
-        size=100.0f;
+    if (size>100.0)
+        size=100.0;
     _size=size;
     _massVolumic=massVolumic;
     _particlesLifeTime=lifeTime;
@@ -19,26 +19,26 @@ CParticleObject_base::CParticleObject_base(int theObjectType,float size,float ma
     _objectType=theObjectType;
     _nextUniqueIDForParticle=0;
     _flaggedForDestruction=false;
-    parameters[0]=0.0f; // Bullet friction
-    parameters[1]=0.0f; // Bullet restitution
-    parameters[2]=0.0f; // ODE friction
-    parameters[3]=0.2f; // ODE soft ERP
-    parameters[4]=0.0f; // ODE soft CFM
-    parameters[5]=0.0f; // ODE, Bullet, Newton and Vortex linear friction (water and air friction, or just water if sim_particle_water)
-    parameters[6]=0.0f; // ODE, Bullet, Newton and Vortex quadratic friction (water and air friction, or just water if sim_particle_water)
-    parameters[7]=0.0f; // ODE, Bullet, Newton and Vortex linear friction (air friction if sim_particle_water)
-    parameters[8]=0.0f; // ODE, Bullet, Newton and Vortex quadratic friction (air friction if sim_particle_water)
+    parameters[0]=0.0; // Bullet friction
+    parameters[1]=0.0; // Bullet restitution
+    parameters[2]=0.0; // ODE friction
+    parameters[3]=0.2; // ODE soft ERP
+    parameters[4]=0.0; // ODE soft CFM
+    parameters[5]=0.0; // ODE, Bullet, Newton and Vortex linear friction (water and air friction, or just water if sim_particle_water)
+    parameters[6]=0.0; // ODE, Bullet, Newton and Vortex quadratic friction (water and air friction, or just water if sim_particle_water)
+    parameters[7]=0.0; // ODE, Bullet, Newton and Vortex linear friction (air friction if sim_particle_water)
+    parameters[8]=0.0; // ODE, Bullet, Newton and Vortex quadratic friction (air friction if sim_particle_water)
 
-    parameters[9]=0.0f; // Vortex friction
-    parameters[10]=0.0f; // Vortex restitution
-    parameters[11]=0.001f; // Vortex restitution threshold
-    parameters[12]=0.0f; // Vortex compliance
-    parameters[13]=0.0f; // Vortex damping
-    parameters[14]=0.0f; // Vortex adhesive force
+    parameters[9]=0.0; // Vortex friction
+    parameters[10]=0.0; // Vortex restitution
+    parameters[11]=0.001; // Vortex restitution threshold
+    parameters[12]=0.0; // Vortex compliance
+    parameters[13]=0.0; // Vortex damping
+    parameters[14]=0.0; // Vortex adhesive force
 
-    parameters[15]=0.0f; // Newton static friction
-    parameters[16]=0.0f; // Newton kinematic friction
-    parameters[17]=0.0f; // Newton restitution
+    parameters[15]=0.0; // Newton static friction
+    parameters[16]=0.0; // Newton kinematic friction
+    parameters[17]=0.0; // Newton restitution
     if (params!=nullptr)
     {
         int cnt=((int*)params)[0];
@@ -47,7 +47,7 @@ CParticleObject_base::CParticleObject_base(int theObjectType,float size,float ma
             int p=((int*)params)[1+2*i+0];
             float f=((float*)params)[1+2*i+1];
             if ((p>=0)&&(p<18))
-                parameters[p]=f;
+                parameters[p]=(double)f;
         }
     }
 }
@@ -81,12 +81,12 @@ bool CParticleObject_base::canBeDestroyed()
     return(true);
 }
 
-float CParticleObject_base::getLifeTime()
+double CParticleObject_base::getLifeTime()
 {
     return(_particlesLifeTime);
 }
 
-float CParticleObject_base::getSize()
+double CParticleObject_base::getSize()
 {
     return(_size);
 }
@@ -118,7 +118,7 @@ int CParticleObject_base::getOtherFloatsPerItem()
     return(retVal);
 }
 
-void CParticleObject_base::addParticle(float simulationTime,const float* itemData)
+void CParticleObject_base::addParticle(double simulationTime,const double* itemData)
 {
     if (itemData==nullptr)
     { // We wanna remove all particles!
@@ -194,8 +194,8 @@ void CParticleObject_base::addParticle(float simulationTime,const float* itemDat
     }
 
 
-    float size=_size;
-    float massOverVolume=_massVolumic;
+    double size=_size;
+    double massOverVolume=_massVolumic;
     int off=6;
     if (_objectType&sim_particle_itemsizes)
         size=itemData[off++];
@@ -210,8 +210,8 @@ void CParticleObject_base::addParticle(float simulationTime,const float* itemDat
         addColor[1]=itemData[off++];
         addColor[2]=itemData[off++];
     }
-    float killTime=FLOAT_MAX;
-    if (_particlesLifeTime!=0.0f)
+    double killTime=FLOAT_MAX;
+    if (_particlesLifeTime!=0.0)
         killTime=simulationTime+_particlesLifeTime;
     C3Vector pos(itemData);
     C3Vector vel(itemData+3);
@@ -290,7 +290,7 @@ void CParticleObject_base::removeAllParticles()
     removeKilledParticles();
 }
 
-void CParticleObject_base::updateParticlesPosition(float simulationTime)
+void CParticleObject_base::updateParticlesPosition(double simulationTime)
 {
     // We first want to remove particles that have timed out or that are not active anymore:
     int oldestIndex=-1;

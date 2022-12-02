@@ -10,8 +10,8 @@
 #include "BulletDynamics/MLCPSolvers/btMLCPSolver.h"
 
 bool CRigidBodyContainerDyn::_bulletContactCallback_useCustom;
-float CRigidBodyContainerDyn::_bulletContactCallback_combinedFriction;
-float CRigidBodyContainerDyn::_bulletContactCallback_combinedRestitution;
+double CRigidBodyContainerDyn::_bulletContactCallback_combinedFriction;
+double CRigidBodyContainerDyn::_bulletContactCallback_combinedRestitution;
 
 CRigidBodyContainerDyn::CRigidBodyContainerDyn()
 {
@@ -44,7 +44,7 @@ CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
     _particleCont->removeAllObjects();
 }
 
-std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int intParams[20])
+std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int intParams[20])
 {
     CRigidBodyContainerDyn_base::init(floatParams,intParams);
 
@@ -164,7 +164,7 @@ std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int i
                 if (canCollide)
                 {
                     int dataInt[3]={0,0,0};
-                    float dataFloat[14]={1.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+                    double dataFloat[14]={1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 
                     int customHandleRes=_simHandleCustomContact(objID1,objID2,sim_physics_bullet,dataInt,dataFloat);
                     bool canReallyCollide=(customHandleRes!=0);
@@ -264,17 +264,17 @@ void CRigidBodyContainerDyn::addBulletContactPoints(int dynamicPassNumber)
             ci.objectID2=(unsigned long long)obB->getUserPointer();
             C3Vector pt1(ptA.x(),ptA.y(),ptA.z());
             C3Vector pt2(ptB.x(),ptB.y(),ptB.z());
-            C3Vector avrg((pt1+pt2)*0.5f);
+            C3Vector avrg((pt1+pt2)*0.5);
             ci.position=avrg/_positionScalingFactorDyn; // ********** SCALING
 
-            float force=pt.m_appliedImpulse/(_forceScalingFactorDyn*_dynamicsInternalStepSize); // ********** SCALING
+            double force=pt.m_appliedImpulse/(_forceScalingFactorDyn*_dynamicsInternalStepSize); // ********** SCALING
             C3Vector d(pt.m_normalWorldOnB.x(),pt.m_normalWorldOnB.y(),pt.m_normalWorldOnB.z());
             ci.directionAndAmplitude=d*force;
             /*
             if (pt.m_lateralFrictionInitialized)
             {
-                float ff1=pt.m_appliedImpulseLateral1/(_forceScalingFactorDyn*_dynamicsInternalStepSize); // ********** SCALING
-                float ff2=pt.m_appliedImpulseLateral2/(_forceScalingFactorDyn*_dynamicsInternalStepSize); // ********** SCALING
+                double ff1=pt.m_appliedImpulseLateral1/(_forceScalingFactorDyn*_dynamicsInternalStepSize); // ********** SCALING
+                double ff2=pt.m_appliedImpulseLateral2/(_forceScalingFactorDyn*_dynamicsInternalStepSize); // ********** SCALING
                 C3Vector fd1(pt.m_lateralFrictionDir1.x(),pt.m_lateralFrictionDir1.y(),pt.m_lateralFrictionDir1.z());
                 C3Vector fd2(pt.m_lateralFrictionDir2.x(),pt.m_lateralFrictionDir2.y(),pt.m_lateralFrictionDir2.z());
                 ci.directionAndAmplitude+=fd1*ff1+fd2*ff2;
@@ -293,7 +293,7 @@ void CRigidBodyContainerDyn::addBulletContactPoints(int dynamicPassNumber)
     }
 }
 
-void CRigidBodyContainerDyn::_stepDynamics(float dt,int pass)
+void CRigidBodyContainerDyn::_stepDynamics(double dt,int pass)
 {
     _dynamicsWorld->stepSimulation(dt,10000,dt);
     addBulletContactPoints(pass);

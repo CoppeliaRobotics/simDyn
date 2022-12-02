@@ -35,13 +35,13 @@ bool gPrintContact = false;
 bool gPrintConstraintDebug = false;
 unsigned int vortexStartTimeTag;
 bool CRigidBodyContainerDyn::_checkingLicense=false;
-float CRigidBodyContainerDyn::gravityVectorLength=0.0f;
+double CRigidBodyContainerDyn::gravityVectorLength=0.0;
 
 /* Those globals values are used to self parameterize Vortex so that it is stable without having to
  * tweak values.
  */
 //const bool sAutoAngularDamping = true;
-//const float sSkinThickness = 0.002;
+//const double sSkinThickness = 0.002;
 //const bool sAutoSlip = true;
 const Vx::VxReal spScaleL = 1; // scales default linear solver parameters
 const Vx::VxReal spScaleA = 1; // scales default angular solver parameters
@@ -110,9 +110,9 @@ public:
                 ++it;
             }
         }
-        const float sScale = 0.01f;
-        const float sGravity = CRigidBodyContainerDyn::gravityVectorLength;
-        const float sMaxMassScale = 1000;
+        const double sScale = 0.01;
+        const double sGravity = CRigidBodyContainerDyn::gravityVectorLength;
+        const double sMaxMassScale = 1000;
         if (autoSlip)
         {
             /*  The autoslip adapts the contact slip vs the pressure on the contacts.
@@ -137,7 +137,7 @@ public:
             }
             else
             {
-                mass = std::min<float>(part[0]->getMass(), part[1]->getMass());
+                mass = std::min<double>(part[0]->getMass(), part[1]->getMass());
             }
             Vx::VxReal dt = Vx::VxFrame::currentInstance()->getTimeStep();
 
@@ -164,8 +164,8 @@ public:
 
                     {
                         // limit apparentMass vs the smallest mass in the pair of colliding parts.
-                        apparentMass = std::max<float>(mass, apparentMass);
-                        apparentMass = std::min<float>(sMaxMassScale*mass, apparentMass);
+                        apparentMass = std::max<double>(mass, apparentMass);
+                        apparentMass = std::min<double>(sMaxMassScale*mass, apparentMass);
                         if (lambda > Vx::VX_MEDIUM_EPSILON)
                         {
                             const Vx::VxReal loss = sScale * dt / apparentMass;
@@ -265,7 +265,7 @@ CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
     _particleCont->removeAllObjects();
 }
 
-std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int intParams[20])
+std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int intParams[20])
 {
     CRigidBodyContainerDyn_base::init(floatParams,intParams);
 
@@ -304,7 +304,7 @@ std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int i
     // - simGetEngineFloatParameter
     // - simGetEngineInt32Parameter
     // - simGetEngineBoolParameter
-    float fParams[10];
+    double fParams[10];
     int iParams[1];
     _simGetVortexParameters(nullptr,3,fParams,iParams);
 
@@ -388,9 +388,9 @@ void CRigidBodyContainerDyn::_licenseCheck()
             Vx::VxPart* partStatic=new Vx::VxPart(1.0);
             _dynamicsWorld->addPart(partStatic);
             partStatic->setControl(Vx::VxPart::kControlStatic);
-            Vx::VxCollisionGeometry* cgDynamic=new Vx::VxCollisionGeometry(new Vx::VxBox(C3Vector2VxVector3(C3Vector(0.1f,0.1f,0.1f))),nullptr);
+            Vx::VxCollisionGeometry* cgDynamic=new Vx::VxCollisionGeometry(new Vx::VxBox(C3Vector2VxVector3(C3Vector(0.1,0.1,0.1))),nullptr);
             partDynamic->addCollisionGeometry(cgDynamic);
-            Vx::VxCollisionGeometry* cgStatic=new Vx::VxCollisionGeometry(new Vx::VxBox(C3Vector2VxVector3(C3Vector(0.1f,0.1f,0.1f))),nullptr);
+            Vx::VxCollisionGeometry* cgStatic=new Vx::VxCollisionGeometry(new Vx::VxBox(C3Vector2VxVector3(C3Vector(0.1,0.1,0.1))),nullptr);
             partStatic->addCollisionGeometry(cgStatic);
             partDynamic->setPosition(C3Vector2VxVector3(C3Vector(0,0,100.0)));
             partStatic->setPosition(C3Vector2VxVector3(C3Vector(0,0,99.0)));
@@ -506,7 +506,7 @@ void CRigidBodyContainerDyn::_vortexCollisionCallback(void* data,Vx::VxCollision
     if (canCollide)
     {
         int dataInt[3]={0,0,0};
-        float dataFloat[14]={0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+        double dataFloat[14]={0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
         // For now we won't allow modification of contact parameters when using VORTEX
         bool canReallyCollide=(_simHandleCustomContact(objID1,objID2,sim_physics_vortex,dataInt,dataFloat)!=0);
         if (canReallyCollide)
@@ -550,7 +550,7 @@ void CRigidBodyContainerDyn::_createDependenciesBetweenJoints()
         double fact,off;
         if (((CConstraintDyn*)constr1)->getVortexDependencyInfo(linkedJoint,fact,off))
         { // when we enter here, the dependency flag is automatically cleared in constr1
-            fact*=-1.0f; // when fact is >0, we want to turn into the same direction!
+            fact*=-1.0; // when fact is >0, we want to turn into the same direction!
             CConstraintDyn* constr2=_getConstraintFromObjectHandle(linkedJoint,-1);
             if (constr2!=nullptr)
             {
@@ -692,8 +692,8 @@ void CRigidBodyContainerDyn::_addVortexContactPoints(int dynamicPassNumber)
                 (*it)->getForce(1,force);
             C3Vector force2(VxVector32C3Vector(force));
             ci.directionAndAmplitude=force2;
-            if (force2*n2<0.0f)
-                n2=n2*-1.0f;
+            if (force2*n2<0.0)
+                n2=n2*-1.0;
             ci.surfaceNormal=n2;
             _contactInfo.push_back(ci);
 
@@ -763,7 +763,7 @@ void CRigidBodyContainerDyn::_addVortexContactPoints(int dynamicPassNumber)
     }
 }
 
-void CRigidBodyContainerDyn::_stepDynamics(float dt,int pass)
+void CRigidBodyContainerDyn::_stepDynamics(double dt,int pass)
 {
     if (VxFrameReleased)
     {

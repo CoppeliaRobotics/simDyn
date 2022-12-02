@@ -3,7 +3,7 @@
 #include "4Vector.h"
 #include "simLib.h"
 
-CParticleDyn_base::CParticleDyn_base(const C3Vector& position,const C3Vector& velocity,int objType,float size,float massOverVolume,float killTime,float addColor[3])
+CParticleDyn_base::CParticleDyn_base(const C3Vector& position,const C3Vector& velocity,int objType,double size,double massOverVolume,double killTime,float addColor[3])
 {
     _initializationState=0;
     _currentPosition=position;
@@ -24,12 +24,12 @@ CParticleDyn_base::~CParticleDyn_base()
 {
 }
 
-bool CParticleDyn_base::addToEngineIfNeeded(float parameters[18],int objectID)
+bool CParticleDyn_base::addToEngineIfNeeded(double parameters[18],int objectID)
 {
     return(false);
 }
 
-void CParticleDyn_base::handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,float linearFluidFrictionCoeff,float quadraticFluidFrictionCoeff,float linearAirFrictionCoeff,float quadraticAirFrictionCoeff)
+void CParticleDyn_base::handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,double linearFluidFrictionCoeff,double quadraticFluidFrictionCoeff,double linearAirFrictionCoeff,double quadraticAirFrictionCoeff)
 {
 }
 
@@ -41,7 +41,7 @@ void CParticleDyn_base::updatePosition()
 {
 }
 
-bool CParticleDyn_base::didTimeOut(float simulationTime)
+bool CParticleDyn_base::didTimeOut(double simulationTime)
 {
     return(simulationTime>_killTime);
 }
@@ -61,7 +61,7 @@ void CParticleDyn_base::setUniqueID(int id)
     _uniqueID=id;
 }
 
-bool CParticleDyn_base::getRenderData(float* pos,float* size,int* objType,float** additionalColor)
+bool CParticleDyn_base::getRenderData(double* pos,double* size,int* objType,float** additionalColor)
 {
     if (_initializationState==1)
     {

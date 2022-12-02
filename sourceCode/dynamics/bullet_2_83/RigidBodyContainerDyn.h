@@ -9,7 +9,7 @@ public:
     CRigidBodyContainerDyn();
     virtual ~CRigidBodyContainerDyn();
 
-    std::string init(const float floatParams[20],const int intParams[20]);
+    std::string init(const double floatParams[20],const int intParams[20]);
 
     std::string getEngineInfo() const;
     void serializeDynamicContent(const std::string& filenameAndPath,int maxSerializeBufferSize);
@@ -20,7 +20,7 @@ public:
 
 protected:
     void _applyGravity();
-    void _stepDynamics(float dt,int pass);
+    void _stepDynamics(double dt,int pass);
     void _createDependenciesBetweenJoints();
     void _removeDependenciesBetweenJoints(CConstraintDyn* theInvolvedConstraint);
 
@@ -35,6 +35,6 @@ protected:
     btDefaultCollisionConfiguration* _collisionConfiguration;
     btOverlapFilterCallback* _filterCallback;
     static bool _bulletContactCallback_useCustom;
-    static float _bulletContactCallback_combinedFriction;
-    static float _bulletContactCallback_combinedRestitution;
+    static double _bulletContactCallback_combinedFriction;
+    static double _bulletContactCallback_combinedRestitution;
 };

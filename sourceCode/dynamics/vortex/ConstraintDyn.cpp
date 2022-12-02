@@ -65,7 +65,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         jointOffsetThing.setIdentity();
         if (_simGetJointPositionInterval(joint,nullptr,nullptr))
         { // We are using an offset between CoppeliaSim joint position and Bullet/ODE joint position, since low/high rev. limits are symmetric with those engines
-            _nonCyclicRevoluteJointPositionOffset=-_nonCyclicRevoluteJointPositionMinimum-_nonCyclicRevoluteJointPositionRange*0.5f;
+            _nonCyclicRevoluteJointPositionOffset=-_nonCyclicRevoluteJointPositionMinimum-_nonCyclicRevoluteJointPositionRange*0.5;
             jointOffsetThing.buildZRotation(_nonCyclicRevoluteJointPositionOffset);
             _jointPosAlt=_simGetJointPosition(joint)+_nonCyclicRevoluteJointPositionOffset;
         }
@@ -108,16 +108,15 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         Vx::VxPart* cb=childRigidBody;
         Vx::VxReal4 quat;
         cb->getOrientationQuaternion(quat);
-        float fquat[4] = {(float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]};
-        C7Vector cb_a(C4Vector(fquat),VxVector32C3Vector(cb->getTransform().t()));
+        C7Vector cb_a(C4Vector(quat),VxVector32C3Vector(cb->getTransform().t()));
         C7Vector alpha(jtr2.getInverse()*cb_a);
         C7Vector cb_b(jtr*alpha);
         cb->setPosition(C3Vector2VxVector3(cb_b.X));
         cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
         // Attach the joint to the 2 bodies
-        _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
-        _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
+        _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
+        _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
 
         // Reset the configuration of the child as it is now:
         cb->setPosition(C3Vector2VxVector3(cb_a.X));
@@ -131,16 +130,15 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         Vx::VxPart* cb=childRigidBody;
         Vx::VxReal4 quat;
         cb->getOrientationQuaternion(quat);
-        float fquat[4] = {(float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]};
-        C7Vector cb_a(C4Vector(fquat),VxVector32C3Vector(cb->getTransform().t()));
+        C7Vector cb_a(C4Vector(quat),VxVector32C3Vector(cb->getTransform().t()));
         C7Vector alpha(jtr2.getInverse()*cb_a);
         C7Vector cb_b(jtr*alpha);
         cb->setPosition(C3Vector2VxVector3(cb_b.X));
         cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
         // Attach the joint to the 2 bodies
-        _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
-        _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
+        _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
+        _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
 
         // Reset the configuration of the child as it is now:
         cb->setPosition(C3Vector2VxVector3(cb_a.X));
@@ -154,16 +152,15 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         Vx::VxPart* cb=childRigidBody;
         Vx::VxReal4 quat;
         cb->getOrientationQuaternion(quat);
-        float fquat[4] = {(float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]};
-        C7Vector cb_a(C4Vector(fquat),VxVector32C3Vector(cb->getTransform().t()));
+        C7Vector cb_a(C4Vector(quat),VxVector32C3Vector(cb->getTransform().t()));
         C7Vector alpha(jtr2.getInverse()*cb_a);
         C7Vector cb_b(jtr*alpha);
         cb->setPosition(C3Vector2VxVector3(cb_b.X));
         cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
         // Attach the joint to the 2 bodies
-        _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
-        _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
+        _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
+        _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
 
         // Reset the configuration of the child as it is now:
         cb->setPosition(C3Vector2VxVector3(cb_a.X));
@@ -198,7 +195,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         jointOffsetThing.setIdentity();
         if (_simGetJointPositionInterval(joint,nullptr,nullptr))
         { // We are using an offset between CoppeliaSim joint position and Bullet/ODE joint position, since low/high rev. limits are symmetric with those engines
-            _nonCyclicRevoluteJointPositionOffset=-_nonCyclicRevoluteJointPositionMinimum-_nonCyclicRevoluteJointPositionRange*0.5f;
+            _nonCyclicRevoluteJointPositionOffset=-_nonCyclicRevoluteJointPositionMinimum-_nonCyclicRevoluteJointPositionRange*0.5;
             jointOffsetThing.buildZRotation(_nonCyclicRevoluteJointPositionOffset);
             _jointPosAlt=_simGetJointPosition(joint)+_nonCyclicRevoluteJointPositionOffset;
         }
@@ -241,16 +238,15 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         Vx::VxPart* cb=childRigidBody;
         Vx::VxReal4 quat;
         cb->getOrientationQuaternion(quat);
-        float fquat[4] = {(float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]};
-        C7Vector cb_a(C4Vector(fquat),VxVector32C3Vector(cb->getTransform().t()));
+        C7Vector cb_a(C4Vector(quat),VxVector32C3Vector(cb->getTransform().t()));
         C7Vector alpha(jtr2.getInverse()*cb_a);
         C7Vector cb_b(jtr*alpha);
         cb->setPosition(C3Vector2VxVector3(cb_b.X));
         cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
         // Attach the joint to the 2 bodies
-        _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
-        _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
+        _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
+        _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
 
         // Reset the configuration of the child as it is now:
         cb->setPosition(C3Vector2VxVector3(cb_a.X));
@@ -264,16 +260,15 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         Vx::VxPart* cb=childRigidBody;
         Vx::VxReal4 quat;
         cb->getOrientationQuaternion(quat);
-        float fquat[4] = {(float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]};
-        C7Vector cb_a(C4Vector(fquat),VxVector32C3Vector(cb->getTransform().t()));
+        C7Vector cb_a(C4Vector(quat),VxVector32C3Vector(cb->getTransform().t()));
         C7Vector alpha(jtr2.getInverse()*cb_a);
         C7Vector cb_b(jtr*alpha);
         cb->setPosition(C3Vector2VxVector3(cb_b.X));
         cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
         // Attach the joint to the 2 bodies
-        _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
-        _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
+        _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
+        _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
 
         // Reset the configuration of the child as it is now:
         cb->setPosition(C3Vector2VxVector3(cb_a.X));
@@ -287,16 +282,15 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         Vx::VxPart* cb=childRigidBody;
         Vx::VxReal4 quat;
         cb->getOrientationQuaternion(quat);
-        float fquat[4] = {(float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]};
-        C7Vector cb_a(C4Vector(fquat),VxVector32C3Vector(cb->getTransform().t()));
+        C7Vector cb_a(C4Vector(quat),VxVector32C3Vector(cb->getTransform().t()));
         C7Vector alpha(jtr2.getInverse()*cb_a);
         C7Vector cb_b(jtr*alpha);
         cb->setPosition(C3Vector2VxVector3(cb_b.X));
         cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
         // Attach the joint to the 2 bodies
-        _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
-        _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
+        _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
+        _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
 
         // Reset the configuration of the child as it is now:
         cb->setPosition(C3Vector2VxVector3(cb_a.X));
@@ -334,8 +328,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXDummy* dum
     Vx::VxPart* cb=childRigidBody;
     Vx::VxReal4 quat;
     cb->getOrientationQuaternion(quat);
-    float fquat[4] = {(float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]};
-    C7Vector cb_a(C4Vector(fquat),VxVector32C3Vector(cb->getTransform().t()));
+    C7Vector cb_a(C4Vector(quat),VxVector32C3Vector(cb->getTransform().t()));
     C7Vector x(cb_a.getInverse()*dtr2);
     C7Vector cb_b(dtr*x.getInverse());
     cb->setPosition(C3Vector2VxVector3(cb_b.X));
@@ -390,8 +383,8 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSenso
     Vx::VxPart* childRigidBody=((CRigidBodyDyn*)bodyB)->getVortexRigidBody();
 
     // Attach the joint to the 2 bodies and lock it:
-    _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
-    _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
+    _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
+    _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
     _vortexConstraint->setControl(0, Vx::VxConstraint::kControlLocked);
 
     vortexWorld->addConstraint(_vortexConstraint);
@@ -433,8 +426,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSenso
     Vx::VxPart* cb=childRigidBody;
     Vx::VxReal4 quat;
     cb->getOrientationQuaternion(quat);
-    float fquat[4] = {(float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]};
-    C7Vector cb_a(C4Vector(fquat),VxVector32C3Vector(cb->getTransform().t()));
+    C7Vector cb_a(C4Vector(quat),VxVector32C3Vector(cb->getTransform().t()));
     C7Vector alpha(jtr2.getInverse()*cb_a);
     C7Vector cb_b(jtr*alpha);
     cb->setPosition(C3Vector2VxVector3(cb_b.X));
@@ -443,8 +435,8 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSenso
     _vortexConstraint= new Vx::VxHinge();
 
     // Attach the joint to the 2 bodies and lock it:
-    _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
-    _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0f), C3Vector2VxVector3(jtrm.axis[0]*-1.0f));
+    _vortexConstraint->setPartAndAttachment(0, parentRigidBody, C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
+    _vortexConstraint->setPartAndAttachment(1, childRigidBody,  C3Vector2VxVector3(jtr.X), C3Vector2VxVector3(jtrm.axis[2]*-1.0), C3Vector2VxVector3(jtrm.axis[0]*-1.0));
 
     _vortexConstraint->setControl(0, Vx::VxConstraint::kControlLocked);
 
@@ -468,11 +460,11 @@ void CConstraintDyn::_updateJointLimits(CXJoint* joint)
         }
         else
         {
-            if (_nonCyclicRevoluteJointPositionRange<=359.0f*piValue*2.0f/360.0f)
+            if (_nonCyclicRevoluteJointPositionRange<=359.0*piValue*2.0/360.0)
             { // when the range is <359, we keep the limits on all the time
                 // Limits are symmetric since 18/11/2012, since we are using an offset between CoppeliaSim joint position and Bullet/ODE joint position to avoid problems  (revolute joints only)
                 _vortexConstraint->setLimitsActive(VortexHingeCoordinate, true);
-                _vortexConstraint->setLimitPositions(VortexHingeCoordinate, -_nonCyclicRevoluteJointPositionRange*0.5f, _nonCyclicRevoluteJointPositionRange*0.5f);
+                _vortexConstraint->setLimitPositions(VortexHingeCoordinate, -_nonCyclicRevoluteJointPositionRange*0.5, _nonCyclicRevoluteJointPositionRange*0.5);
             }
             else
             { // here we keep limits off too, to behave as ODE and Bullet:
@@ -482,7 +474,7 @@ void CConstraintDyn::_updateJointLimits(CXJoint* joint)
     }
     else
     {
-        float jiMin,jiRange;
+        double jiMin,jiRange;
         _simGetJointPositionInterval(joint,&jiMin,&jiRange);
 
         _vortexConstraint->setLimitsActive(VortexPrismCoordinate, true);
@@ -496,8 +488,8 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     if (jointType==sim_joint_spherical_subtype)
         return;
     int ctrlMode=_simGetJointDynCtrlMode(joint);
-    float dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
-    float e=0.0f;
+    double dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
+    double e=0.0;
     if (jointType==sim_joint_revolute_subtype)
     {
         if (ctrlMode>=sim_jointdynctrl_position)
@@ -520,7 +512,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     int inputValuesInt[5]={0,0,0,0,0};
     inputValuesInt[0]=passCnt;
     inputValuesInt[1]=totalPasses;
-    float inputValuesFloat[7]={0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+    double inputValuesFloat[7]={0.0,0.0,0.0,0.0,0.0,0.0,0.0};
     if (jointType==sim_joint_revolute_subtype)
         inputValuesFloat[0]=getRevoluteJointAngle()-_nonCyclicRevoluteJointPositionOffset;
     else
@@ -532,10 +524,10 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     //inputValuesFloat[4]=currentVel;
     //inputValuesFloat[5]=currentAccel;
     // auxV|=2+4; // 2: vel, 4: accel
-    float outputValues[5];
+    double outputValues[5];
     int res=_simHandleJointControl(joint,auxV,inputValuesInt,inputValuesFloat,outputValues);
-    float velocityToApply=outputValues[0];
-    float forceToApply=fabs(outputValues[1]);
+    double velocityToApply=outputValues[0];
+    double forceToApply=fabs(outputValues[1]);
     if ((res&2)==0)
     { // motor is not locked
         if (jointType==sim_joint_revolute_subtype)
@@ -599,7 +591,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
         if (jointType==sim_joint_revolute_subtype)
         {
             if (!_targetPositionToHoldAtZeroVelOn_velocityMode)
-                _targetPositionToHoldAtZeroVel_velocityMode=(dynReal)_vortexConstraint->recalculateCoordinateCurrentPosition(VortexPrismCoordinate);
+                _targetPositionToHoldAtZeroVel_velocityMode=(double)_vortexConstraint->recalculateCoordinateCurrentPosition(VortexPrismCoordinate);
     //            _targetPositionToHoldAtZeroVel_velocityMode=getRevoluteJointAngle()-_nonCyclicRevoluteJointPositionOffset;
             _targetPositionToHoldAtZeroVelOn_velocityMode=true;
             _vortexConstraint->setControl(VortexHingeCoordinate, Vx::VxConstraint::kControlFree);
@@ -621,27 +613,27 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
 
 
 
-dynReal CConstraintDyn::getPrismaticJointPosition() const
+double CConstraintDyn::getPrismaticJointPosition() const
 { // important! The slider pos is not initialized when added! (at least in debug mode, it is not! (release it is I think))
 
     // note if the constraint was never stepped, this will return 0.
     // an alternative is to return _vortexConstraint->recalculateCoordinateCurrentPosition(VortexPrismCoordinate);
     // which is slower but works all the time
-    return (dynReal)_vortexConstraint->recalculateCoordinateCurrentPosition(VortexPrismCoordinate);
+    return (double)_vortexConstraint->recalculateCoordinateCurrentPosition(VortexPrismCoordinate);
 }
 
-dynReal CConstraintDyn::getRevoluteJointAngle()
+double CConstraintDyn::getRevoluteJointAngle()
 {
-    dynReal retVal=(dynReal)0.0;
+    double retVal=(double)0.0;
     if (true)
     { // Bullet and ODE do not take into account turn count. So we need to handle this manually here:
-        dynReal jointPos=(dynReal)0.0;
+        double jointPos=(double)0.0;
 
         // note if the constraint was never stepped, this will return 0.
         // an alternative is to return _vortexConstraint->recalculateCoordinateCurrentPosition(VortexPrismCoordinate);
         // which is slower but works all the time
-        //       return (float)_vortexConstraint->getCoordinateCurrentPosition(VortexHingeCoordinate);
-        jointPos=(dynReal)_vortexConstraint->recalculateCoordinateCurrentPosition(VortexPrismCoordinate);
+        //       return (double)_vortexConstraint->getCoordinateCurrentPosition(VortexHingeCoordinate);
+        jointPos=(double)_vortexConstraint->recalculateCoordinateCurrentPosition(VortexPrismCoordinate);
 
         if (_jointIsCyclic)
         {
@@ -660,7 +652,7 @@ dynReal CConstraintDyn::getRevoluteJointAngle()
         {
             if (_lastJointPosSet)
             {
-                dynReal dx=jointPos-_lastJointPos;
+                double dx=jointPos-_lastJointPos;
                 if (dx>=0.0)
                     dx=fmod(dx+piValue,piValT2)-piValue;
                 else
@@ -668,19 +660,19 @@ dynReal CConstraintDyn::getRevoluteJointAngle()
                 _jointPosAlt+=dx;
                 if (_jointPosAlt>=0.0)
                 {
-                    float jp=jointPos+piValue;
-                    float jap=_jointPosAlt+piValue;
+                    double jp=jointPos+piValue;
+                    double jap=_jointPosAlt+piValue;
                     jap=jap-jp+piValue;
                     int cnt=int(jap/piValT2);
-                    _jointPosAlt=float(cnt)*piValT2+jp-piValue;
+                    _jointPosAlt=double(cnt)*piValT2+jp-piValue;
                 }
                 else
                 {
-                    float jp=jointPos-piValue;
-                    float jap=_jointPosAlt-piValue;
+                    double jp=jointPos-piValue;
+                    double jap=_jointPosAlt-piValue;
                     jap=jap-jp-piValue;
                     int cnt=int(jap/-piValT2);
-                    _jointPosAlt=float(cnt)*-piValT2+jp+piValue;
+                    _jointPosAlt=double(cnt)*-piValT2+jp+piValue;
                 }
             }
             retVal=_jointPosAlt;
@@ -691,12 +683,12 @@ dynReal CConstraintDyn::getRevoluteJointAngle()
     return(retVal);
 }
 
-dynReal CConstraintDyn::getRevoluteJointAngle_forCoppeliaSim()
+double CConstraintDyn::getRevoluteJointAngle_forCoppeliaSim()
 {
     return(getRevoluteJointAngle()-_nonCyclicRevoluteJointPositionOffset);
 }
 
-void CConstraintDyn::reportStateToCoppeliaSim(float simulationTime,int currentPass,int totalPasses)
+void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime,int currentPass,int totalPasses)
 {
     CConstraintDyn_base::reportStateToCoppeliaSim(simulationTime,currentPass,totalPasses);
     int totalPassesCount=0;
@@ -705,7 +697,7 @@ void CConstraintDyn::reportStateToCoppeliaSim(float simulationTime,int currentPa
     if (_jointHandle!=-1)
     {
         // Now report forces and torques acting on the joint:
-        float forceOrTorque=0.0f;
+        double forceOrTorque=0.0;
 
         // measure the force/torque in a revolute/prismatic joint:
         if (_simGetJointType(_joint)!=sim_joint_spherical_subtype)
@@ -756,13 +748,13 @@ void CConstraintDyn::reportStateToCoppeliaSim(float simulationTime,int currentPa
             C7Vector bodyAAbsConf(_bodyA->getInertiaFrameTransformation());
             C3Vector absCorrectionV(sensorAbsConf.X-bodyAAbsConf.X);
             absT+=absF^absCorrectionV;
-            absF*=-1.0f;
-            absT*=-1.0f;
+            absF*=-1.0;
+            absT*=-1.0;
         }
 
         C4Vector sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
-        forces=sensorAbsInverseQ*(absF*-1.0f);
-        torques=sensorAbsInverseQ*(absT*-1.0f);
+        forces=sensorAbsInverseQ*(absF*-1.0);
+        torques=sensorAbsInverseQ*(absT*-1.0);
         _simAddForceSensorCumulativeForcesAndTorques(_forceSensor,forces.data,torques.data,totalPassesCount,simulationTime);
     }
 }
@@ -775,7 +767,7 @@ void CConstraintDyn::_setVortexParameters(CXJoint* joint)
     // - simGetEngineFloatParameter
     // - simGetEngineInt32Parameter
     // - simGetEngineBoolParameter
-    float floatParams[51];
+    double floatParams[51];
     int intParams[7];
     _simGetVortexParameters(joint,3,floatParams,intParams);
 
@@ -1059,7 +1051,7 @@ void CConstraintDyn::_setVortexParameters(CXJoint* joint)
     }
 
     // Store information about a dependent joint here. Constraint creation for that happens in the _createDependenciesBetweenJoints
-    float off,mult;
+    double off,mult;
     simGetJointDependency(_simGetObjectID(joint),&_vortexDependencyJointId,&off,&mult);
     if (_vortexDependencyJointId!=-1)
     {

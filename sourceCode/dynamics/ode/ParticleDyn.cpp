@@ -2,7 +2,7 @@
 #include "RigidBodyContainerDyn.h"
 #include "simLib.h"
 
-CParticleDyn::CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,float size,float massOverVolume,float killTime,float addColor[3]) : CParticleDyn_base(position,velocity,objType,size,massOverVolume,killTime,addColor)
+CParticleDyn::CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,double size,double massOverVolume,double killTime,float addColor[3]) : CParticleDyn_base(position,velocity,objType,size,massOverVolume,killTime,addColor)
 {
 }
 
@@ -10,7 +10,7 @@ CParticleDyn::~CParticleDyn()
 {
 }
 
-bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
+bool CParticleDyn::addToEngineIfNeeded(double parameters[18],int objectID)
 { // return value indicates if there are particles that need to be simulated
     if (_initializationState!=0)
         return(_initializationState==1);
@@ -20,19 +20,19 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     dWorldID odeWorld=rbc->getWorld();
     dSpaceID space=rbc->getOdeSpace();
 
-    float linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
-    float massScaling=CRigidBodyContainerDyn::getDynWorld()->getMassScalingFactorDyn();
-    float masslessInertiaScaling=CRigidBodyContainerDyn::getDynWorld()->getMasslessInertiaScalingFactorDyn();
-    float velScaling=CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn();
+    double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
+    double massScaling=CRigidBodyContainerDyn::getDynWorld()->getMassScalingFactorDyn();
+    double masslessInertiaScaling=CRigidBodyContainerDyn::getDynWorld()->getMasslessInertiaScalingFactorDyn();
+    double velScaling=CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn();
 
-    float mass=_massOverVolume*(4.0f*piValue*(_size*0.5f)*(_size*0.5f)*(_size*0.5f)/3.0f)*massScaling; // ********** SCALING
+    double mass=_massOverVolume*(4.0*piValue*(_size*0.5)*(_size*0.5)*(_size*0.5)/3.0)*massScaling; // ********** SCALING
 
     dMass m;
     dMassSetZero(&m);
-    float I=2.0f*(_size*0.5f)*(_size*0.5f)/5.0f;
+    double I=2.0*(_size*0.5)*(_size*0.5)/5.0;
     C3Vector im(I,I,I);
     im*=masslessInertiaScaling; // ********** SCALING
-    dMassSetParameters(&m,mass,0.0f,0.0f,0.0f,im(0)*mass,im(1)*mass,im(2)*mass,0.0f,0.0f,0.0f);
+    dMassSetParameters(&m,mass,0.0,0.0,0.0,im(0)*mass,im(1)*mass,im(2)*mass,0.0,0.0,0.0);
 
     _odeRigidBody=dBodyCreate(odeWorld);
     dBodySetMass(_odeRigidBody,&m);
@@ -49,7 +49,7 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
 
     dBodySetData(_odeRigidBody,(void*)(CRigidBodyContainerDyn::getDynWorld()->getDynamicParticlesIdStart()+objectID));
 
-    _odeGeom=dCreateSphere(space,_size*linScaling/2.0f);  // ********** SCALING
+    _odeGeom=dCreateSphere(space,_size*linScaling/2.0);  // ********** SCALING
     dGeomSetBody(_odeGeom,_odeRigidBody);
 
     // For now, we disable the auto-disable functionality (because there are problems when removing a kinematic object during simulation(e.g. removing the floor, nothing falls)):
@@ -59,19 +59,19 @@ bool CParticleDyn::addToEngineIfNeeded(float parameters[18],int objectID)
     return(true);
 }
 
-void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,float linearFluidFrictionCoeff,float quadraticFluidFrictionCoeff,float linearAirFrictionCoeff,float quadraticAirFrictionCoeff)
+void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,double linearFluidFrictionCoeff,double quadraticFluidFrictionCoeff,double linearAirFrictionCoeff,double quadraticAirFrictionCoeff)
 {
     bool isWaterButInAir=false;
     if ( (_objectType&sim_particle_ignoresgravity)||(_objectType&sim_particle_water) )
     {
-        float mass=_massOverVolume*((piValue*_size*_size*_size)/6.0f)*CRigidBodyContainerDyn::getDynWorld()->getMassScalingFactorDyn(); // ********** SCALING
+        double mass=_massOverVolume*((piValue*_size*_size*_size)/6.0)*CRigidBodyContainerDyn::getDynWorld()->getMassScalingFactorDyn(); // ********** SCALING
         C3Vector f=gravity*-mass*CRigidBodyContainerDyn::getDynWorld()->getGravityScalingFactorDyn(); // ********** SCALING
         bool reallyIgnoreGravity=true;
         if (_objectType&sim_particle_water)
         { // We ignore gravity only if we are in the water (z<0) (New since 27/6/2011):
-            float ps=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn(); // ********** SCALING
+            double ps=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn(); // ********** SCALING
             const dReal* pos=dBodyGetPosition(_odeRigidBody);
-            if (pos[2]/ps>=0.0f) // ********** SCALING (not really needed here!)
+            if (pos[2]/ps>=0.0) // ********** SCALING (not really needed here!)
             {
                 reallyIgnoreGravity=false;
                 isWaterButInAir=true;
@@ -81,10 +81,10 @@ void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector
         if (reallyIgnoreGravity)
             dBodyAddForce(_odeRigidBody,f(0),f(1),f(2));
     }
-    if ((linearFluidFrictionCoeff!=0.0f)||(quadraticFluidFrictionCoeff!=0.0f)||(linearAirFrictionCoeff!=0.0f)||(quadraticAirFrictionCoeff!=0.0f))
+    if ((linearFluidFrictionCoeff!=0.0)||(quadraticFluidFrictionCoeff!=0.0)||(linearAirFrictionCoeff!=0.0)||(quadraticAirFrictionCoeff!=0.0))
     { // New since 27/6/2011
-        float lfc=linearFluidFrictionCoeff;
-        float qfc=quadraticFluidFrictionCoeff;
+        double lfc=linearFluidFrictionCoeff;
+        double qfc=quadraticFluidFrictionCoeff;
         if (isWaterButInAir)
         {
             lfc=linearAirFrictionCoeff;
@@ -93,15 +93,15 @@ void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector
         C3Vector vVect;
 
         const dReal* lvel=dBodyGetLinearVel(_odeRigidBody);
-        vVect.setData((float)lvel[0],(float)lvel[1],(float)lvel[2]);
+        vVect.setData((double)lvel[0],(double)lvel[1],(double)lvel[2]);
 
-        float v=vVect.getLength();
-        if (v!=0.0f)
+        double v=vVect.getLength();
+        if (v!=0.0)
         {
-            float vs=CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn(); // ********** SCALING
-            float fs=CRigidBodyContainerDyn::getDynWorld()->getForceScalingFactorDyn(); // ********** SCALING
+            double vs=CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn(); // ********** SCALING
+            double fs=CRigidBodyContainerDyn::getDynWorld()->getForceScalingFactorDyn(); // ********** SCALING
             v/=vs; // ********** SCALING
-            C3Vector nv(vVect.getNormalized()*-1.0f);
+            C3Vector nv(vVect.getNormalized()*-1.0);
             C3Vector f(nv*(v*lfc+v*v*qfc));
             f*=fs; // ********** SCALING
 
@@ -124,7 +124,7 @@ void CParticleDyn::updatePosition()
 {
     if (_initializationState==1)
     {
-        float linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
+        double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
 
         const dReal* pos=dBodyGetPosition(_odeRigidBody);
         _currentPosition(0)=pos[0]/linScaling; // ********** SCALING

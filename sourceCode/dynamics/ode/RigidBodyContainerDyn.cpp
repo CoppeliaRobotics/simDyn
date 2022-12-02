@@ -41,7 +41,7 @@ CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
     _particleCont->removeAllObjects();
 }
 
-std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int intParams[20])
+std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int intParams[20])
 {
     CRigidBodyContainerDyn_base::init(floatParams,intParams);
 
@@ -57,8 +57,8 @@ std::string CRigidBodyContainerDyn::init(const float floatParams[20],const int i
     dWorldSetERP (_dynamicsWorld,simGetEngineFloatParameter(sim_ode_global_erp,-1,nullptr,nullptr)); // (0.2 is default, CoppeliaSim default is 0.6)
     dWorldSetAutoDisableFlag(_dynamicsWorld,1);
     dWorldSetAutoDisableAverageSamplesCount(_dynamicsWorld,10);
-    dWorldSetMaxAngularSpeed(_dynamicsWorld,200.0f);
-    dWorldSetContactSurfaceLayer(_dynamicsWorld,(dReal)(0.0002*_positionScalingFactorDyn)); // (0.0f is default)
+    dWorldSetMaxAngularSpeed(_dynamicsWorld,200.0);
+    dWorldSetContactSurfaceLayer(_dynamicsWorld,(dReal)(0.0002*_positionScalingFactorDyn)); // (0.0 is default)
     return("");
 }
 
@@ -91,7 +91,7 @@ void CRigidBodyContainerDyn::_odeCollisionCallback(void* data,dGeomID o1,dGeomID
         // version,contactCount,contactMode
         int dataInt[3]={0,4,4+8+16+2048}; //dContactBounce|dContactSoftCFM|dContactApprox1|dContactSoftERP};
         //                    mu,mu2,bounce,bunce_vel,soft_erp,soft_cfm,motion1,motion2,motionN,slip1,slip2,fdir1x,fdir1y,fdir1z
-        float dataFloat[14]={0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+        double dataFloat[14]={0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
         int objID1;
         int objID2;
 //        int contactMode=dContactBounce|dContactSoftCFM|dContactApprox1|dContactSoftERP;
@@ -120,17 +120,17 @@ void CRigidBodyContainerDyn::_odeCollisionCallback(void* data,dGeomID o1,dGeomID
                 // - simGetEngineInt32Parameter
                 // - simGetEngineBoolParameter
                 int maxContactsA,maxContactsB;
-                float frictionA,frictionB;
-                float cfmA,cfmB;
-                float erpA,erpB;
+                double frictionA,frictionB;
+                double cfmA,cfmB;
+                double erpA,erpB;
                 _simGetOdeMaxContactFrictionCFMandERP(shapeAWrap,&maxContactsA,&frictionA,&cfmA,&erpA);
                 _simGetOdeMaxContactFrictionCFMandERP(shapeBWrap,&maxContactsB,&frictionB,&cfmB,&erpB);
                 dataInt[1]=(maxContactsA+maxContactsB)/2;
                 if (dataInt[1]<1)
                     dataInt[1]=1;
                 dataFloat[0]=frictionA*frictionB;
-                dataFloat[4]=(erpA+erpB)/2.0f;
-                dataFloat[5]=(cfmA+cfmB)/2.0f;
+                dataFloat[4]=(erpA+erpB)/2.0;
+                dataFloat[5]=(cfmA+cfmB)/2.0;
                 objID1=_simGetObjectID(shapeA);
                 objID2=_simGetObjectID(shapeB);
             }
@@ -152,8 +152,8 @@ void CRigidBodyContainerDyn::_odeCollisionCallback(void* data,dGeomID o1,dGeomID
                     { // They can collide:
                         dataInt[1]=1;
                         dataFloat[0]=pa->parameters[2]*pb->parameters[2];
-                        dataFloat[4]=(pa->parameters[3]*pb->parameters[3])*0.5f;
-                        dataFloat[5]=(pa->parameters[4]*pb->parameters[4])*0.5f;
+                        dataFloat[4]=(pa->parameters[3]*pb->parameters[3])*0.5;
+                        dataFloat[5]=(pa->parameters[4]*pb->parameters[4])*0.5;
                         objID1=dataA;
                         objID2=dataB;
                     }
@@ -198,13 +198,13 @@ void CRigidBodyContainerDyn::_odeCollisionCallback(void* data,dGeomID o1,dGeomID
                         // - simGetEngineInt32Parameter
                         // - simGetEngineBoolParameter
                         int maxContacts;
-                        float friction;
-                        float cfm;
-                        float erp;
+                        double friction;
+                        double cfm;
+                        double erp;
                         _simGetOdeMaxContactFrictionCFMandERP(shapeWrap,&maxContacts,&friction,&cfm,&erp);
                         dataFloat[0]=friction*particle->parameters[2];
-                        dataFloat[4]=(erp+particle->parameters[3])/2.0f;
-                        dataFloat[5]=(cfm+particle->parameters[4])/2.0f;
+                        dataFloat[4]=(erp+particle->parameters[3])/2.0;
+                        dataFloat[5]=(cfm+particle->parameters[4])/2.0;
                     }
                 }
             }
@@ -245,12 +245,12 @@ void CRigidBodyContainerDyn::_odeCollisionCallback(void* data,dGeomID o1,dGeomID
                 for (int i=0;i<dataInt[1];i++)
                 {
                     contact[i].surface.mode=contactMode;//|dContactSlip1|dContactSlip2;//|dContactSoftERP;
-                    contact[i].surface.mu=dataFloat[0];//0.25f; // use 0.25f as CoppeliaSim default value!
+                    contact[i].surface.mu=dataFloat[0];//0.25; // use 0.25 as CoppeliaSim default value!
                     contact[i].surface.mu2=dataFloat[1];
                     contact[i].surface.bounce=dataFloat[2];
                     contact[i].surface.bounce_vel=dataFloat[3];
-                    contact[i].surface.soft_erp=dataFloat[4];//0.25f; // 0.2 appears not bouncy, 0.4 appears medium-bouncy. default is around 0.5
-                    contact[i].surface.soft_cfm=dataFloat[5];//0.0f;
+                    contact[i].surface.soft_erp=dataFloat[4];//0.25; // 0.2 appears not bouncy, 0.4 appears medium-bouncy. default is around 0.5
+                    contact[i].surface.soft_cfm=dataFloat[5];//0.0;
                     contact[i].surface.motion1=dataFloat[6];
                     contact[i].surface.motion2=dataFloat[7];
                     contact[i].surface.motionN=dataFloat[8];
@@ -325,7 +325,7 @@ void CRigidBodyContainerDyn::_removeDependenciesBetweenJoints(CConstraintDyn* th
 {
 }
 
-void CRigidBodyContainerDyn::_stepDynamics(float dt,int pass)
+void CRigidBodyContainerDyn::_stepDynamics(double dt,int pass)
 {
     dSpaceCollide(_odeSpace,0,&_odeCollisionCallbackStatic);
     if (simGetEngineBoolParameter(sim_ode_global_quickstep,-1,nullptr,nullptr)!=0)
@@ -346,8 +346,8 @@ void CRigidBodyContainerDyn::_stepDynamics(float dt,int pass)
         C3Vector n(ctct.normalVector);
         n.normalize();
         C3Vector f(fbck->f1[0],fbck->f1[1],fbck->f1[2]);
-        if (f*n<0.0f)
-            n=n*-1.0f;
+        if (f*n<0.0)
+            n=n*-1.0;
         ci.surfaceNormal=n;
         ci.directionAndAmplitude=f;
         ci.directionAndAmplitude/=dReal(_forceScalingFactorDyn); // ********** SCALING

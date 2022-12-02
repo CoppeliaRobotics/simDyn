@@ -30,19 +30,19 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
     _indexVertexArrays=nullptr;
 
 
-    float marginScaling=simGetEngineFloatParameter(sim_bullet_global_collisionmarginfactor,-1,nullptr,nullptr);
+    double marginScaling=simGetEngineFloatParameter(sim_bullet_global_collisionmarginfactor,-1,nullptr,nullptr);
     CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
 
     // Following parameter retrieval is OLD. Use instead following functions:
     // - simGetEngineFloatParameter
     // - simGetEngineInt32Parameter
     // - simGetEngineBoolParameter
-    float marg;
+    double marg;
     int otherBulletProperties;
     if (_simGetBulletCollisionMargin(geomInfo,&marg,&otherBulletProperties))
         marginScaling=marg;
 
-    float linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
+    double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     // Do we have a pure primitive?
     int primType=_simGetPurePrimitiveType(geomInfo);
     if (primType!=sim_primitiveshape_none)
@@ -58,8 +58,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             {
                 CXGeometric* sc=componentList[i];
                 int pType=_simGetPurePrimitiveType(sc);
-                float hollowScaling=_simGetPureHollowScaling(sc);
-                if (hollowScaling!=0.0f)
+                double hollowScaling=_simGetPureHollowScaling(sc);
+                if (hollowScaling!=0.0)
                     _simMakeDynamicAnnouncement(sim_announce_purehollowshapenotsupported);
                 C3Vector s;
                 _simGetPurePrimitiveSizes(sc,s.data);
@@ -67,44 +67,44 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 btCollisionShape* collShape;
                 if ( (pType==sim_primitiveshape_plane)||(pType==sim_primitiveshape_cuboid) )
                 {
-                    float z=s(2);
-                    if (z<0.0001f)
-                        z=0.0001f;
-                    collShape=new btBoxShape(btVector3(s(0)*0.5f,s(1)*0.5f,z*0.5f));
+                    double z=s(2);
+                    if (z<0.0001)
+                        z=0.0001;
+                    collShape=new btBoxShape(btVector3(s(0)*0.5,s(1)*0.5,z*0.5));
                 }
                 if ( (pType==sim_primitiveshape_disc)||(pType==sim_primitiveshape_cylinder) )
                 {
-                    float z=s(2);
-                    if (z<0.0001f)
-                        z=0.0001f;
-                    collShape=new btCylinderShapeZ(btVector3(s(0)*0.5f,s(0)*0.5f,z*0.5f));
+                    double z=s(2);
+                    if (z<0.0001)
+                        z=0.0001;
+                    collShape=new btCylinderShapeZ(btVector3(s(0)*0.5,s(0)*0.5,z*0.5));
                 }
                 if (pType==sim_primitiveshape_cone)
                 {
-                    collShape=new btConeShapeZ(s(0)*0.5f,s(2));
-                    collShape->setMargin(0.0f); // This is to correct a probable bug in btConeShapeZ (2010/02/16)
+                    collShape=new btConeShapeZ(s(0)*0.5,s(2));
+                    collShape->setMargin(0.0); // This is to correct a probable bug in btConeShapeZ (2010/02/16)
                 }
                 if (pType==sim_primitiveshape_spheroid)
                 {
-                    if ( (fabs((s(0)-s(1))/s(0))<0.001f)&&(fabs((s(0)-s(2))/s(0))<0.001f) )
-                        collShape=new btSphereShape(s(0)*0.5f); // we have a sphere!
+                    if ( (fabs((s(0)-s(1))/s(0))<0.001)&&(fabs((s(0)-s(2))/s(0))<0.001) )
+                        collShape=new btSphereShape(s(0)*0.5); // we have a sphere!
                     else
                     { // We have a spheroid
-                        dynReal radius=1.0f;
-                        const btVector3 tmpVect(btVector3(0.0f,0.0f,0.0f));
+                        double radius=1.0;
+                        const btVector3 tmpVect(btVector3(0.0,0.0,0.0));
                         collShape=new btMultiSphereShape(&tmpVect,&radius,1);
-                        btVector3 ss(s(0)*0.5f,s(1)*0.5f,s(2)*0.5f);
+                        btVector3 ss(s(0)*0.5,s(1)*0.5,s(2)*0.5);
                         collShape->setLocalScaling(ss);
                     }
                 }
                 if (pType==sim_primitiveshape_capsule)
                 {
-                    float r=(s(0)+s(1))/4.0f;
-                    collShape=new btCapsuleShapeZ(r,s(2)-r*2.0f);
+                    double r=(s(0)+s(1))/4.0;
+                    collShape=new btCapsuleShapeZ(r,s(2)-r*2.0);
                 }
 
-                float ms=marginScaling*linScaling;
-                if (fabs(1.0f-ms)>0.05f)
+                double ms=marginScaling*linScaling;
+                if (fabs(1.0-ms)>0.05)
                     collShape->setMargin(collShape->getMargin()*ms); // Margins also need scaling! 16/03/2011
 
                 // Following parameter retrieval is OLD. Use instead following functions:
@@ -128,58 +128,58 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
         }
         else
         { // we have a SIMPLE pure shape
-            float hollowScaling=_simGetPureHollowScaling((CXGeometric*)geomInfo);
-            if (hollowScaling!=0.0f)
+            double hollowScaling=_simGetPureHollowScaling((CXGeometric*)geomInfo);
+            if (hollowScaling!=0.0)
                 _simMakeDynamicAnnouncement(sim_announce_purehollowshapenotsupported);
             C3Vector s;
             _simGetPurePrimitiveSizes(geomInfo,s.data);
             s*=linScaling; // ********** SCALING
             if ( (primType==sim_primitiveshape_plane)||(primType==sim_primitiveshape_cuboid) )
             {
-                float z=s(2);
-                if (z<0.0001f)
-                    z=0.0001f;
-                _collisionShape=new btBoxShape(btVector3(s(0)*0.5f,s(1)*0.5f,z*0.5f));
+                double z=s(2);
+                if (z<0.0001)
+                    z=0.0001;
+                _collisionShape=new btBoxShape(btVector3(s(0)*0.5,s(1)*0.5,z*0.5));
             }
             if ( (primType==sim_primitiveshape_disc)||(primType==sim_primitiveshape_cylinder) )
             {
-                float z=s(2);
-                if (z<0.0001f)
-                    z=0.0001f;
-                _collisionShape=new btCylinderShapeZ(btVector3(s(0)*0.5f,s(0)*0.5f,z*0.5f));
+                double z=s(2);
+                if (z<0.0001)
+                    z=0.0001;
+                _collisionShape=new btCylinderShapeZ(btVector3(s(0)*0.5,s(0)*0.5,z*0.5));
             }
             if (primType==sim_primitiveshape_cone)
             {
-                _collisionShape=new btConeShapeZ(s(0)*0.5f,s(2));
-                _collisionShape->setMargin(0.0f); // This is to correct a probable bug in btConeShapeZ (2010/02/16)
+                _collisionShape=new btConeShapeZ(s(0)*0.5,s(2));
+                _collisionShape->setMargin(0.0); // This is to correct a probable bug in btConeShapeZ (2010/02/16)
             }
             if (primType==sim_primitiveshape_spheroid)
             {
-                if ( (fabs((s(0)-s(1))/s(0))<0.001f)&&(fabs((s(0)-s(2))/s(0))<0.001f) )
-                    _collisionShape=new btSphereShape(s(0)*0.5f); // we have a sphere!
+                if ( (fabs((s(0)-s(1))/s(0))<0.001)&&(fabs((s(0)-s(2))/s(0))<0.001) )
+                    _collisionShape=new btSphereShape(s(0)*0.5); // we have a sphere!
                 else
                 { // We have a spheroid
-                    dynReal radius=1.0f;
-                    const btVector3 tmpVect(btVector3(0.0f,0.0f,0.0f));
+                    double radius=1.0;
+                    const btVector3 tmpVect(btVector3(0.0,0.0,0.0));
                     _collisionShape=new btMultiSphereShape(&tmpVect,&radius,1);
-                    btVector3 ss(s(0)*0.5f,s(1)*0.5f,s(2)*0.5f);
+                    btVector3 ss(s(0)*0.5,s(1)*0.5,s(2)*0.5);
                     _collisionShape->setLocalScaling(ss);
                 }
             }
             if (primType==sim_primitiveshape_capsule)
             {
-                float r=(s(0)+s(1))/4.0f;
-                _collisionShape=new btCapsuleShapeZ(r,s(2)-r*2.0f);
+                double r=(s(0)+s(1))/4.0;
+                _collisionShape=new btCapsuleShapeZ(r,s(2)-r*2.0);
             }
 
             if (primType==sim_primitiveshape_heightfield)
             {
                 int xCnt,yCnt;
-                float minH,maxH;
-                const float* hData=_simGetHeightfieldData(geomInfo,&xCnt,&yCnt,&minH,&maxH); 
-                btHeightfieldTerrainShape* heightFieldShape=new btHeightfieldTerrainShape(xCnt,yCnt,(void*)hData,1.0f,minH,maxH,2,PHY_FLOAT,false);
+                double minH,maxH;
+                const double* hData=_simGetHeightfieldData(geomInfo,&xCnt,&yCnt,&minH,&maxH);
+                btHeightfieldTerrainShape* heightFieldShape=new btHeightfieldTerrainShape(xCnt,yCnt,(void*)hData,1.0,minH,maxH,2,PHY_FLOAT,false);
                 heightFieldShape->setUseDiamondSubdivision(false);
-                btVector3 localScaling(s(0)/(float(xCnt-1)),s(1)/(float(yCnt-1)),linScaling); // ********** SCALING (s has already been scaled!)
+                btVector3 localScaling(s(0)/(double(xCnt-1)),s(1)/(double(yCnt-1)),linScaling); // ********** SCALING (s has already been scaled!)
                 heightFieldShape->setLocalScaling(localScaling);
                 _collisionShape=heightFieldShape;
             }
@@ -187,8 +187,8 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             // Following parameter retrieval is OLD. Use instead following functions:
             // - simGetEngineFloatParameter
             // - simGetEngineBoolParameter
-            float ms=marginScaling*linScaling;
-            if (fabs(1.0f-ms)>0.05f)
+            double ms=marginScaling*linScaling;
+            if (fabs(1.0-ms)>0.05)
                 _collisionShape->setMargin(_collisionShape->getMargin()*ms); // Margins also need scaling! 16/03/2011
 
             _collisionShape->stickyContact=_simGetBulletStickyContact(geomInfo)!=0;
@@ -217,7 +217,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
         // 3. a convex multishape
         if (_simIsGeomWrapConvex(geomInfo)==0)
         {     // We have a general-type geom object (trimesh)
-            float* allVertices;
+            double* allVertices;
             int allVerticesSize;
             int* allIndices;
             int allIndicesSize;
@@ -236,14 +236,14 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             simReleaseBuffer((char*)allIndices);
 
             _indexVertexArrays=new btTriangleIndexVertexArray(_meshIndices.size()/3,
-                &_meshIndices[0],3*sizeof(int),_meshVertices_scaled.size()/3,&_meshVertices_scaled[0],sizeof(float)*3);
+                &_meshIndices[0],3*sizeof(int),_meshVertices_scaled.size()/3,&_meshVertices_scaled[0],sizeof(double)*3);
 
             btGImpactMeshShape * trimesh=new btGImpactMeshShape(_indexVertexArrays);
 
-            float ms=marginScaling*linScaling;
-            if (fabs(1.0f-ms)>0.05f)
+            double ms=marginScaling*linScaling;
+            if (fabs(1.0-ms)>0.05)
                 trimesh->setMargin(trimesh->getMargin()*ms); // Margins also need scaling! 16/03/2011
-            // NO!! trimesh->setMargin(0.0f);
+            // NO!! trimesh->setMargin(0.0);
 
             trimesh->updateBound();
             _collisionShape=trimesh;
@@ -265,7 +265,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 {
                     CXGeometric* sc=componentList[comp];
 
-                    float* allVertices;
+                    double* allVertices;
                     int allVerticesSize;
                     int* allIndices;
                     int allIndicesSize;
@@ -283,7 +283,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         v*=linScaling; // ********** SCALING
                         c+=v;
                     }
-                    c/=float(allVerticesSize/3);
+                    c/=double(allVerticesSize/3);
 
                     C7Vector tr;
                     tr.setIdentity();
@@ -309,12 +309,12 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         // This section was inspired from: http://code.google.com/p/bullet/source/browse/trunk/Demos/ConvexDecompositionDemo/ConvexDecompositionDemo.cpp#299
                         // (That works well for planes, but when an edge/corner is colliding, it is too much inside the shape. Soo many problems and tweaks in Bullet...)
                         // ***************************
-                        float marginCorrection=0.004f*linScaling; // 0.04f is default for convex shapes
+                        double marginCorrection=0.004*linScaling; // 0.04 is default for convex shapes
                         btAlignedObjectArray<btVector3> planeEquations;
                         btAlignedObjectArray<btVector3> vert;
                         for (int i=0;i<allVerticesSize/3;i++)
                         { // We scale everything up, since the routine getPlaneEquationsFromVertices fails with small shapes
-                            btVector3 v(_meshVertices_scaled[3*i+0]*10000.0f,_meshVertices_scaled[3*i+1]*10000.0f,_meshVertices_scaled[3*i+2]*10000.0f);
+                            btVector3 v(_meshVertices_scaled[3*i+0]*10000.0,_meshVertices_scaled[3*i+1]*10000.0,_meshVertices_scaled[3*i+2]*10000.0);
                             vert.push_back(v);
                         }
                         btGeometryUtil::getPlaneEquationsFromVertices(vert,planeEquations);
@@ -322,26 +322,26 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         for (size_t i=0;i<planeEquations.size();i++)
                         {
                             btVector3 plane=planeEquations[i];
-                            plane[3]+=marginCorrection*10000.0f;
-                            if (plane[3]>0.0f) // Catch these, otherwise we get crashes!
-                                plane[3]=0.0f;
+                            plane[3]+=marginCorrection*10000.0;
+                            if (plane[3]>0.0) // Catch these, otherwise we get crashes!
+                                plane[3]=0.0;
                             shiftedPlaneEquations.push_back(plane);
                         }
                         btAlignedObjectArray<btVector3> shiftedVertices;
                         btGeometryUtil::getVerticesFromPlaneEquations(shiftedPlaneEquations,shiftedVertices);
                         for (size_t i=0;i<shiftedVertices.size();i++) // do not forget to scale down again!
-                            shiftedVertices[i]=shiftedVertices[i]/10000.0f;
+                            shiftedVertices[i]=shiftedVertices[i]/10000.0;
                         convexObj=new btConvexHullShape(&(shiftedVertices[0].getX()),shiftedVertices.size());
                         // ***************************
                     }
                     else
-                        convexObj=new btConvexHullShape(&_meshVertices_scaled[0],_meshVertices_scaled.size()/3,sizeof(float)*3);
+                        convexObj=new btConvexHullShape(&_meshVertices_scaled[0],_meshVertices_scaled.size()/3,sizeof(double)*3);
 
                     
-                    float ms=marginScaling*linScaling;
-                    if (fabs(1.0f-ms)>0.05f)
+                    double ms=marginScaling*linScaling;
+                    if (fabs(1.0-ms)>0.05)
                         convexObj->setMargin(convexObj->getMargin()*ms); // Margins also need scaling! 16/03/2011
-                    // NO!! convexObj->setMargin(0.0f);
+                    // NO!! convexObj->setMargin(0.0);
 
                     // Following parameter retrieval is OLD. Use instead following functions:
                     // - simGetEngineBoolParameter
@@ -361,7 +361,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             }
             else
             { // We have a convex SHAPE
-                float* allVertices;
+                double* allVertices;
                 int allVerticesSize;
                 int* allIndices;
                 int allIndicesSize;
@@ -378,7 +378,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     v*=linScaling; // ********** SCALING
                     c+=v;
                 }
-                c/=float(allVerticesSize/3);
+                c/=double(allVerticesSize/3);
 
                 C7Vector tr;
                 tr.setIdentity();
@@ -404,12 +404,12 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     // This section was inspired from: http://code.google.com/p/bullet/source/browse/trunk/Demos/ConvexDecompositionDemo/ConvexDecompositionDemo.cpp#299
                     // (That works well for planes, but when an edge/corner is colliding, it is too much inside the shape. Soo many problems and tweaks in Bullet...)
                     // ***************************
-                    float marginCorrection=0.004f*linScaling; // 0.04f is default for convex shapes
+                    double marginCorrection=0.004*linScaling; // 0.04 is default for convex shapes
                     btAlignedObjectArray<btVector3> planeEquations;
                     btAlignedObjectArray<btVector3> vert;
                     for (int i=0;i<allVerticesSize/3;i++)
                     { // We scale everything up, since the routine getPlaneEquationsFromVertices fails with small shapes
-                        btVector3 v(_meshVertices_scaled[3*i+0]*10000.0f,_meshVertices_scaled[3*i+1]*10000.0f,_meshVertices_scaled[3*i+2]*10000.0f);
+                        btVector3 v(_meshVertices_scaled[3*i+0]*10000.0,_meshVertices_scaled[3*i+1]*10000.0,_meshVertices_scaled[3*i+2]*10000.0);
                         vert.push_back(v);
                     }
                     btGeometryUtil::getPlaneEquationsFromVertices(vert,planeEquations);
@@ -417,26 +417,26 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     for (size_t i=0;i<planeEquations.size();i++)
                     {
                         btVector3 plane=planeEquations[i];
-                        plane[3]+=marginCorrection*10000.0f;
-                        if (plane[3]>0.0f) // Catch these, otherwise we get crashes!
-                            plane[3]=0.0f;
+                        plane[3]+=marginCorrection*10000.0;
+                        if (plane[3]>0.0) // Catch these, otherwise we get crashes!
+                            plane[3]=0.0;
                         shiftedPlaneEquations.push_back(plane);
                     }
                     btAlignedObjectArray<btVector3> shiftedVertices;
                     btGeometryUtil::getVerticesFromPlaneEquations(shiftedPlaneEquations,shiftedVertices);
                     for (size_t i=0;i<shiftedVertices.size();i++) // do not forget to scale down again!
-                        shiftedVertices[i]=shiftedVertices[i]/10000.0f;
+                        shiftedVertices[i]=shiftedVertices[i]/10000.0;
                     convexObj=new btConvexHullShape(&(shiftedVertices[0].getX()),shiftedVertices.size());
                     // ***************************
                 }
                 else
-                    convexObj=new btConvexHullShape(&_meshVertices_scaled[0],_meshVertices_scaled.size()/3,sizeof(float)*3);
+                    convexObj=new btConvexHullShape(&_meshVertices_scaled[0],_meshVertices_scaled.size()/3,sizeof(double)*3);
 
 
-                float ms=marginScaling*linScaling;
-                if (fabs(1.0f-ms)>0.05f)
+                double ms=marginScaling*linScaling;
+                if (fabs(1.0-ms)>0.05)
                     convexObj->setMargin(convexObj->getMargin()*ms); // Margins also need scaling! 16/03/2011
-                // NO!! convexObj->setMargin(0.0f);
+                // NO!! convexObj->setMargin(0.0);
 
                 btCompoundShape* compoundShape=new btCompoundShape();
                 C7Vector xxx(_inverseLocalInertiaFrame2_scaled);

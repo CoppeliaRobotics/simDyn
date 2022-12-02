@@ -13,11 +13,11 @@
 class CParticleDyn : public CParticleDyn_base
 {
 public:
-    CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,float size,float massOverVolume,float killTime,float addColor[3]);
+    CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,double size,double massOverVolume,double killTime,float addColor[3]);
     virtual ~CParticleDyn();
 
-    bool addToEngineIfNeeded(float parameters[18],int objectID);
-    void handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,float linearFluidFrictionCoeff,float quadraticFluidFrictionCoeff,float linearAirFrictionCoeff,float quadraticAirFrictionCoeff);
+    bool addToEngineIfNeeded(double parameters[18],int objectID);
+    void handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,double linearFluidFrictionCoeff,double quadraticFluidFrictionCoeff,double linearAirFrictionCoeff,double quadraticAirFrictionCoeff);
     void updatePosition();
     void removeFromEngine();
 
@@ -28,7 +28,8 @@ protected:
     NewtonBody* _newtonBody;
     C3Vector m_externForce;
     bool _ignoreGravity;
-    float _particleMass;
+    double _particleMass;
     int _particleObjectID_withOffset;
     void* _newtonParticleUserData[5];// particleObjectID,this,stat. friction,kin. friction, restitution
+    float statFric,kinFric,rest;
 };

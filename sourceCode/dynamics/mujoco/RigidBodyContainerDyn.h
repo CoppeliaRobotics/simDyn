@@ -49,8 +49,8 @@ struct SMjJoint
     int actMode; // 0=free, 1=force/torque, 2=mixed(force/vel, using inverse dyn.)
     int jointType;
     bool tendonJoint;
-    float jointCtrlDv;
-    float jointCtrlForceToApply;
+    double jointCtrlDv;
+    double jointCtrlForceToApply;
     C4Vector initialBallQuat;
     C4Vector initialBallQuat2;
     int dependencyJointHandle;
@@ -131,15 +131,15 @@ public:
     CRigidBodyContainerDyn();
     virtual ~CRigidBodyContainerDyn();
 
-    std::string init(const float floatParams[20],const int intParams[20]);
-    void handleDynamics(float dt,float simulationTime);
+    std::string init(const double floatParams[20],const int intParams[20]);
+    void handleDynamics(double dt,double simulationTime);
 
     std::string getEngineInfo() const;
     bool isDynamicContentAvailable();
 
     std::string getCompositeInfo(const char* prefix,int what,std::vector<double>& info,int count[3]) const;
     void particlesAdded();
-    static float computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness=false);
+    static double computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness=false);
     static void injectXml(const char* xml,const char* element,int objectHandle);
     static void injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow);
     static int getCompositeIndexFromPrefix(const char* prefix);
@@ -150,26 +150,26 @@ protected:
     int _hasContentChanged();
     void _addInjections(CXmlSer* xmlDoc,int objectHandle,const char* currentElement);
     void _addComposites(CXmlSer* xmlDoc,int shapeHandle,const char* currentElement);
-    std::string _buildMujocoWorld(float timeStep,float simTime,bool rebuild);
+    std::string _buildMujocoWorld(double timeStep,double simTime,bool rebuild);
     bool _addObjectBranch(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
     void _addShape(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
-    void _addInertiaElement(CXmlSer* xmlDoc,float mass,const C7Vector& tr,const C3Vector diagI);
+    void _addInertiaElement(CXmlSer* xmlDoc,double mass,const C7Vector& tr,const C3Vector diagI);
 
     int _handleContact(const mjModel* m,mjData* d,int geom1,int geom2);
     void _handleControl(const mjModel* m,mjData* d);
     void _handleMotorControl(SMjJoint* mujocoItem);
     void _handleContactPoints(int dynPass);
-    dynReal _getAngleMinusAlpha(dynReal angle,dynReal alpha);
+    double _getAngleMinusAlpha(double angle,double alpha);
 
     static int _contactCallback(const mjModel* m,mjData* d,int geom1,int geom2);
     static void _controlCallback(const mjModel* m,mjData* d);
     static void _errorCallback(const char* err);
     static void _warningCallback(const char* warn);
 
-    void _stepDynamics(float dt,int pass);
-    void _reportWorldToCoppeliaSim(float simulationTime,int currentPass,int totalPasses);
+    void _stepDynamics(double dt,int pass);
+    void _reportWorldToCoppeliaSim(double simulationTime,int currentPass,int totalPasses);
     bool _updateWorldFromCoppeliaSim();
-    void _handleKinematicBodies_step(float t,float cumulatedTimeStep);
+    void _handleKinematicBodies_step(double t,double cumulatedTimeStep);
 
     static bool _simulationHalted;
     static std::vector<SInject> _xmlInjections;

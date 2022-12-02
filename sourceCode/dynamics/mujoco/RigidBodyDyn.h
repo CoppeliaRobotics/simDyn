@@ -12,8 +12,8 @@ public:
 
     C7Vector getInertiaFrameTransformation();
     C7Vector getShapeFrameTransformation();
-    void reportVelocityToShape(float simulationTime);
+    void reportVelocityToShape(double simulationTime);
     void handleAdditionalForcesAndTorques();
-    void handleKinematicBody_step(float t,float cumulatedTimeStep);
+    void handleKinematicBody_step(double t,double cumulatedTimeStep);
     void handleKinematicBody_end();
 };

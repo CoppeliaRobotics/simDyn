@@ -35,7 +35,7 @@ int CParticleObjectContainer_base::addObject(CParticleObject_base* it)
     int retVal=nextParticleObjectId++;
     _allParticleObjects[retVal]=it;
     it->setObjectId(retVal);
-    if ( (it->getLifeTime()<0.0f)&&(it->getSize()<-100.0f) )
+    if ( (it->getLifeTime()<0.0)&&(it->getSize()<-100.0) )
         return(131183);
     return(retVal);
 }
@@ -143,7 +143,7 @@ void CParticleObjectContainer_base::removeAllParticles()
     }
 }
 
-void CParticleObjectContainer_base::updateParticlesPosition(float simulationTime)
+void CParticleObjectContainer_base::updateParticlesPosition(double simulationTime)
 {
     auto it=_allParticleObjects.begin();
     while (it!=_allParticleObjects.end())

@@ -13,10 +13,10 @@ public:
     void init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSensor* forceSensor);
     void init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSensor* forceSensor,CXDummy* dummyA,CXDummy* dummyB);
 
-    void reportStateToCoppeliaSim(float simulationTime,int currentPass,int totalPasses);
-    dynReal getPrismaticJointPosition() const;
-    dynReal getRevoluteJointAngle();
-    dynReal getRevoluteJointAngle_forCoppeliaSim();
+    void reportStateToCoppeliaSim(double simulationTime,int currentPass,int totalPasses);
+    double getPrismaticJointPosition() const;
+    double getRevoluteJointAngle();
+    double getRevoluteJointAngle_forCoppeliaSim();
 
 protected:
     void _updateJointLimits(CXJoint* joint);

@@ -22,7 +22,7 @@ public:
     CRigidBodyContainerDyn();
     virtual ~CRigidBodyContainerDyn();
 
-    std::string init(const float floatParams[20],const int intParams[20]);
+    std::string init(const double floatParams[20],const int intParams[20]);
 
     std::string getEngineInfo() const;
     void serializeDynamicContent(const std::string& filenameAndPath,int maxSerializeBufferSize);
@@ -30,14 +30,14 @@ public:
     Vx::VxUniverse* getWorld() const;
 
     static bool _checkingLicense;
-    static float gravityVectorLength; // updated when handleDynamics is called
+    static double gravityVectorLength; // updated when handleDynamics is called
     static void _vortexCollisionCallbackStatic(void* data,Vx::VxCollisionGeometry* o1,Vx::VxCollisionGeometry* o2);
     void _vortexCollisionCallback(void* data,Vx::VxCollisionGeometry* o1,Vx::VxCollisionGeometry* o2);
 
 protected:
     void _applyGravity();
     void _licenseCheck();
-    void _stepDynamics(float dt,int pass);
+    void _stepDynamics(double dt,int pass);
     void _createDependenciesBetweenJoints();
     void _removeDependenciesBetweenJoints(CConstraintDyn* theInvolvedConstraint);
 

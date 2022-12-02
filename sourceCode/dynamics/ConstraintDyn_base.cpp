@@ -8,13 +8,13 @@ CConstraintDyn_base::CConstraintDyn_base()
     _forceSensor=nullptr;
     _dummyA=nullptr;
     _dummyB=nullptr;
-    _nonCyclicRevoluteJointPositionOffset=0.0f;
+    _nonCyclicRevoluteJointPositionOffset=0.0;
     _jointIsCyclic=false;
     _dummyAHandle=-1;
     _dummyBHandle=-1;
     _forceSensorHandle=-1;
     _jointHandle=-1;
-    _lastEffortOnJoint=0.0f;
+    _lastEffortOnJoint=0.0;
     _dynPassCount=0;
     _lastJointPosSet=false;
     _targetPositionToHoldAtZeroVelOn_velocityMode=false;
@@ -153,22 +153,22 @@ void CConstraintDyn_base::_handleJoint(CXJoint* joint,int passCnt,int totalPasse
 {
 }
 
-dynReal CConstraintDyn_base::getPrismaticJointPosition() const
+double CConstraintDyn_base::getPrismaticJointPosition() const
 {
     return(0.0);
 }
 
-dynReal CConstraintDyn_base::getRevoluteJointAngle()
+double CConstraintDyn_base::getRevoluteJointAngle()
 {
     return(0.0);
 }
 
-dynReal CConstraintDyn_base::getRevoluteJointAngle_forCoppeliaSim()
+double CConstraintDyn_base::getRevoluteJointAngle_forCoppeliaSim()
 {
     return(0.0);
 }
 
-void CConstraintDyn_base::reportStateToCoppeliaSim(float simulationTime,int currentPass,int totalPasses)
+void CConstraintDyn_base::reportStateToCoppeliaSim(double simulationTime,int currentPass,int totalPasses)
 {
     if (_jointHandle!=-1)
     {
@@ -183,7 +183,7 @@ void CConstraintDyn_base::reportStateToCoppeliaSim(float simulationTime,int curr
         // Report the joint's intrinsic pose (exclude the joint's intrinsic error pose):
         if (_simGetJointType(_joint)==sim_joint_revolute_subtype)
         {
-            float angle=getRevoluteJointAngle_forCoppeliaSim();
+            double angle=getRevoluteJointAngle_forCoppeliaSim();
             if (_jointIsCyclic)
                 angle=atan2(sin(angle),cos(angle));
             _simSetDynamicMotorReflectedPositionFromDynamicEngine(_joint,angle,simulationTime);
@@ -324,14 +324,14 @@ int CConstraintDyn_base::getIdentifyingHandle() const
     return(retVal);
 }
 
-dynReal CConstraintDyn_base::getAngleMinusAlpha(dynReal angle,dynReal alpha)
+double CConstraintDyn_base::getAngleMinusAlpha(double angle,double alpha)
 {    // Returns angle-alpha. Angle and alpha are cyclic angles!!
-    dynReal sinAngle0 = sinf (angle);
-    dynReal sinAngle1 = sinf (alpha);
-    dynReal cosAngle0 = cosf(angle);
-    dynReal cosAngle1 = cosf(alpha);
-    dynReal sin_da = sinAngle0 * cosAngle1 - cosAngle0 * sinAngle1;
-    dynReal cos_da = cosAngle0 * cosAngle1 + sinAngle0 * sinAngle1;
-    dynReal angle_da = atan2(sin_da, cos_da);
+    double sinAngle0 = sinf (angle);
+    double sinAngle1 = sinf (alpha);
+    double cosAngle0 = cosf(angle);
+    double cosAngle1 = cosf(alpha);
+    double sin_da = sinAngle0 * cosAngle1 - cosAngle0 * sinAngle1;
+    double cos_da = cosAngle0 * cosAngle1 + sinAngle0 * sinAngle1;
+    double angle_da = atan2(sin_da, cos_da);
     return angle_da;
 }

@@ -5,20 +5,20 @@
 class CParticleDyn_base
 {
 public:
-    CParticleDyn_base(const C3Vector& position,const C3Vector& velocity,int objType,float size,float massOverVolume,float killTime,float addColor[3]);
+    CParticleDyn_base(const C3Vector& position,const C3Vector& velocity,int objType,double size,double massOverVolume,double killTime,float addColor[3]);
 
     virtual ~CParticleDyn_base();
 
-    virtual bool addToEngineIfNeeded(float parameters[18],int objectID);
-    virtual void handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,float linearFluidFrictionCoeff,float quadraticFluidFrictionCoeff,float linearAirFrictionCoeff,float quadraticAirFrictionCoeff);
+    virtual bool addToEngineIfNeeded(double parameters[18],int objectID);
+    virtual void handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,double linearFluidFrictionCoeff,double quadraticFluidFrictionCoeff,double linearAirFrictionCoeff,double quadraticAirFrictionCoeff);
     virtual void updatePosition();
     virtual void removeFromEngine();
 
-    bool didTimeOut(float simulationTime);
+    bool didTimeOut(double simulationTime);
     int getInitializationState();
     int getUniqueID();
     void setUniqueID(int id);
-    bool getRenderData(float* pos,float* size,int* objType,float** additionalColor);
+    bool getRenderData(double* pos,double* size,int* objType,float** additionalColor);
 
 protected:    
     int _uniqueID;
@@ -26,8 +26,8 @@ protected:
     C3Vector _currentPosition; // Not scaled!
     C3Vector _initialVelocityVector; // not scaled!
     int _objectType;
-    float _size;
-    float _massOverVolume;
-    float _killTime;
+    double _size;
+    double _massOverVolume;
+    double _killTime;
     float _additionalColor[3];
 };

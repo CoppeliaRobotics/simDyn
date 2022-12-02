@@ -34,8 +34,8 @@ public:
     void setAttr(const char* name,double value1,double value2,double value3,double value4,double value5);
     void setAttr(const char* name,const double* value,size_t size);
     
-    void setPosAttr(const char* name,const float value[3]);
-    void setQuatAttr(const char* name,const float value[4]);
+    void setPosAttr(const char* name,const double value[3]);
+    void setQuatAttr(const char* name,const double value[4]);
 
     std::string getString();
     void setString(const char* str);

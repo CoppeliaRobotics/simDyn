@@ -14,9 +14,9 @@ public:
 
     virtual C7Vector getInertiaFrameTransformation();
     virtual C7Vector getShapeFrameTransformation();
-    virtual void reportVelocityToShape(float simulationTime);
+    virtual void reportVelocityToShape(double simulationTime);
     virtual void handleAdditionalForcesAndTorques();
-    virtual void handleKinematicBody_step(float t,float cumulatedTimeStep);
+    virtual void handleKinematicBody_step(double t,double cumulatedTimeStep);
     virtual void handleKinematicBody_end();
 
     int getShapeHandle() const;
@@ -24,8 +24,8 @@ public:
     bool isStatic() const;
     bool isNeverRespondable() const;
     CCollShapeDyn* getCollisionShapeDyn() const;
-    void reportConfigurationToShape(float simulationTime);
-    void handleKinematicBody_init(float dt);
+    void reportConfigurationToShape(double simulationTime);
+    void handleKinematicBody_init(double dt);
 
 protected:    
     int _shapeHandle; // rigid body id is the same
@@ -43,7 +43,7 @@ protected:
     C7Vector _localInertiaFrame_scaled;
     C7Vector _inverseLocalInertiaFrame_scaled;
     C3Vector _diagonalInertia_scaled; // includes mass!
-    float _mass_scaled;
+    double _mass_scaled;
 
     C7Vector _localTransformation_old; // for old, "parent follows" functionality
 };

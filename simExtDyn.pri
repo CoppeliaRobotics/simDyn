@@ -2,6 +2,7 @@ TEMPLATE = lib
 QT -= core
 QT -= gui
 DEFINES -= UNICODE
+DEFINES += SIM_MATH_DOUBLE # for double-precision
 CONFIG += shared plugin
 
 *-msvc* {
@@ -68,7 +69,7 @@ INCLUDEPATH += "../common"
 
 BULLET_2_78_ENGINE {
     TARGET = simExtBullet-2-78
-    #CONFIG += DOUBLE_PRECISION
+    DEFINES += BT_USE_DOUBLE_PRECISION
     DEFINES += INCLUDE_BULLET_2_78_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=20
     DEFINES += LIBRARY_NAME=\\\"Bullet-2-78\\\"
@@ -80,7 +81,7 @@ BULLET_2_78_ENGINE {
 
 BULLET_2_83_ENGINE {
     TARGET = simExtBullet-2-83
-    #CONFIG += DOUBLE_PRECISION
+    DEFINES += BT_USE_DOUBLE_PRECISION
     DEFINES += INCLUDE_BULLET_2_83_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=20
     DEFINES += LIBRARY_NAME=\\\"Bullet-2-83\\\"
@@ -106,7 +107,8 @@ BULLET_2_83_ENGINE {
 
 ODE_ENGINE {
     TARGET = simExtODE
-    #CONFIG += DOUBLE_PRECISION
+    DEFINES += dDOUBLE
+    DEFINES += CCD_DOUBLE
     DEFINES += INCLUDE_ODE_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=20
     DEFINES += LIBRARY_NAME=\\\"ODE\\\"
@@ -131,7 +133,7 @@ ODE_ENGINE {
 
 NEWTON_ENGINE {
     TARGET = simExtNewton
-    #CONFIG += DOUBLE_PRECISION
+    DEFINES += _NEWTON_USE_DOUBLE
     #CONFIG += USE_THREAD_EMULATION # not recomended. Use only if you need to handle Newton contacts in a contact callback script
     DEFINES += INCLUDE_NEWTON_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=20
@@ -167,7 +169,6 @@ NEWTON_ENGINE {
 
 VORTEX_ENGINE {
     TARGET = simExtVortex
-    CONFIG += DOUBLE_PRECISION
     CONFIG += c++11
     DEFINES += INCLUDE_VORTEX_CODE
     DEFINES += VX_DLL
@@ -192,7 +193,6 @@ VORTEX_ENGINE {
 
 MUJOCO_ENGINE {
     TARGET = simExtMujoco
-    #CONFIG += DOUBLE_PRECISION
     DEFINES += INCLUDE_MUJOCO_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=20
     DEFINES += LIBRARY_NAME=\\\"Mujoco\\\"
@@ -208,20 +208,6 @@ MUJOCO_ENGINE {
 
     INCLUDEPATH += $$MUJOCO_INCLUDEPATH
     INCLUDEPATH += "sourceCode/dynamics/mujoco"
-}
-
-!DOUBLE_PRECISION {
-    DEFINES += dSINGLE
-    DEFINES += CCD_SINGLE
-    DEFINES += dynReal=float
-}
-
-DOUBLE_PRECISION {
-    DEFINES += BT_USE_DOUBLE_PRECISION
-    DEFINES += dDOUBLE
-    DEFINES += CCD_DOUBLE
-    DEFINES += _NEWTON_USE_DOUBLE
-    DEFINES += dynReal=double
 }
 
 HEADERS += ../../coppeliaSimLib/sourceCode/interfaces/dummyClasses.h \
@@ -781,7 +767,6 @@ NEWTON_ENGINE {
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomJointLibraryStdAfx.h \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomKinematicController.h \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomPathFollow.h \
-        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomPlayerControllerManager.h \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomPulley.h \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomRackAndPinion.h \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomSlider.h \
@@ -792,10 +777,6 @@ NEWTON_ENGINE {
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomUniversalActuator.h \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomUpVector.h \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomUserBlank.h \
-        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerBodyState.h \
-        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerComponent.h \
-        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerJoint.h \
-        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerManager.h \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dBaseHierarchy.h \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dClassInfo.h \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dContainersAlloc.h \
@@ -808,6 +789,11 @@ NEWTON_ENGINE {
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dString.h \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dTree.h \
         sourceCode/dynamics/newton/NewtonConvertUtil.h
+#        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomPlayerControllerManager.h \
+#        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerBodyState.h \
+#        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerComponent.h \
+#        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerJoint.h \
+#        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerManager.h \
     win32 {
         HEADERS += sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/pthreads.2/pthread.h \
             sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/ampPhysics/dgAMP.h \
@@ -1155,7 +1141,6 @@ NEWTON_ENGINE {
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomJointLibraryStdAfx.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomKinematicController.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomPathFollow.cpp \
-        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomPlayerControllerManager.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomPulley.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomRackAndPinion.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomSlider.cpp \
@@ -1166,10 +1151,6 @@ NEWTON_ENGINE {
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomUniversalActuator.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomUpVector.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomUserBlank.cpp \
-        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerBodyState.cpp \
-        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerComponent.cpp \
-        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerJoint.cpp \
-        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerManager.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dBaseHierarchy.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dClassInfo.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dContainersAlloc.cpp \
@@ -1178,6 +1159,13 @@ NEWTON_ENGINE {
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dRefCounter.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dString.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dTree.cpp
+#        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomPlayerControllerManager.cpp \
+#        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerBodyState.cpp \
+#        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerComponent.cpp \
+#        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerJoint.cpp \
+#        sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerManager.cpp \
+
+
     win32 {
         SOURCES += sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/pthreads.2/pthread.c \
             sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/ampPhysics/dgAMP.cpp \
