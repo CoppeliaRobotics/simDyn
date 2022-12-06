@@ -221,12 +221,8 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/bullet_2_78/bullet_2_78/LinearMath/btConvexHull.cpp
     sourceCode/dynamics/bullet_2_78/bullet_2_78/LinearMath/btAlignedAllocator.cpp
 )
-if(DOUBLE_PRECISION)
-    target_compile_definitions(simExtBullet-2-78 PRIVATE dynReal=double)
-    target_compile_definitions(simExtBullet-2-78 PRIVATE BT_USE_DOUBLE_PRECISION)
-else()
-    target_compile_definitions(simExtBullet-2-78 PRIVATE dynReal=float)
-endif()
+target_compile_definitions(simExtBullet-2-78 PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simExtBullet-2-78 PRIVATE BT_USE_DOUBLE_PRECISION)
 target_compile_definitions(simExtBullet-2-78 PRIVATE INCLUDE_BULLET_2_78_CODE)
 target_compile_definitions(simExtBullet-2-78 PRIVATE DYNAMICS_PLUGIN_VERSION=20)
 target_compile_definitions(simExtBullet-2-78 PRIVATE LIBRARY_NAME=\"Bullet-2-78\")
@@ -248,12 +244,8 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/bullet_2_83/RigidBodyContainerDyn.cpp
     sourceCode/dynamics/bullet_2_83/ParticleDyn.cpp
 )
-if(DOUBLE_PRECISION)
-    target_compile_definitions(simExtBullet-2-83 PRIVATE dynReal=double)
-    target_compile_definitions(simExtBullet-2-83 PRIVATE BT_USE_DOUBLE_PRECISION)
-else()
-    target_compile_definitions(simExtBullet-2-83 PRIVATE dynReal=float)
-endif()
+target_compile_definitions(simExtBullet-2-83 PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simExtBullet-2-83 PRIVATE BT_USE_DOUBLE_PRECISION)
 target_compile_definitions(simExtBullet-2-83 PRIVATE INCLUDE_BULLET_2_83_CODE)
 target_compile_definitions(simExtBullet-2-83 PRIVATE DYNAMICS_PLUGIN_VERSION=20)
 target_compile_definitions(simExtBullet-2-83 PRIVATE LIBRARY_NAME=\"Bullet-2-83\")
@@ -398,15 +390,9 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/ode/ode/libccd/src/support.c
     sourceCode/dynamics/ode/ode/libccd/src/vec3.c
 )
-if(DOUBLE_PRECISION)
-    target_compile_definitions(simExtODE PRIVATE dynReal=double)
-    target_compile_definitions(simExtODE PRIVATE dDOUBLE)
-    target_compile_definitions(simExtODE PRIVATE CCD_DOUBLE)
-else()
-    target_compile_definitions(simExtODE PRIVATE dynReal=float)
-    target_compile_definitions(simExtODE PRIVATE dSINGLE)
-    target_compile_definitions(simExtODE PRIVATE CCD_SINGLE)
-endif()
+target_compile_definitions(simExtODE PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simExtODE PRIVATE dDOUBLE)
+target_compile_definitions(simExtODE PRIVATE CCD_DOUBLE)
 target_compile_definitions(simExtODE PRIVATE INCLUDE_ODE_CODE)
 target_compile_definitions(simExtODE PRIVATE DYNAMICS_PLUGIN_VERSION=20)
 target_compile_definitions(simExtODE PRIVATE LIBRARY_NAME=\"ODE\")
@@ -583,13 +569,9 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dTree.cpp
     ${NEWTON_PLATFORM_SPECIFIC_SOURCES}
 )
-if(DOUBLE_PRECISION)
-    target_compile_definitions(simExtNewton PRIVATE dynReal=double)
-    target_compile_definitions(simExtNewton PRIVATE _NEWTON_USE_DOUBLE)
-else()
-    target_compile_definitions(simExtNewton PRIVATE dynReal=float)
-endif()
 #target_compile_definitions(simExtNewton PRIVATE USE_THREAD_EMULATION) # not recomended. Use only if you need to handle Newton contacts in a contact callback script
+target_compile_definitions(simExtNewton PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simExtNewton PRIVATE _NEWTON_USE_DOUBLE)
 target_compile_definitions(simExtNewton PRIVATE INCLUDE_NEWTON_CODE)
 target_compile_definitions(simExtNewton PRIVATE DYNAMICS_PLUGIN_VERSION=20)
 target_compile_definitions(simExtNewton PRIVATE LIBRARY_NAME=\"Newton\")
@@ -628,7 +610,7 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/vortex/RigidBodyContainerDyn.cpp
     sourceCode/dynamics/vortex/ParticleDyn.cpp
 )
-target_compile_definitions(simExtVortex PRIVATE dynReal=double)
+target_compile_definitions(simExtVortex PRIVATE SIM_MATH_DOUBLE)
 target_compile_definitions(simExtVortex PRIVATE INCLUDE_VORTEX_CODE)
 target_compile_definitions(simExtVortex PRIVATE VX_DLL)
 target_compile_definitions(simExtVortex PRIVATE DYNAMICS_PLUGIN_VERSION=20)
@@ -665,12 +647,7 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/mujoco/xmlser.cpp
     sourceCode/dynamics/mujoco/tinyxml2.cpp
 )
-if(DOUBLE_PRECISION)
-    target_compile_definitions(simExtMujoco PRIVATE dynReal=double)
-    #target_compile_definitions(simExtMujoco PRIVATE BT_USE_DOUBLE_PRECISION)
-else()
-    target_compile_definitions(simExtMujoco PRIVATE dynReal=float)
-endif()
+target_compile_definitions(simExtVortex PRIVATE SIM_MATH_DOUBLE)
 target_compile_definitions(simExtMujoco PRIVATE INCLUDE_MUJOCO_CODE)
 target_compile_definitions(simExtMujoco PRIVATE DYNAMICS_PLUGIN_VERSION=20)
 target_compile_definitions(simExtMujoco PRIVATE LIBRARY_NAME=\"Mujoco\")
