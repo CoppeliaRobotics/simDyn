@@ -647,7 +647,7 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/mujoco/xmlser.cpp
     sourceCode/dynamics/mujoco/tinyxml2.cpp
 )
-target_compile_definitions(simExtVortex PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simExtMujoco PRIVATE SIM_MATH_DOUBLE)
 target_compile_definitions(simExtMujoco PRIVATE INCLUDE_MUJOCO_CODE)
 target_compile_definitions(simExtMujoco PRIVATE DYNAMICS_PLUGIN_VERSION=20)
 target_compile_definitions(simExtMujoco PRIVATE LIBRARY_NAME=\"Mujoco\")
