@@ -153,22 +153,22 @@ void CConstraintDyn_base::_handleJoint(CXJoint* joint,int passCnt,int totalPasse
 {
 }
 
-double CConstraintDyn_base::getPrismaticJointPosition() const
+sReal CConstraintDyn_base::getPrismaticJointPosition() const
 {
     return(0.0);
 }
 
-double CConstraintDyn_base::getRevoluteJointAngle()
+sReal CConstraintDyn_base::getRevoluteJointAngle()
 {
     return(0.0);
 }
 
-double CConstraintDyn_base::getRevoluteJointAngle_forCoppeliaSim()
+sReal CConstraintDyn_base::getRevoluteJointAngle_forCoppeliaSim()
 {
     return(0.0);
 }
 
-void CConstraintDyn_base::reportStateToCoppeliaSim(double simulationTime,int currentPass,int totalPasses)
+void CConstraintDyn_base::reportStateToCoppeliaSim(sReal simulationTime,int currentPass,int totalPasses)
 {
     if (_jointHandle!=-1)
     {
@@ -183,7 +183,7 @@ void CConstraintDyn_base::reportStateToCoppeliaSim(double simulationTime,int cur
         // Report the joint's intrinsic pose (exclude the joint's intrinsic error pose):
         if (_simGetJointType(_joint)==sim_joint_revolute_subtype)
         {
-            double angle=getRevoluteJointAngle_forCoppeliaSim();
+            sReal angle=getRevoluteJointAngle_forCoppeliaSim();
             if (_jointIsCyclic)
                 angle=atan2(sin(angle),cos(angle));
             _simSetDynamicMotorReflectedPositionFromDynamicEngine(_joint,angle,simulationTime);
@@ -324,14 +324,14 @@ int CConstraintDyn_base::getIdentifyingHandle() const
     return(retVal);
 }
 
-double CConstraintDyn_base::getAngleMinusAlpha(double angle,double alpha)
+sReal CConstraintDyn_base::getAngleMinusAlpha(sReal angle,sReal alpha)
 {    // Returns angle-alpha. Angle and alpha are cyclic angles!!
-    double sinAngle0 = sinf (angle);
-    double sinAngle1 = sinf (alpha);
-    double cosAngle0 = cosf(angle);
-    double cosAngle1 = cosf(alpha);
-    double sin_da = sinAngle0 * cosAngle1 - cosAngle0 * sinAngle1;
-    double cos_da = cosAngle0 * cosAngle1 + sinAngle0 * sinAngle1;
-    double angle_da = atan2(sin_da, cos_da);
+    sReal sinAngle0 = sinf (angle);
+    sReal sinAngle1 = sinf (alpha);
+    sReal cosAngle0 = cosf(angle);
+    sReal cosAngle1 = cosf(alpha);
+    sReal sin_da = sinAngle0 * cosAngle1 - cosAngle0 * sinAngle1;
+    sReal cos_da = cosAngle0 * cosAngle1 + sinAngle0 * sinAngle1;
+    sReal angle_da = atan2(sin_da, cos_da);
     return angle_da;
 }

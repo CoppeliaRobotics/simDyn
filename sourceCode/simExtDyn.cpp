@@ -246,7 +246,14 @@ SIM_DLLEXPORT char dynPlugin_startSimulation_D(int engine,int version,const doub
         simAddLog(LIBRARY_NAME,sim_verbosity_infos,"initializing the physics engine...");
         CRigidBodyContainerDyn* dynWorld=new CRigidBodyContainerDyn();
         CRigidBodyContainerDyn::setDynWorld(dynWorld);
+#ifdef SIM_MATH_DOUBLE
         std::string err(dynWorld->init(floatParams,intParams));
+#else
+        sReal fParams[20];
+        for (size_t i=0;i<20;i++)
+            fParams[i]=(sReal)floatParams[i];
+        std::string err(dynWorld->init(fParams,intParams));
+#endif
         std::string tmp("engine: ");
         tmp+=dynWorld->getEngineInfo();
         tmp+=", plugin version: ";
@@ -271,7 +278,7 @@ SIM_DLLEXPORT void dynPlugin_step_D(double timeStep,double simulationTime)
 {
     CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
     if (dynWorld!=nullptr)
-        dynWorld->handleDynamics(timeStep,simulationTime);
+        dynWorld->handleDynamics((sReal)timeStep,(sReal)simulationTime);
 }
 
 SIM_DLLEXPORT char dynPlugin_isDynamicContentAvailable()
@@ -294,7 +301,7 @@ SIM_DLLEXPORT int dynPlugin_addParticleObject_D(int objectType,double size,doubl
     CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
     if (dynWorld!=nullptr)
     {
-        CParticleObject_base* it=new CParticleObject_base(objectType,size,massOverVolume,params,lifeTime,maxItemCount);
+        CParticleObject_base* it=new CParticleObject_base(objectType,(sReal)size,(sReal)massOverVolume,params,(sReal)lifeTime,maxItemCount);
         for (int i=0;i<9;i++)
             it->color[i]=0.25f;
         for (int i=9;i<12;i++)
@@ -340,7 +347,19 @@ SIM_DLLEXPORT char dynPlugin_addParticleObjectItem_D(int objectHandle,const doub
         CParticleObject_base* it=dynWorld->getParticleCont()->getObject(objectHandle,false);
         if (it==nullptr)
             return(false); // error
+#ifdef SIM_MATH_DOUBLE
         it->addParticle(simulationTime,itemData);
+#else
+        sReal iData[20];
+        sReal* _iData=nullptr;
+        if (itemData!=nullptr)
+        {
+            for (size_t i=0;i<20;i++)
+                iData[i]=(sReal)itemData[i];
+            _iData=iData;
+        }
+        it->addParticle((sReal)simulationTime,_iData);
+#endif
 #ifdef INCLUDE_MUJOCO_CODE
         dynWorld->particlesAdded();
 #endif
@@ -370,7 +389,18 @@ SIM_DLLEXPORT double* dynPlugin_getContactPoints_D(int* count)
     CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
     count[0]=0;
     if (dynWorld!=nullptr)
+    {
+#ifdef SIM_MATH_DOUBLE
         retVal=dynWorld->getContactPoints(count);
+#else
+        static std::vector<double> pp;
+        sReal* p=dynWorld->getContactPoints(count);
+        pp.resize(count[0]*3);
+        for (int i=0;i<count[0]*3;i++)
+            pp[i]=(double)p[i];
+        retVal=pp.data();
+#endif
+    }
     return(retVal);
 }
 
@@ -389,15 +419,40 @@ SIM_DLLEXPORT char dynPlugin_getParticleData_D(const void* particle,double* pos,
 {
     if (particle==nullptr)
         return(0);
-    return(((CParticleDyn*)particle)->getRenderData(pos,size,objectType,additionalColor));
+    char retVal=0;
+#ifdef SIM_MATH_DOUBLE
+    retVal=((CParticleDyn*)particle)->getRenderData(pos,size,objectType,additionalColor);
+#else
+    sReal fpos[3];
+    sReal s;
+    retVal=((CParticleDyn*)particle)->getRenderData(fpos,&s,objectType,additionalColor);
+    pos[0]=(double)fpos[0];
+    pos[1]=(double)fpos[1];
+    pos[2]=(double)fpos[2];
+    size[0]=(double)s;
+#endif
+    return(retVal);
 }
 
 SIM_DLLEXPORT char dynPlugin_getContactForce_D(int dynamicPass,int objectHandle,int index,int objectHandles[2],double* contactInfo)
 {
     CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
+    char retVal=0;
     if (dynWorld!=nullptr)
-        return(dynWorld->getContactForce(dynamicPass,objectHandle,index,objectHandles,contactInfo));
-    return(false);
+    {
+#ifdef SIM_MATH_DOUBLE
+        retVal=dynWorld->getContactForce(dynamicPass,objectHandle,index,objectHandles,contactInfo);
+#else
+        sReal ci[9];
+        retVal=dynWorld->getContactForce(dynamicPass,objectHandle,index,objectHandles,ci);
+        size_t cnt=6;
+        if ((index&sim_handleflag_extended)!=0)
+            cnt=9;
+        for (size_t i=0;i<cnt;i++)
+            contactInfo[i]=(double)ci[i];
+#endif
+    }
+    return(retVal);
 }
 
 SIM_DLLEXPORT int dynPlugin_getDynamicStepDivider()

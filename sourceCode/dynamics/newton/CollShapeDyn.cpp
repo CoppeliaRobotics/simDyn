@@ -38,7 +38,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             {
                 CXGeometric* sc=componentList[i];
                 int pType=_simGetPurePrimitiveType(sc);
-                double hollowScaling=_simGetPureHollowScaling(sc);
+                sReal hollowScaling=_simGetPureHollowScaling(sc);
                 if (hollowScaling!=0.0)
                     _simMakeDynamicAnnouncement(sim_announce_purehollowshapenotsupported);
                 C3Vector s;
@@ -58,7 +58,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     case sim_primitiveshape_cuboid:
                     {
                         dMatrix localTransform(GetDMatrixFromCoppeliaSimTransformation(xxx));
-                        double z=s(2);
+                        sReal z=s(2);
                         if (z<0.0001)
                             z=0.0001;
                         childShape = NewtonCreateBox(world, s(0), s(1), z, 0, &localTransform[0][0]);
@@ -73,7 +73,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         C7Vector ilif(xxx);
                         ilif.Q*=rot.getQuaternion();
                         dMatrix localTransform(GetDMatrixFromCoppeliaSimTransformation(ilif));
-                        double z=s(2);
+                        sReal z=s(2);
                         if (z<0.0001)
                             z=0.0001;
                         //childShape = NewtonCreateChamferCylinder(world, s(0) * 0.5, z, 0, &localTransform[0][0]);
@@ -97,7 +97,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         C7Vector ilif(xxx);
                         ilif.Q*=rot.getQuaternion();
                         dMatrix localTransform(GetDMatrixFromCoppeliaSimTransformation(ilif));
-                        double r=(s(0)+s(1))/4.0;
+                        sReal r=(s(0)+s(1))/4.0;
                         childShape = NewtonCreateCapsule(world, r,s(2)-r*2.0, 0, &localTransform[0][0]);
                         break;
                     }
@@ -125,7 +125,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
         else
         { 
             // we have a SIMPLE pure shape
-            double hollowScaling=_simGetPureHollowScaling((CXGeometric*)geomInfo);
+            sReal hollowScaling=_simGetPureHollowScaling((CXGeometric*)geomInfo);
             if (hollowScaling!=0.0)
                 _simMakeDynamicAnnouncement(sim_announce_purehollowshapenotsupported);
             C3Vector s;
@@ -138,7 +138,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 case sim_primitiveshape_cuboid:
                 {
                     dMatrix invMatrix (GetDMatrixFromCoppeliaSimTransformation(inverseLocalInertiaFrame_scaled));
-                    double z=s(2);
+                    sReal z=s(2);
                     if (z<0.0001)
                         z=0.0001;
                     _shape = NewtonCreateBox (world, s(0), s(1), z, 0, &invMatrix[0][0]);
@@ -153,7 +153,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     C7Vector ilif(inverseLocalInertiaFrame_scaled);
                     ilif.Q*=rot.getQuaternion();
                     dMatrix invMatrix (GetDMatrixFromCoppeliaSimTransformation(ilif));
-                    double z=s(2);
+                    sReal z=s(2);
                     if (z<0.0001)
                         z=0.0001;
                     // _shape = NewtonCreateChamferCylinder(world, s(0) * 0.5, z, 0, &invMatrix[0][0]);
@@ -177,7 +177,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     C7Vector ilif(inverseLocalInertiaFrame_scaled);
                     ilif.Q*=rot.getQuaternion();
                     dMatrix invMatrix (GetDMatrixFromCoppeliaSimTransformation(ilif));
-                    double r=(s(0)+s(1))/4.0;
+                    sReal r=(s(0)+s(1))/4.0;
                     _shape = NewtonCreateCapsule(world, r, s(2)-r*2.0, 0,&invMatrix[0][0]);
                     break;
                 }
@@ -196,11 +196,11 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 case sim_primitiveshape_heightfield:
                 {
                     int xCnt,yCnt; // height values along x or y
-                    double minH,maxH; // min and max heights (relative to frame)
+                    sReal minH,maxH; // min and max heights (relative to frame)
                     // Heightfield x and y size is: s(0) and s(1)
-                    // Heightfield pad x-size is: s(0)/(double(xCnt-1))
-                    // Heightfield pad y-size is: s(1)/(double(yCnt-1))
-                    const double* hData=_simGetHeightfieldData(geomInfo,&xCnt,&yCnt,&minH,&maxH);
+                    // Heightfield pad x-size is: s(0)/(sReal(xCnt-1))
+                    // Heightfield pad y-size is: s(1)/(sReal(yCnt-1))
+                    const sReal* hData=_simGetHeightfieldData(geomInfo,&xCnt,&yCnt,&minH,&maxH);
                     // hData contains xCnt*yCnt heights in following order: x0y0, x1,y0, ..., xn,y0,x0y1,x1y1, ...
                     _newtonHeightfieldData.resize(xCnt*yCnt);
                     for (int i=0;i<xCnt;i++)
@@ -222,7 +222,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     char* attributeMap=new char[xCnt*yCnt];
                     for (int i=0;i<xCnt*yCnt;i++)
                         attributeMap[i]=0;
-                    _shape = NewtonCreateHeightFieldCollision(world,xCnt,yCnt,1,0,&_newtonHeightfieldData[0],attributeMap,1.0,s(0)/(double(xCnt-1)),0);
+                    _shape = NewtonCreateHeightFieldCollision(world,xCnt,yCnt,1,0,&_newtonHeightfieldData[0],attributeMap,1.0,s(0)/(sReal(xCnt-1)),0);
                     NewtonCollisionSetMatrix(_shape,&invMatrix[0][0]);
                     break;
                 }
@@ -240,7 +240,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
         // 3. a convex multishape
         if ((_simIsGeomWrapConvex(geomInfo)==0)&&willBeStatic) // in Newton, random meshes can only be static! If not static, treat them as convex meshes
         {     // We have a general-type geom object (trimesh)
-            double* allVertices;
+            sReal* allVertices;
             int allVerticesSize;
             int* allIndices;
             int allIndicesSize;
@@ -261,7 +261,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             NewtonTreeCollisionBeginBuild(_shape);
             for (size_t i = 0; i < _meshIndices.size(); i += 3)
             {
-                double triangle[3][3];
+                sReal triangle[3][3];
                 for (size_t j=0; j < 3; j++)
                 {
                     int index = _meshIndices[i + j];
@@ -269,7 +269,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     triangle[j][1] = _meshVertices_scaled[index * 3 + 1];
                     triangle[j][2] = _meshVertices_scaled[index * 3 + 2];
                 }
-                NewtonTreeCollisionAddFace (_shape, 3, &triangle[0][0], 3 * sizeof (double), 0);
+                NewtonTreeCollisionAddFace (_shape, 3, &triangle[0][0], 3 * sizeof (sReal), 0);
             }
             NewtonTreeCollisionEndBuild (_shape, 0);
 
@@ -292,7 +292,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 {
                     CXGeometric* sc=componentList[comp];
 
-                    double* allVertices;
+                    sReal* allVertices;
                     int allVerticesSize;
                     int* allIndices;
                     int allIndicesSize;
@@ -307,7 +307,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                         //v*=linScaling; // ********** SCALING
                         c+=v;
                     }
-                    c/=double(allVerticesSize/3);
+                    c/=sReal(allVerticesSize/3);
 
                     C7Vector tr;
                     tr.setIdentity();
@@ -327,7 +327,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     simReleaseBuffer((char*)allVertices);
                     simReleaseBuffer((char*)allIndices);
 
-                    NewtonCollision* const childShape = NewtonCreateConvexHull (world, _meshVertices_scaled.size()/3, &_meshVertices_scaled[0], sizeof(double)*3, 1.0e-3f, 0, &localTransform[0][0]);
+                    NewtonCollision* const childShape = NewtonCreateConvexHull (world, _meshVertices_scaled.size()/3, &_meshVertices_scaled[0], sizeof(sReal)*3, 1.0e-3f, 0, &localTransform[0][0]);
                     NewtonCompoundCollisionAddSubCollision(_shape, childShape);
                     NewtonDestroyCollision(childShape);
                 }
@@ -336,7 +336,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
             }
             else
             { // We have a convex SHAPE
-                double* allVertices;
+                sReal* allVertices;
                 int allVerticesSize;
                 int* allIndices;
                 int allIndicesSize;
@@ -351,7 +351,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                     //v*=linScaling; 
                     c+=v;
                 }
-                c/=double(allVerticesSize/3);
+                c/=sReal(allVerticesSize/3);
 
                 C7Vector tr;
                 tr.setIdentity();
@@ -370,7 +370,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
                 }
                 simReleaseBuffer((char*)allVertices);
                 simReleaseBuffer((char*)allIndices);
-                _shape = NewtonCreateConvexHull (world, _meshVertices_scaled.size()/3, &_meshVertices_scaled[0], sizeof(double)*3, 1.0e-3f, 0, &localTransform[0][0]);
+                _shape = NewtonCreateConvexHull (world, _meshVertices_scaled.size()/3, &_meshVertices_scaled[0], sizeof(sReal)*3, 1.0e-3f, 0, &localTransform[0][0]);
             }
         }
     }
@@ -384,16 +384,16 @@ void CCollShapeDyn::_setNewtonParameters(CXShape* shape)
     // - simGetEngineFloatParameter
     // - simGetEngineInt32Parameter
     // - simGetEngineBoolParameter
-    double floatParams[5];
+    sReal floatParams[5];
     int intParams[1];
     int parVer=0;
     _simGetNewtonParameters(shape,&parVer,floatParams,intParams);
 
-    const double staticFriction=floatParams[0];
-    const double kineticFriction=floatParams[1];
-    const double restitution=floatParams[2];
-    const double linearDrag=floatParams[3];
-    const double angularDrag=floatParams[4];
+    const sReal staticFriction=floatParams[0];
+    const sReal kineticFriction=floatParams[1];
+    const sReal restitution=floatParams[2];
+    const sReal linearDrag=floatParams[3];
+    const sReal angularDrag=floatParams[4];
 
     const bool fastMoving=(intParams[0]&1)!=false;
     */

@@ -19,9 +19,9 @@ public:
 
     C7Vector getInertiaFrameTransformation();
     C7Vector getShapeFrameTransformation();
-    void reportVelocityToShape(double simulationTime);
+    void reportVelocityToShape(sReal simulationTime);
     void handleAdditionalForcesAndTorques();
-    void handleKinematicBody_step(double t,double cumulatedTimeStep);
+    void handleKinematicBody_step(sReal t,sReal cumulatedTimeStep);
     void handleKinematicBody_end();
 
 protected:    
@@ -31,10 +31,10 @@ protected:
     C3Vector m_externForce;
     C3Vector m_externTorque;
     void* _newtonBodyUserData[5];// shapeHandle,this,stat. friction,kin. friction, restitution
-    float _newtonStaticFriction;
-    float _newtonKineticFriction;
-    float _newtonRestitution;
-    double _newtonLinearDrag;
-    double _newtonAngularDrag;
+    sReal _newtonStaticFriction;
+    sReal _newtonKineticFriction;
+    sReal _newtonRestitution;
+    sReal _newtonLinearDrag;
+    sReal _newtonAngularDrag;
     bool _newtonFastMoving;
 };

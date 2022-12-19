@@ -50,7 +50,7 @@ C7Vector CRigidBodyDyn_base::getShapeFrameTransformation()
     return(C7Vector::identityTransformation);
 }
 
-void CRigidBodyDyn_base::reportVelocityToShape(double simulationTime)
+void CRigidBodyDyn_base::reportVelocityToShape(sReal simulationTime)
 {
 }
 
@@ -58,7 +58,7 @@ void CRigidBodyDyn_base::handleAdditionalForcesAndTorques()
 {
 }
 
-void CRigidBodyDyn_base::handleKinematicBody_step(double t,double cumulatedTimeStep)
+void CRigidBodyDyn_base::handleKinematicBody_step(sReal t,sReal cumulatedTimeStep)
 {
 }
 
@@ -86,7 +86,7 @@ CXShape* CRigidBodyDyn_base::getShape() const
     return(_shape);
 }
 
-void CRigidBodyDyn_base::reportConfigurationToShape(double simulationTime)
+void CRigidBodyDyn_base::reportConfigurationToShape(sReal simulationTime)
 {
     if (!_isStatic)
     { // dynamic
@@ -105,7 +105,7 @@ void CRigidBodyDyn_base::reportConfigurationToShape(double simulationTime)
     }
 }
 
-void CRigidBodyDyn_base::handleKinematicBody_init(double dt)
+void CRigidBodyDyn_base::handleKinematicBody_init(sReal dt)
 {
     if (_isStatic)
     {

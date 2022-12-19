@@ -143,7 +143,7 @@ void CParticleObjectContainer_base::removeAllParticles()
     }
 }
 
-void CParticleObjectContainer_base::updateParticlesPosition(double simulationTime)
+void CParticleObjectContainer_base::updateParticlesPosition(sReal simulationTime)
 {
     auto it=_allParticleObjects.begin();
     while (it!=_allParticleObjects.end())

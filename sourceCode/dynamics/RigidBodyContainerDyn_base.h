@@ -29,44 +29,44 @@ public:
     CRigidBodyContainerDyn_base();
     virtual ~CRigidBodyContainerDyn_base();
 
-    virtual std::string init(const double floatParams[20],const int intParams[20]);
+    virtual std::string init(const sReal floatParams[20],const int intParams[20]);
 
     virtual std::string getEngineInfo() const;
     virtual void serializeDynamicContent(const std::string& filenameAndPath,int maxSerializeBufferSize);
 
-    virtual void handleDynamics(double dt,double simulationTime);
+    virtual void handleDynamics(sReal dt,sReal simulationTime);
     virtual bool isDynamicContentAvailable();
-    bool getContactForce(int dynamicPass,int objectHandle,int index,int objectHandles[2],double* contactInfo);
+    bool getContactForce(int dynamicPass,int objectHandle,int index,int objectHandles[2],sReal* contactInfo);
     int getDynamicsCalculationPasses() const;
-    double getSimulationTime() const;
-    double* getContactPoints(int* cnt);
+    sReal getSimulationTime() const;
+    sReal* getContactPoints(int* cnt);
 
     static void setDynWorld(CRigidBodyContainerDyn* dynWorld);
     static CRigidBodyContainerDyn* getDynWorld();
     CParticleObjectContainer_base* getParticleCont();
 
-    double getPositionScalingFactorDyn() const;
-    double getLinearVelocityScalingFactorDyn() const;
-    double getMassScalingFactorDyn() const;
-    double getMasslessInertiaScalingFactorDyn() const;
-    double getForceScalingFactorDyn() const;
-    double getTorqueScalingFactorDyn() const;
-    double getGravityScalingFactorDyn() const;
-    double getDynamicsInternalTimeStep() const;
+    sReal getPositionScalingFactorDyn() const;
+    sReal getLinearVelocityScalingFactorDyn() const;
+    sReal getMassScalingFactorDyn() const;
+    sReal getMasslessInertiaScalingFactorDyn() const;
+    sReal getForceScalingFactorDyn() const;
+    sReal getTorqueScalingFactorDyn() const;
+    sReal getGravityScalingFactorDyn() const;
+    sReal getDynamicsInternalTimeStep() const;
     int getDynamicParticlesIdStart() const;
 
     static bool isJointInDynamicMode(CXSceneObject* joint);
 
 protected:
     virtual void _applyGravity();
-    virtual void _stepDynamics(double dt,int pass);
+    virtual void _stepDynamics(sReal dt,int pass);
     virtual void _createDependenciesBetweenJoints();
     virtual void _removeDependenciesBetweenJoints(CConstraintDyn* theInvolvedConstraint);
     virtual bool _updateWorldFromCoppeliaSim();
 
-    void _reportRigidBodyStatesToCoppeliaSim(double simulationTime);
-    void _reportConstraintStatesToCoppeliaSim(double simulationTime,int currentPass,int totalPasses);
-    virtual void _reportWorldToCoppeliaSim(double simulationTime,int currentPass,int totalPasses);
+    void _reportRigidBodyStatesToCoppeliaSim(sReal simulationTime);
+    void _reportConstraintStatesToCoppeliaSim(sReal simulationTime,int currentPass,int totalPasses);
+    virtual void _reportWorldToCoppeliaSim(sReal simulationTime,int currentPass,int totalPasses);
     void _handleAdditionalForcesAndTorques();
     void _clearAdditionalForcesAndTorques();
     CRigidBodyDyn* _getRigidBodyFromObjectHandle(int shapeHandle);
@@ -92,8 +92,8 @@ protected:
     void _updateHybridJointTargetPositions_old();
 
     // Following 3 go in pair:
-    void _handleKinematicBodies_init(double dt);
-    void _handleKinematicBodies_step(double t,double cumulatedTimeStep);
+    void _handleKinematicBodies_init(sReal dt);
+    void _handleKinematicBodies_step(sReal t,sReal cumulatedTimeStep);
     void _handleKinematicBodies_end();
 
     static CRigidBodyContainerDyn* _dynWorld;
@@ -102,21 +102,21 @@ protected:
     std::map<int,CConstraintDyn*> _allConstraints;
     CParticleObjectContainer_base* _particleCont;
 
-    std::vector<double> _contactPoints;
+    std::vector<sReal> _contactPoints;
     std::vector<SContactInfo> _contactInfo; // Not same as above!
 
     int _dynamicsCalculationPasses;
-    double _simulationTime;
+    sReal _simulationTime;
     int _engine;
     int _engineVersion;
-    double _positionScalingFactorDyn;
-    double _linearVelocityScalingFactorDyn;
-    double _massScalingFactorDyn;
-    double _masslessInertiaScalingFactorDyn;
-    double _forceScalingFactorDyn;
-    double _torqueScalingFactorDyn;
-    double _gravityScalingFactorDyn;
-    double _dynamicActivityRange;
-    double _dynamicsInternalStepSize;
+    sReal _positionScalingFactorDyn;
+    sReal _linearVelocityScalingFactorDyn;
+    sReal _massScalingFactorDyn;
+    sReal _masslessInertiaScalingFactorDyn;
+    sReal _forceScalingFactorDyn;
+    sReal _torqueScalingFactorDyn;
+    sReal _gravityScalingFactorDyn;
+    sReal _dynamicActivityRange;
+    sReal _dynamicsInternalStepSize;
     int _dynamicParticlesIdStart;
 };

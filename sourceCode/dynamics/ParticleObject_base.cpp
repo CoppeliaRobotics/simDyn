@@ -2,7 +2,7 @@
 #include "simLib.h"
 #include "ParticleDyn.h"
 
-CParticleObject_base::CParticleObject_base(int theObjectType,double size,double massVolumic,const void* params,double lifeTime,int maxItemCount)
+CParticleObject_base::CParticleObject_base(int theObjectType,sReal size,sReal massVolumic,const void* params,sReal lifeTime,int maxItemCount)
 {
     _objectId=0;
     if (size>100.0)
@@ -47,7 +47,7 @@ CParticleObject_base::CParticleObject_base(int theObjectType,double size,double 
             int p=((int*)params)[1+2*i+0];
             float f=((float*)params)[1+2*i+1];
             if ((p>=0)&&(p<18))
-                parameters[p]=(double)f;
+                parameters[p]=(sReal)f;
         }
     }
 }
@@ -81,12 +81,12 @@ bool CParticleObject_base::canBeDestroyed()
     return(true);
 }
 
-double CParticleObject_base::getLifeTime()
+sReal CParticleObject_base::getLifeTime()
 {
     return(_particlesLifeTime);
 }
 
-double CParticleObject_base::getSize()
+sReal CParticleObject_base::getSize()
 {
     return(_size);
 }
@@ -118,7 +118,7 @@ int CParticleObject_base::getOtherFloatsPerItem()
     return(retVal);
 }
 
-void CParticleObject_base::addParticle(double simulationTime,const double* itemData)
+void CParticleObject_base::addParticle(sReal simulationTime,const sReal* itemData)
 {
     if (itemData==nullptr)
     { // We wanna remove all particles!
@@ -194,8 +194,8 @@ void CParticleObject_base::addParticle(double simulationTime,const double* itemD
     }
 
 
-    double size=_size;
-    double massOverVolume=_massVolumic;
+    sReal size=_size;
+    sReal massOverVolume=_massVolumic;
     int off=6;
     if (_objectType&sim_particle_itemsizes)
         size=itemData[off++];
@@ -210,7 +210,7 @@ void CParticleObject_base::addParticle(double simulationTime,const double* itemD
         addColor[1]=itemData[off++];
         addColor[2]=itemData[off++];
     }
-    double killTime=FLOAT_MAX;
+    sReal killTime=FLOAT_MAX;
     if (_particlesLifeTime!=0.0)
         killTime=simulationTime+_particlesLifeTime;
     C3Vector pos(itemData);
@@ -290,7 +290,7 @@ void CParticleObject_base::removeAllParticles()
     removeKilledParticles();
 }
 
-void CParticleObject_base::updateParticlesPosition(double simulationTime)
+void CParticleObject_base::updateParticlesPosition(sReal simulationTime)
 {
     // We first want to remove particles that have timed out or that are not active anymore:
     int oldestIndex=-1;

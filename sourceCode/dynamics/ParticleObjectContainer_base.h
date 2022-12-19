@@ -18,7 +18,7 @@ public:
     bool addParticlesIfNeeded();
     void removeKilledParticles();
     void removeAllParticles();
-    void updateParticlesPosition(double simulationTime);
+    void updateParticlesPosition(sReal simulationTime);
 
     void handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity);
 

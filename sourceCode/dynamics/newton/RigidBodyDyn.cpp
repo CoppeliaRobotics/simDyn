@@ -33,7 +33,7 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
     CXGeomProxy* geomData = (CXGeomProxy*)_simGetGeomProxyFromShape(shape);
     CXGeomWrap* geomInfo = (CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
 
-    double mass = _isStatic ? 0.0 : _mass_scaled;
+    sReal mass = _isStatic ? 0.0 : _mass_scaled;
 
     _setNewtonParameters(shape);
 
@@ -122,7 +122,7 @@ NewtonBody* CRigidBodyDyn::getNewtonRigidBody() const
     return _newtonBody;
 }
 
-void CRigidBodyDyn::reportVelocityToShape(double simulationTime)
+void CRigidBodyDyn::reportVelocityToShape(sReal simulationTime)
 {
     C3Vector lv,av;
 
@@ -147,7 +147,7 @@ void CRigidBodyDyn::handleAdditionalForcesAndTorques()
     }
 }
 
-void CRigidBodyDyn::handleKinematicBody_step(double t,double cumulatedTimeStep)
+void CRigidBodyDyn::handleKinematicBody_step(sReal t,sReal cumulatedTimeStep)
 {
     if (_isStatic&&_applyBodyToShapeTransf_kinematicBody)
     { // static & moved (the desired movement was large enough)
@@ -158,18 +158,10 @@ void CRigidBodyDyn::handleKinematicBody_step(double t,double cumulatedTimeStep)
         dQuaternion rot;
         NewtonBodyGetRotation(_newtonBody, &rot.m_q0);
         NewtonBodyGetMatrix(_newtonBody, &posit[0][0]);
-        C4X4Matrix transf(tr.getMatrix());
-        double m[16];
-        m[12]=0.0;
-        m[13]=0.0;
-        m[14]=0.0;
-        m[15]=1.0;
-        transf.getData(m);
-        dMatrix matrix(m);
-        matrix = matrix.Transpose4X4();
+        dMatrix matrix(GetDMatrixFromCoppeliaSimTransformation(tr));
         dQuaternion rot1 (matrix);
 
-        double timestep = CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
+        sReal timestep = CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
         dVector veloc ((matrix.m_posit - posit.m_posit).Scale (1.0 / timestep));
         dVector omega (rot.CalcAverageOmega(rot1, 1.0 / timestep));
 
@@ -196,10 +188,7 @@ C7Vector CRigidBodyDyn::getNewtonMatrix() const
 {
     dMatrix matrix;
     NewtonBodyGetMatrix(_newtonBody, &matrix[0][0]);
-    matrix = matrix.Transpose4X4();
-    C4X4Matrix m;
-    m.setData(&matrix[0][0]);
-    return m.getTransformation();
+    return GetCoppeliaSimTransformationFromDMatrix(matrix);
 }
 
 void CRigidBodyDyn::_setNewtonParameters(CXShape* shape)
@@ -208,22 +197,22 @@ void CRigidBodyDyn::_setNewtonParameters(CXShape* shape)
     // - simGetEngineFloatParameter
     // - simGetEngineInt32Parameter
     // - simGetEngineBoolParameter
-    double floatParams[5];
+    sReal floatParams[5];
     int intParams[1];
     int parVer=0;
     _simGetNewtonParameters(shape,&parVer,floatParams,intParams);
 
-    const double staticFriction=floatParams[0];
-    const double kineticFriction=floatParams[1];
-    const double restitution=floatParams[2];
-    const double linearDrag=floatParams[3];
-    const double angularDrag=floatParams[4];
+    const sReal staticFriction=floatParams[0];
+    const sReal kineticFriction=floatParams[1];
+    const sReal restitution=floatParams[2];
+    const sReal linearDrag=floatParams[3];
+    const sReal angularDrag=floatParams[4];
 
     const bool fastMoving=(intParams[0]&1)!=false;
 
-    _newtonStaticFriction=(float)staticFriction;
-    _newtonKineticFriction=(float)kineticFriction;
-    _newtonRestitution=(float)restitution;
+    _newtonStaticFriction=staticFriction;
+    _newtonKineticFriction=kineticFriction;
+    _newtonRestitution=restitution;
     _newtonLinearDrag=linearDrag;
     _newtonAngularDrag=angularDrag;
     _newtonFastMoving=fastMoving;
@@ -236,10 +225,10 @@ void CRigidBodyDyn::TransformCallback(const NewtonBody* body, const dFloat* matr
 
 void CRigidBodyDyn::ApplyExtenalForceCallback(const NewtonBody* body, dFloat timestep, int threadIndex)
 {
-    double mass;
-    double Ixx;
-    double Iyy;
-    double Izz;
+    sReal mass;
+    sReal Ixx;
+    sReal Iyy;
+    sReal Izz;
     C3Vector gravity;
 
     _simGetGravity(gravity.data);

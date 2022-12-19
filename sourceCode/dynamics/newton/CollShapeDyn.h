@@ -23,9 +23,9 @@ public:
 protected:    
     void _setNewtonParameters(CXShape* shape);
     NewtonCollision* _shape;
-    std::vector<double> _newtonHeightfieldData;
+    std::vector<sReal> _newtonHeightfieldData;
 
     // Following few maybe need to remain valid throughout the lifetime of Newton CollShapeDyn:
-    std::vector<double> _meshVertices_scaled;
+    std::vector<sReal> _meshVertices_scaled;
     std::vector<int> _meshIndices;
 };

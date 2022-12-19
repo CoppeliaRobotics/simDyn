@@ -2,7 +2,6 @@ TEMPLATE = lib
 QT -= core
 QT -= gui
 DEFINES -= UNICODE
-DEFINES += SIM_MATH_DOUBLE # for double-precision
 CONFIG += shared plugin
 
 *-msvc* {
@@ -69,6 +68,8 @@ INCLUDEPATH += "../common"
 
 BULLET_2_78_ENGINE {
     TARGET = simExtBullet-2-78
+    DEFINES += SIM_MATH_DOUBLE
+    DEFINES += sReal=double
     DEFINES += BT_USE_DOUBLE_PRECISION
     DEFINES += INCLUDE_BULLET_2_78_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=20
@@ -81,6 +82,8 @@ BULLET_2_78_ENGINE {
 
 BULLET_2_83_ENGINE {
     TARGET = simExtBullet-2-83
+    DEFINES += SIM_MATH_DOUBLE
+    DEFINES += sReal=double
     DEFINES += BT_USE_DOUBLE_PRECISION
     DEFINES += INCLUDE_BULLET_2_83_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=20
@@ -107,6 +110,8 @@ BULLET_2_83_ENGINE {
 
 ODE_ENGINE {
     TARGET = simExtODE
+    DEFINES += SIM_MATH_DOUBLE
+    DEFINES += sReal=double
     DEFINES += dDOUBLE
     DEFINES += CCD_DOUBLE
     DEFINES += INCLUDE_ODE_CODE
@@ -133,7 +138,11 @@ ODE_ENGINE {
 
 NEWTON_ENGINE {
     TARGET = simExtNewton
-    DEFINES += _NEWTON_USE_DOUBLE
+    #something is broken with Newton and double precision... revert to single precision for now
+    #DEFINES += SIM_MATH_DOUBLE
+    #DEFINES += _NEWTON_USE_DOUBLE
+    DEFINES += SIM_INTERFACE_SINGLE
+    DEFINES += sReal=float
     #CONFIG += USE_THREAD_EMULATION # not recomended. Use only if you need to handle Newton contacts in a contact callback script
     DEFINES += INCLUDE_NEWTON_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=20
@@ -170,6 +179,8 @@ NEWTON_ENGINE {
 VORTEX_ENGINE {
     TARGET = simExtVortex
     CONFIG += c++11
+    DEFINES += SIM_MATH_DOUBLE
+    DEFINES += sReal=double
     DEFINES += INCLUDE_VORTEX_CODE
     DEFINES += VX_DLL
     DEFINES += DYNAMICS_PLUGIN_VERSION=20
@@ -193,6 +204,8 @@ VORTEX_ENGINE {
 
 MUJOCO_ENGINE {
     TARGET = simExtMujoco
+    DEFINES += SIM_MATH_DOUBLE
+    DEFINES += sReal=double
     DEFINES += INCLUDE_MUJOCO_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=20
     DEFINES += LIBRARY_NAME=\\\"Mujoco\\\"

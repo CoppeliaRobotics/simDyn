@@ -59,18 +59,18 @@ class CConstraintDyn::csimNewtonCommonJointData
     {
     }
 
-    double GetJointForce() const
+    sReal GetJointForce() const
     {
         return m_axisWasActive ? -NewtonUserJointGetRowForce(m_joint->GetJoint(), 5) : 0.0;
     }
 
-    void SetLimits(double low, double high)
+    void SetLimits(sReal low, sReal high)
     {
         m_lowLimit = low;
         m_highLimit = high;
     }
 
-    void SetMotor(bool motorIsOn, double speed, double maxForce)
+    void SetMotor(bool motorIsOn, sReal speed, sReal maxForce)
     {
         m_lockOnTargetMode = false;
         if (motorIsOn) {
@@ -85,7 +85,7 @@ class CConstraintDyn::csimNewtonCommonJointData
         }
     }
 
-    void LockOnTargetPosition(double targetPosition)
+    void LockOnTargetPosition(sReal targetPosition)
     {
         m_lockOnTargetMode = true;
         m_targetPosition = targetPosition;
@@ -93,12 +93,12 @@ class CConstraintDyn::csimNewtonCommonJointData
     }
 
     CustomJoint* m_joint;
-    double m_lowLimit;
-    double m_highLimit;
-    double m_lowForce;
-    double m_highForce;
-    double m_motorSpeed;
-    double m_targetPosition;
+    sReal m_lowLimit;
+    sReal m_highLimit;
+    sReal m_lowForce;
+    sReal m_highForce;
+    sReal m_motorSpeed;
+    sReal m_targetPosition;
     bool m_axisWasActive;
     bool m_lockOnTargetMode;
     JointMode m_mode;
@@ -141,8 +141,8 @@ class CConstraintDyn::csimNewtonRevoluteJoint: public CustomHingeActuator
             {
                 // I did not test this, but I believe is right
                 m_data.m_axisWasActive = true;
-                double posit = GetJointAngle();
-                double step = CConstraintDyn::getAngleMinusAlpha(m_data.m_targetPosition, posit);
+                sReal posit = GetJointAngle();
+                sReal step = CConstraintDyn::getAngleMinusAlpha(m_data.m_targetPosition, posit);
                 NewtonUserJointAddAngularRow(m_joint, step, &matrix0.m_front[0]);
                 NewtonUserJointSetRowStiffness(m_joint, 1.0);
                 break;
@@ -151,12 +151,12 @@ class CConstraintDyn::csimNewtonRevoluteJoint: public CustomHingeActuator
             case csimNewtonCommonJointData::m_motor:
             default:
             {
-                double posit = GetJointAngle();
-                double speed = GetJointOmega();
-                double accel = 0.5 * (m_data.m_motorSpeed - speed) / timestep;
+                sReal posit = GetJointAngle();
+                sReal speed = GetJointOmega();
+                sReal accel = 0.5 * (m_data.m_motorSpeed - speed) / timestep;
                 if (posit <= m_data.m_lowLimit)
                 {
-                    double step = CConstraintDyn::getAngleMinusAlpha(m_data.m_lowLimit, posit);
+                    sReal step = CConstraintDyn::getAngleMinusAlpha(m_data.m_lowLimit, posit);
                     NewtonUserJointAddAngularRow(m_joint, step, &matrix0.m_front[0]);
                     //dFloat posit1 = posit + speed * timestep + accel * timestep * timestep;
                     //if ((m_data.m_motorSpeed > 0.0) && (posit1 > m_data.m_lowLimit))
@@ -169,7 +169,7 @@ class CConstraintDyn::csimNewtonRevoluteJoint: public CustomHingeActuator
                 }
                 else if (posit >= m_data.m_highLimit)
                 {
-                    double step = CConstraintDyn::getAngleMinusAlpha(m_data.m_highLimit, posit);
+                    sReal step = CConstraintDyn::getAngleMinusAlpha(m_data.m_highLimit, posit);
                     NewtonUserJointAddAngularRow(m_joint, step, &matrix0.m_front[0]);
                     //dFloat posit1 = posit + speed * timestep + accel * timestep * timestep;
                     //if ((m_data.m_motorSpeed < 0.0) && (posit1 > m_data.m_highLimit))
@@ -231,8 +231,8 @@ class CConstraintDyn::csimNewtonPrismaticJoint: public CustomSliderActuator
             {
                 // I did not test this, but I believe is right
                 m_data.m_axisWasActive = true;
-                double posit = GetJointPosit();
-                double step = m_data.m_targetPosition - posit;
+                sReal posit = GetJointPosit();
+                sReal step = m_data.m_targetPosition - posit;
                 const dVector& p0 = matrix0.m_posit;
                 dVector p1(p0 + matrix0.m_front.Scale(step));
                 NewtonUserJointAddLinearRow(m_joint, &p0[0], &p1[0], &matrix0.m_front[0]);
@@ -243,12 +243,12 @@ class CConstraintDyn::csimNewtonPrismaticJoint: public CustomSliderActuator
             case csimNewtonCommonJointData::m_motor:
             default:
             {
-                double posit = GetJointPosit();
-                double speed = GetJointSpeed();
-                double accel = 0.5 * (m_data.m_motorSpeed - speed) / timestep;
+                sReal posit = GetJointPosit();
+                sReal speed = GetJointSpeed();
+                sReal accel = 0.5 * (m_data.m_motorSpeed - speed) / timestep;
                 if (posit <= m_data.m_lowLimit)
                 {
-                    double step = m_data.m_lowLimit - posit;
+                    sReal step = m_data.m_lowLimit - posit;
                     const dVector& p0 = matrix0.m_posit;
                     dVector p1(p0 + matrix0.m_front.Scale(step));
                     NewtonUserJointAddLinearRow(m_joint, &p0[0], &p1[0], &matrix0.m_front[0]);
@@ -263,7 +263,7 @@ class CConstraintDyn::csimNewtonPrismaticJoint: public CustomSliderActuator
                 }
                 else if (posit >= m_data.m_highLimit)
                 {
-                    double step = m_data.m_highLimit - posit;
+                    sReal step = m_data.m_highLimit - posit;
                     const dVector& p0 = matrix0.m_posit;
                     dVector p1(p0 + matrix0.m_front.Scale(step));
                     NewtonUserJointAddLinearRow(m_joint, &p0[0], &p1[0], &matrix0.m_front[0]);
@@ -426,10 +426,12 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
     NewtonBody* cb=childRigidBody;
     dMatrix matrixI;
     NewtonBodyGetMatrix(cb,&matrixI[0][0]);
-    dMatrix matrixT=matrixI.Transpose4X4();
-    C4X4Matrix mTemp;
-    mTemp.setData(&matrixT[0][0]);
-    C7Vector cb_a(mTemp.getTransformation());
+//    dMatrix matrixT=matrixI.Transpose4X4();
+//    C4X4Matrix mTemp;
+//    mTemp.setData(&matrixT[0][0]);
+//    C7Vector cb_a(mTemp.getTransformation());
+    dMatrix matrixT=matrixI;
+    C7Vector cb_a(GetCoppeliaSimTransformationFromDMatrix(matrixT));
     C7Vector alpha(jtr2.getInverse()*cb_a);
     C7Vector cb_b(jtr*alpha);
     matrixT=GetDMatrixFromCoppeliaSimTransformation(cb_b);
@@ -500,10 +502,12 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXDummy* d
     NewtonBody* cb=childRigidBody;
     dMatrix matrixI;
     NewtonBodyGetMatrix(cb,&matrixI[0][0]);
-    dMatrix matrixT=matrixI.Transpose4X4();
-    C4X4Matrix tmp;
-    tmp.setData(&matrixT[0][0]);
-    C7Vector cb_a(tmp);
+//    dMatrix matrixT=matrixI.Transpose4X4();
+//    C4X4Matrix tmp;
+//    tmp.setData(&matrixT[0][0]);
+//    C7Vector cb_a(tmp);
+    dMatrix matrixT=matrixI;
+    C7Vector cb_a(GetCoppeliaSimTransformationFromDMatrix(matrixT));
     C7Vector x(cb_a.getInverse()*dtr2);
     C7Vector cb_b(dtr*x.getInverse());
     matrixT=GetDMatrixFromCoppeliaSimTransformation(cb_b);
@@ -588,10 +592,12 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
     NewtonBody* cb=childRigidBody;
     dMatrix matrixI;
     NewtonBodyGetMatrix(cb,&matrixI[0][0]);
-    dMatrix matrixT=matrixI.Transpose4X4();
-    C4X4Matrix tmp;
-    tmp.setData(&matrixT[0][0]);
-    C7Vector cb_a(tmp);
+//    dMatrix matrixT=matrixI.Transpose4X4();
+//    C4X4Matrix tmp;
+//    tmp.setData(&matrixT[0][0]);
+//    C7Vector cb_a(tmp);
+    dMatrix matrixT=matrixI;
+    C7Vector cb_a(GetCoppeliaSimTransformationFromDMatrix(matrixT));
     C7Vector alpha(jtr2.getInverse()*cb_a);
     C7Vector cb_b(jtr*alpha);
     matrixT=GetDMatrixFromCoppeliaSimTransformation(cb_b);
@@ -628,7 +634,7 @@ void CConstraintDyn::_updateJointLimits(CXJoint* joint)
     }
     else
     {
-        double jiMin,jiRange;
+        sReal jiMin,jiRange;
         _simGetJointPositionInterval(joint,&jiMin,&jiRange);
 
         csimNewtonPrismaticJoint* const jointClass = (csimNewtonPrismaticJoint*)_newtonConstraint;
@@ -650,10 +656,10 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     if (jointType==sim_joint_spherical_subtype)
         return;
     int ctrlMode=_simGetJointDynCtrlMode(joint);
-    double dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
+    sReal dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
     csimNewtonRevoluteJoint* revJoint;
     csimNewtonPrismaticJoint* prismJoint;
-    double e=0.0;
+    sReal e=0.0;
     if (jointType==sim_joint_revolute_subtype)
     {
         revJoint = (csimNewtonRevoluteJoint*)_newtonConstraint;
@@ -678,7 +684,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     int inputValuesInt[5]={0,0,0,0,0};
     inputValuesInt[0]=passCnt;
     inputValuesInt[1]=totalPasses;
-    double inputValuesFloat[7]={0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+    sReal inputValuesFloat[7]={0.0,0.0,0.0,0.0,0.0,0.0,0.0};
     if (jointType==sim_joint_revolute_subtype)
         inputValuesFloat[0]=getRevoluteJointAngle();
     else
@@ -690,10 +696,10 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     //inputValuesFloat[4]=currentVel;
     //inputValuesFloat[5]=currentAccel;
     // auxV|=2+4; // 2: vel, 4: accel
-    double outputValues[5];
+    sReal outputValues[5];
     int res=_simHandleJointControl(joint,auxV,inputValuesInt,inputValuesFloat,outputValues);
-    double velocityToApply=outputValues[0];
-    double forceToApply=fabs(outputValues[1]);
+    sReal velocityToApply=outputValues[0];
+    sReal forceToApply=fabs(outputValues[1]);
     if ((res&2)==0)
     { // motor is not locked
         if (jointType==sim_joint_revolute_subtype)
@@ -723,18 +729,18 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     }
 }
 
-double CConstraintDyn::getPrismaticJointPosition() const
+sReal CConstraintDyn::getPrismaticJointPosition() const
 { // important! The slider pos is not initialized when added! (at least in debug mode, it is not! (release it is I think))
     csimNewtonPrismaticJoint* const slider = (csimNewtonPrismaticJoint*) _newtonConstraint;
     return slider->GetJointPosit()+_newtonJointOffset;
 }
 
-double CConstraintDyn::getRevoluteJointAngle()
+sReal CConstraintDyn::getRevoluteJointAngle()
 {
-    double retVal=(double)0.0;
+    sReal retVal=0.0;
     if (true)
     { // Bullet and ODE do not take into account turn count. So we need to handle this manually here:
-        double jointPos=(double)0.0;
+        sReal jointPos=0.0;
 
         CustomHinge* const hinge = (CustomHinge*) _newtonConstraint;
         jointPos = hinge->GetJointAngle();
@@ -745,12 +751,12 @@ double CConstraintDyn::getRevoluteJointAngle()
     return(retVal);
 }
 
-double CConstraintDyn::getRevoluteJointAngle_forCoppeliaSim()
+sReal CConstraintDyn::getRevoluteJointAngle_forCoppeliaSim()
 {
     return(getRevoluteJointAngle());
 }
 
-void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime,int currentPass,int totalPasses)
+void CConstraintDyn::reportStateToCoppeliaSim(sReal simulationTime,int currentPass,int totalPasses)
 {
     CConstraintDyn_base::reportStateToCoppeliaSim(simulationTime,currentPass,totalPasses);
     int totalPassesCount=0;
@@ -759,7 +765,7 @@ void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime,int currentP
     if (_jointHandle!=-1)
     {
         // Now report forces and torques acting on the joint:
-        double forceOrTorque=0.0;
+        sReal forceOrTorque=0.0;
 
         if (_simGetJointType(_joint)==sim_joint_revolute_subtype)
         {
@@ -814,7 +820,7 @@ bool CConstraintDyn::_isAcyclicJoint() const
     return _isAcyclic;
 }
 
-bool CConstraintDyn::getNewtonDependencyInfo(int& linkedJoint,double& fact,double& off)
+bool CConstraintDyn::getNewtonDependencyInfo(int& linkedJoint,sReal& fact,sReal& off)
 {
     if (_newtonDependencyJointId==-1)
         return(false);
@@ -844,13 +850,13 @@ void CConstraintDyn::_setNewtonParameters(CXJoint* joint)
     // - simGetEngineFloatParameter
     // - simGetEngineInt32Parameter
     // - simGetEngineBoolParameter
-    double floatParams[2];
+    sReal floatParams[2];
     int intParams[2];
     int parVer=0;
     _simGetNewtonParameters(joint,&parVer,floatParams,intParams);
 
-    const double dependencyFactor=floatParams[0];
-    const double dependencyOffset=floatParams[1];
+    const sReal dependencyFactor=floatParams[0];
+    const sReal dependencyOffset=floatParams[1];
 
     const int dependencyJointA_ID=intParams[0];
     const int dependencyJointB_ID=intParams[1]; // -1 if no dependent joint

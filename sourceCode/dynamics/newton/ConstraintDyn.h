@@ -30,12 +30,12 @@ public:
     CustomJoint* _getNewtonJoint() const;
     bool _isAcyclicJoint() const;
     void _setNewtonParameters(CXJoint* joint);
-    bool getNewtonDependencyInfo(int& linkedJoint,double& fact, double& off);
+    bool getNewtonDependencyInfo(int& linkedJoint,sReal& fact, sReal& off);
 
-    void reportStateToCoppeliaSim(double simulationTime,int currentPass,int totalPasses);
-    double getPrismaticJointPosition() const; // important! The slider pos is not initialized when added (Bullet)!
-    double getRevoluteJointAngle();
-    double getRevoluteJointAngle_forCoppeliaSim();
+    void reportStateToCoppeliaSim(sReal simulationTime,int currentPass,int totalPasses);
+    sReal getPrismaticJointPosition() const; // important! The slider pos is not initialized when added (Bullet)!
+    sReal getRevoluteJointAngle();
+    sReal getRevoluteJointAngle_forCoppeliaSim();
 
 protected:
     void _updateJointLimits(CXJoint* joint);
@@ -45,8 +45,8 @@ protected:
     void _setForceSensorBrokenUnbrokenConstraints_newton();
     CustomJoint* _newtonConstraint;
     bool _isAcyclic;
-    double _newtonJointOffset;    // internally, we initialize Newton joints at 0, so this is the actual joint value when the joint is added
+    sReal _newtonJointOffset;    // internally, we initialize Newton joints at 0, so this is the actual joint value when the joint is added
     int _newtonDependencyJointId;
-    double _newtonDependencyFact;
-    double _newtonDependencyOff;
+    sReal _newtonDependencyFact;
+    sReal _newtonDependencyOff;
 };

@@ -3,7 +3,7 @@
 #include "NewtonConvertUtil.h"
 #include "simLib.h"
 
-CParticleDyn::CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,double size,double massOverVolume,double killTime,float addColor[3]) : CParticleDyn_base(position,velocity,objType,size,massOverVolume,killTime,addColor)
+CParticleDyn::CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,sReal size,sReal massOverVolume,sReal killTime,float addColor[3]) : CParticleDyn_base(position,velocity,objType,size,massOverVolume,killTime,addColor)
 {
 }
 
@@ -11,7 +11,7 @@ CParticleDyn::~CParticleDyn()
 {
 }
 
-bool CParticleDyn::addToEngineIfNeeded(double parameters[18],int objectID)
+bool CParticleDyn::addToEngineIfNeeded(sReal parameters[18],int objectID)
 {
     if (_initializationState!=0)
         return(_initializationState==1);
@@ -31,7 +31,7 @@ bool CParticleDyn::addToEngineIfNeeded(double parameters[18],int objectID)
     
     _particleMass=_massOverVolume*(4.0*piValue*(_size*0.5)*(_size*0.5)*(_size*0.5)/3.0);
     _ignoreGravity=false;
-    double I=2.0*(_size*0.5)*(_size*0.5)/5.0;
+    sReal I=2.0*(_size*0.5)*(_size*0.5)/5.0;
     C3Vector im(I,I,I);
     im*=_particleMass;
     NewtonBodySetMassMatrix(_newtonBody,_particleMass,im(0),im(1),im(2));
@@ -68,12 +68,12 @@ bool CParticleDyn::addToEngineIfNeeded(double parameters[18],int objectID)
     return(true);
 }
 
-void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,double linearFluidFrictionCoeff,double quadraticFluidFrictionCoeff,double linearAirFrictionCoeff,double quadraticAirFrictionCoeff)
+void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity,sReal linearFluidFrictionCoeff,sReal quadraticFluidFrictionCoeff,sReal linearAirFrictionCoeff,sReal quadraticAirFrictionCoeff)
 {
     bool isWaterButInAir=false;
     if ( (_objectType&sim_particle_ignoresgravity)||(_objectType&sim_particle_water) )
     {
-        double mass=_massOverVolume*((piValue*_size*_size*_size)/6.0);
+        sReal mass=_massOverVolume*((piValue*_size*_size*_size)/6.0);
         C3Vector f=gravity*-mass;
         bool reallyIgnoreGravity=true;
         if (_objectType&sim_particle_water)
@@ -95,8 +95,8 @@ void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector
     }
     if ((linearFluidFrictionCoeff!=0.0)||(quadraticFluidFrictionCoeff!=0.0)||(linearAirFrictionCoeff!=0.0)||(quadraticAirFrictionCoeff!=0.0))
     { // New since 27/6/2011
-        double lfc=linearFluidFrictionCoeff;
-        double qfc=quadraticFluidFrictionCoeff;
+        sReal lfc=linearFluidFrictionCoeff;
+        sReal qfc=quadraticFluidFrictionCoeff;
         if (isWaterButInAir)
         {
             lfc=linearAirFrictionCoeff;
@@ -106,7 +106,7 @@ void CParticleDyn::handleAntiGravityForces_andFluidFrictionForces(const C3Vector
 
         NewtonBodyGetVelocity(_newtonBody,vVect.data);
 
-        double v=vVect.getLength();
+        sReal v=vVect.getLength();
         if (v!=0.0)
         {
             C3Vector nv(vVect.getNormalized()*-1.0);

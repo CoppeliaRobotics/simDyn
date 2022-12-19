@@ -222,6 +222,7 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/bullet_2_78/bullet_2_78/LinearMath/btAlignedAllocator.cpp
 )
 target_compile_definitions(simExtBullet-2-78 PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simExtBullet-2-78 PRIVATE sReal=double)
 target_compile_definitions(simExtBullet-2-78 PRIVATE BT_USE_DOUBLE_PRECISION)
 target_compile_definitions(simExtBullet-2-78 PRIVATE INCLUDE_BULLET_2_78_CODE)
 target_compile_definitions(simExtBullet-2-78 PRIVATE DYNAMICS_PLUGIN_VERSION=20)
@@ -245,6 +246,7 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/bullet_2_83/ParticleDyn.cpp
 )
 target_compile_definitions(simExtBullet-2-83 PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simExtBullet-2-83 PRIVATE sReal=double)
 target_compile_definitions(simExtBullet-2-83 PRIVATE BT_USE_DOUBLE_PRECISION)
 target_compile_definitions(simExtBullet-2-83 PRIVATE INCLUDE_BULLET_2_83_CODE)
 target_compile_definitions(simExtBullet-2-83 PRIVATE DYNAMICS_PLUGIN_VERSION=20)
@@ -391,6 +393,7 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/ode/ode/libccd/src/vec3.c
 )
 target_compile_definitions(simExtODE PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simExtODE PRIVATE sReal=double)
 target_compile_definitions(simExtODE PRIVATE dDOUBLE)
 target_compile_definitions(simExtODE PRIVATE CCD_DOUBLE)
 target_compile_definitions(simExtODE PRIVATE INCLUDE_ODE_CODE)
@@ -544,7 +547,6 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomJointLibraryStdAfx.cpp
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomKinematicController.cpp
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomPathFollow.cpp
-    #sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomPlayerControllerManager.cpp
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomPulley.cpp
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomRackAndPinion.cpp
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomSlider.cpp
@@ -555,10 +557,6 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomUniversalActuator.cpp
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomUpVector.cpp
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomUserBlank.cpp
-    #sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerBodyState.cpp
-    #sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerComponent.cpp
-    #sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerJoint.cpp
-    #sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints/CustomVehicleControllerManager.cpp
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dBaseHierarchy.cpp
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dClassInfo.cpp
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dContainersAlloc.cpp
@@ -570,8 +568,10 @@ coppeliasim_add_plugin(
     ${NEWTON_PLATFORM_SPECIFIC_SOURCES}
 )
 #target_compile_definitions(simExtNewton PRIVATE USE_THREAD_EMULATION) # not recomended. Use only if you need to handle Newton contacts in a contact callback script
-target_compile_definitions(simExtNewton PRIVATE SIM_MATH_DOUBLE)
-target_compile_definitions(simExtNewton PRIVATE _NEWTON_USE_DOUBLE)
+#target_compile_definitions(simExtNewton PRIVATE SIM_MATH_DOUBLE)
+#target_compile_definitions(simExtNewton PRIVATE _NEWTON_USE_DOUBLE)
+target_compile_definitions(simExtNewton PRIVATE SIM_INTERFACE_SINGLE)
+target_compile_definitions(simExtNewton PRIVATE sReal=float)
 target_compile_definitions(simExtNewton PRIVATE INCLUDE_NEWTON_CODE)
 target_compile_definitions(simExtNewton PRIVATE DYNAMICS_PLUGIN_VERSION=20)
 target_compile_definitions(simExtNewton PRIVATE LIBRARY_NAME=\"Newton\")
@@ -611,6 +611,7 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/vortex/ParticleDyn.cpp
 )
 target_compile_definitions(simExtVortex PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simExtVortex PRIVATE sReal=double)
 target_compile_definitions(simExtVortex PRIVATE INCLUDE_VORTEX_CODE)
 target_compile_definitions(simExtVortex PRIVATE VX_DLL)
 target_compile_definitions(simExtVortex PRIVATE DYNAMICS_PLUGIN_VERSION=20)
@@ -648,6 +649,7 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/mujoco/tinyxml2.cpp
 )
 target_compile_definitions(simExtMujoco PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simExtMujoco PRIVATE sReal=double)
 target_compile_definitions(simExtMujoco PRIVATE INCLUDE_MUJOCO_CODE)
 target_compile_definitions(simExtMujoco PRIVATE DYNAMICS_PLUGIN_VERSION=20)
 target_compile_definitions(simExtMujoco PRIVATE LIBRARY_NAME=\"Mujoco\")

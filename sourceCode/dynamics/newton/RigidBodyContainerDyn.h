@@ -17,7 +17,7 @@ public:
     CRigidBodyContainerDyn();
     virtual ~CRigidBodyContainerDyn();
 
-    std::string init(const double floatParams[20],const int intParams[20]);
+    std::string init(const sReal floatParams[20],const int intParams[20]);
 
     std::string getEngineInfo() const;
     void serializeDynamicContent(const std::string& filenameAndPath,int maxSerializeBufferSize);
@@ -33,7 +33,7 @@ public:
 
 protected:
     void _applyGravity();
-    void _stepDynamics(double dt,int pass);
+    void _stepDynamics(sReal dt,int pass);
     void _createDependenciesBetweenJoints();
     void _removeDependenciesBetweenJoints(CConstraintDyn* theInvolvedConstraint);
     bool _updateWorldFromCoppeliaSim();

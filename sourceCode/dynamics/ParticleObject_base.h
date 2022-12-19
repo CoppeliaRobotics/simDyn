@@ -6,11 +6,11 @@
 class CParticleObject_base
 {
 public:
-    CParticleObject_base(int theObjectType,double size,double massVolumic,const void* params,double lifeTime,int maxItemCount);
+    CParticleObject_base(int theObjectType,sReal size,sReal massVolumic,const void* params,sReal lifeTime,int maxItemCount);
     virtual ~CParticleObject_base();
 
     void setObjectId(int newID);
-    void addParticle(double simulationTime,const double* itemData);
+    void addParticle(sReal simulationTime,const sReal* itemData);
     int getOtherFloatsPerItem();
 
     bool isParticleRespondable();
@@ -18,29 +18,29 @@ public:
     bool canBeDestroyed();
     void flagForDestruction();
     bool isFlaggedForDestruction();
-    double getLifeTime();
-    double getSize();
+    sReal getLifeTime();
+    sReal getSize();
 
     bool addParticlesIfNeeded();
     void removeKilledParticles();
     void removeAllParticles();
-    void updateParticlesPosition(double simulationTime);
+    void updateParticlesPosition(sReal simulationTime);
 
     void handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity);
 
     void** getParticles(int* particlesCount,int* objectType,float** col);
 
     float color[12];
-    double parameters[18];
+    sReal parameters[18];
 
 protected:
     int _objectId;
     int _nextUniqueIDForParticle;
 
     int _objectType;
-    double _size;
-    double _massVolumic;
-    double _particlesLifeTime;
+    sReal _size;
+    sReal _massVolumic;
+    sReal _particlesLifeTime;
     int _maxItemCount;
     bool _flaggedForDestruction;
 
