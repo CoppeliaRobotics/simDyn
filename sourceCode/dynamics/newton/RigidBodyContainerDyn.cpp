@@ -157,10 +157,6 @@ int CRigidBodyContainerDyn::NewtonOnAABBOverlap(const NewtonMaterial* const mate
     // and they will not collide with each other.
     // So here, we check if those two bodies can collide
 
-    // If we have a contact callback registered, we always return 1:
-    if (_simGetContactCallbackCount()>0)
-        return(1); // the narrow-phase routine will handle the callback!
-
     void** userDataA=(void**)NewtonBodyGetUserData(body0);
     void** userDataB=(void**)NewtonBodyGetUserData(body1);
     CXShape* shapeA=(CXShape*)_simGetObject(((int*)userDataA[0])[0]);

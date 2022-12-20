@@ -31,21 +31,21 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
     _indexVertexArrays=nullptr;
 
     CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
-    double marginScaling=simGetEngineFloatParameter(sim_bullet_global_collisionmarginfactor,-1,nullptr,nullptr);
+    double marginScaling=simGetEngineFloatParam(sim_bullet_global_collisionmarginfactor,-1,nullptr,nullptr);
     bool isConvex=_simIsGeomWrapConvex(geomInfo)!=0;
     bool isNotPure=(_simGetPurePrimitiveType(geomInfo)==sim_primitiveshape_none);
     bool convexAndNotPure=(isConvex&&isNotPure);
     double marg;
     if (convexAndNotPure)
-        marg=simGetEngineFloatParameter(sim_bullet_body_nondefaultcollisionmargingfactorconvex,-1,shape,nullptr);
+        marg=simGetEngineFloatParam(sim_bullet_body_nondefaultcollisionmargingfactorconvex,-1,shape,nullptr);
     else
-        marg=simGetEngineFloatParameter(sim_bullet_body_nondefaultcollisionmargingfactor,-1,shape,nullptr);
-    bool autoShrinkConvex=simGetEngineBoolParameter(sim_bullet_body_autoshrinkconvex,-1,shape,nullptr)!=0;
+        marg=simGetEngineFloatParam(sim_bullet_body_nondefaultcollisionmargingfactor,-1,shape,nullptr);
+    bool autoShrinkConvex=simGetEngineBoolParam(sim_bullet_body_autoshrinkconvex,-1,shape,nullptr)!=0;
     bool useMargin;
     if (convexAndNotPure)
-        useMargin=simGetEngineBoolParameter(sim_bullet_body_usenondefaultcollisionmarginconvex,-1,shape,nullptr)!=0;
+        useMargin=simGetEngineBoolParam(sim_bullet_body_usenondefaultcollisionmarginconvex,-1,shape,nullptr)!=0;
     else
-        useMargin=simGetEngineBoolParameter(sim_bullet_body_usenondefaultcollisionmargin,-1,shape,nullptr)!=0;
+        useMargin=simGetEngineBoolParam(sim_bullet_body_usenondefaultcollisionmargin,-1,shape,nullptr)!=0;
     if (useMargin)
         marginScaling=marg;
 

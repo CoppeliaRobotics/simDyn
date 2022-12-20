@@ -71,7 +71,7 @@ std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int 
     ///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
     _solver=new btSequentialImpulseConstraintSolver;
     _dynamicsWorld=new btDiscreteDynamicsWorld(_dispatcher,_broadphase,_solver,_collisionConfiguration);
-    _dynamicsWorld->getSolverInfo().m_numIterations=simGetEngineInt32Parameter(sim_bullet_global_constraintsolvingiterations,-1,nullptr,nullptr);
+    _dynamicsWorld->getSolverInfo().m_numIterations=simGetEngineInt32Param(sim_bullet_global_constraintsolvingiterations,-1,nullptr,nullptr);
     _dynamicsWorld->getSolverInfo().m_solverMode=SOLVER_SIMD+SOLVER_USE_WARMSTARTING+SOLVER_RANDMIZE_ORDER;//+SOLVER_USE_2_FRICTION_DIRECTIONS; // new since 2010/04/04, to obtain better non-slipping contacts
     //register algorithm
     btCollisionDispatcher * dispatcher = static_cast<btCollisionDispatcher *>(_dynamicsWorld->getDispatcher());

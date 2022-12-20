@@ -68,9 +68,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     jtrRelToBodyA.X*=linScaling; // ********** SCALING
     jtrRelToBodyB.X*=linScaling; // ********** SCALING
-    double stopERP=simGetEngineFloatParameter(sim_bullet_joint_stoperp,-1,joint,nullptr);
-    double stopCFM=simGetEngineFloatParameter(sim_bullet_joint_stopcfm,-1,joint,nullptr);
-    double normalCFM=simGetEngineFloatParameter(sim_bullet_joint_normalcfm,-1,joint,nullptr);
+    double stopERP=simGetEngineFloatParam(sim_bullet_joint_stoperp,-1,joint,nullptr);
+    double stopCFM=simGetEngineFloatParam(sim_bullet_joint_stopcfm,-1,joint,nullptr);
+    double normalCFM=simGetEngineFloatParam(sim_bullet_joint_normalcfm,-1,joint,nullptr);
     if (_simGetJointType(joint)==sim_joint_revolute_subtype)
     {
         btHingeConstraint* hinge;
@@ -184,9 +184,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     jtrRelToBodyA.X*=linScaling; // ********** SCALING
     jtrRelToBodyB.X*=linScaling; // ********** SCALING
-    double stopERP=simGetEngineFloatParameter(sim_bullet_joint_stoperp,-1,joint,nullptr);
-    double stopCFM=simGetEngineFloatParameter(sim_bullet_joint_stopcfm,-1,joint,nullptr);
-    double normalCFM=simGetEngineFloatParameter(sim_bullet_joint_normalcfm,-1,joint,nullptr);
+    double stopERP=simGetEngineFloatParam(sim_bullet_joint_stoperp,-1,joint,nullptr);
+    double stopCFM=simGetEngineFloatParam(sim_bullet_joint_stopcfm,-1,joint,nullptr);
+    double normalCFM=simGetEngineFloatParam(sim_bullet_joint_normalcfm,-1,joint,nullptr);
     if (_simGetJointType(joint)==sim_joint_revolute_subtype)
     {
         btHingeConstraint* hinge;

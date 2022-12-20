@@ -90,15 +90,6 @@ void CRigidBodyDyn_base::reportConfigurationToShape(sReal simulationTime)
 {
     if (!_isStatic)
     { // dynamic
-        if (_simGetParentFollowsDynamic(_shape)!=0)
-        { // old, deprecated functionality
-            CXSceneObject* it=(CXSceneObject*)_simGetParentObject(_shape);
-            if (it!=nullptr)
-            {
-                C7Vector tr(getShapeFrameTransformation()*_localTransformation_old.getInverse());
-                _simSetObjectCumulativeTransformation(it,tr.X.data,tr.Q.data,false);
-            }
-        }
         // set the pose of non-static bodies, and set intrinsic dynamic errors of joints/force sensors linked to that shape
         C7Vector tr(getShapeFrameTransformation());
         _simDynReportObjectCumulativeTransformation(_shape,tr.X.data,tr.Q.data,simulationTime);

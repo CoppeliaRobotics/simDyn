@@ -52,7 +52,7 @@ std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int 
     _dispatcher=new    btCollisionDispatcher(_collisionConfiguration);
     _broadphase=new btDbvtBroadphase();
     ///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
-    int solverType=simGetEngineInt32Parameter(sim_bullet_global_constraintsolvertype,-1,nullptr,nullptr);
+    int solverType=simGetEngineInt32Param(sim_bullet_global_constraintsolvertype,-1,nullptr,nullptr);
 
     if (solverType==sim_bullet_constraintsolvertype_sequentialimpulse)
         _solver=new btSequentialImpulseConstraintSolver();
@@ -65,7 +65,7 @@ std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int 
 //    _solver=new btMLCPSolver(new btLemkeSolver());
 
     _dynamicsWorld=new btDiscreteDynamicsWorld(_dispatcher,_broadphase,_solver,_collisionConfiguration);
-    _dynamicsWorld->getSolverInfo().m_numIterations=simGetEngineInt32Parameter(sim_bullet_global_constraintsolvingiterations,-1,nullptr,nullptr);
+    _dynamicsWorld->getSolverInfo().m_numIterations=simGetEngineInt32Param(sim_bullet_global_constraintsolvingiterations,-1,nullptr,nullptr);
     _dynamicsWorld->getSolverInfo().m_solverMode=SOLVER_SIMD+SOLVER_USE_WARMSTARTING+SOLVER_RANDMIZE_ORDER+SOLVER_ENABLE_FRICTION_DIRECTION_CACHING+SOLVER_USE_2_FRICTION_DIRECTIONS;
     // From Bullet 2.83 on, we use SOLVER_USE_2_FRICTION_DIRECTIONS. So no more "sticky contact" option as previously
 

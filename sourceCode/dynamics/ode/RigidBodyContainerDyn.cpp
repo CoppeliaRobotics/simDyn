@@ -46,15 +46,15 @@ std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int 
     CRigidBodyContainerDyn_base::init(floatParams,intParams);
 
     dInitODE2(0);
-    int customSeed=simGetEngineInt32Parameter(sim_ode_global_randomseed,-1,nullptr,nullptr);
+    int customSeed=simGetEngineInt32Param(sim_ode_global_randomseed,-1,nullptr,nullptr);
     if (customSeed>=0)
         dRandSetSeed(customSeed);
     _dynamicsWorld=dWorldCreate();
     _odeSpace=dHashSpaceCreate(0);
     _odeContactGroup=dJointGroupCreate(0);
-    dWorldSetQuickStepNumIterations(_dynamicsWorld,simGetEngineInt32Parameter(sim_ode_global_constraintsolvingiterations,-1,nullptr,nullptr)); // 20 is default
-    dWorldSetCFM(_dynamicsWorld,simGetEngineFloatParameter(sim_ode_global_cfm,-1,nullptr,nullptr)); // (0.00001 is default, is also CoppeliaSim default)
-    dWorldSetERP (_dynamicsWorld,simGetEngineFloatParameter(sim_ode_global_erp,-1,nullptr,nullptr)); // (0.2 is default, CoppeliaSim default is 0.6)
+    dWorldSetQuickStepNumIterations(_dynamicsWorld,simGetEngineInt32Param(sim_ode_global_constraintsolvingiterations,-1,nullptr,nullptr)); // 20 is default
+    dWorldSetCFM(_dynamicsWorld,simGetEngineFloatParam(sim_ode_global_cfm,-1,nullptr,nullptr)); // (0.00001 is default, is also CoppeliaSim default)
+    dWorldSetERP (_dynamicsWorld,simGetEngineFloatParam(sim_ode_global_erp,-1,nullptr,nullptr)); // (0.2 is default, CoppeliaSim default is 0.6)
     dWorldSetAutoDisableFlag(_dynamicsWorld,1);
     dWorldSetAutoDisableAverageSamplesCount(_dynamicsWorld,10);
     dWorldSetMaxAngularSpeed(_dynamicsWorld,200.0);
@@ -116,9 +116,9 @@ void CRigidBodyContainerDyn::_odeCollisionCallback(void* data,dGeomID o1,dGeomID
                 CXGeomWrap* shapeBWrap=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shapeBProxy);
 
                 // Following parameter retrieval is OLD. Use instead following functions:
-                // - simGetEngineFloatParameter
-                // - simGetEngineInt32Parameter
-                // - simGetEngineBoolParameter
+                // - simGetEngineFloatParam
+                // - simGetEngineInt32Param
+                // - simGetEngineBoolParam
                 int maxContactsA,maxContactsB;
                 double frictionA,frictionB;
                 double cfmA,cfmB;
@@ -194,9 +194,9 @@ void CRigidBodyContainerDyn::_odeCollisionCallback(void* data,dGeomID o1,dGeomID
                         CXGeomWrap* shapeWrap=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shapeProxy);
 
                         // Following parameter retrieval is OLD. Use instead following functions:
-                        // - simGetEngineFloatParameter
-                        // - simGetEngineInt32Parameter
-                        // - simGetEngineBoolParameter
+                        // - simGetEngineFloatParam
+                        // - simGetEngineInt32Param
+                        // - simGetEngineBoolParam
                         int maxContacts;
                         double friction;
                         double cfm;
@@ -328,7 +328,7 @@ void CRigidBodyContainerDyn::_removeDependenciesBetweenJoints(CConstraintDyn* th
 void CRigidBodyContainerDyn::_stepDynamics(double dt,int pass)
 {
     dSpaceCollide(_odeSpace,0,&_odeCollisionCallbackStatic);
-    if (simGetEngineBoolParameter(sim_ode_global_quickstep,-1,nullptr,nullptr)!=0)
+    if (simGetEngineBoolParam(sim_ode_global_quickstep,-1,nullptr,nullptr)!=0)
         dWorldQuickStep(_dynamicsWorld,dt);
     else
         dWorldStep(_dynamicsWorld,dt);

@@ -282,7 +282,7 @@ std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int 
     if (plugin_verbosity>=sim_verbosity_debug)
         Vx::LogSetLevel(Vx::kAll);
 
-    vortexStartTimeTag=simGetSystemTimeInMs(-1);
+    vortexStartTimeTag=int(simGetSystemTime()*1000.0);
     Vx::VxFrame* frame = Vx::VxFrame::instance();
     _dynamicsWorld = new Vx::VxUniverse();
     frame->addUniverse(_dynamicsWorld);

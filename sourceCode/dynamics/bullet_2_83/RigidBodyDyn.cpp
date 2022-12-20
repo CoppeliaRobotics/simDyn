@@ -78,11 +78,11 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
         }
         // Kinematic objects are handled elsewhere (at the end of the file)
     }
-    double linD=simGetEngineFloatParameter(sim_bullet_body_lineardamping,-1,_shape,nullptr);
-    double angD=simGetEngineFloatParameter(sim_bullet_body_angulardamping,-1,_shape,nullptr);
+    double linD=simGetEngineFloatParam(sim_bullet_body_lineardamping,-1,_shape,nullptr);
+    double angD=simGetEngineFloatParam(sim_bullet_body_angulardamping,-1,_shape,nullptr);
     _rigidBody->setDamping(linD,angD);
-    _rigidBody->setRestitution(simGetEngineFloatParameter(sim_bullet_body_restitution,-1,_shape,nullptr));
-    _rigidBody->setFriction(simGetEngineFloatParameter(sim_bullet_body_friction,-1,_shape,nullptr));
+    _rigidBody->setRestitution(simGetEngineFloatParam(sim_bullet_body_restitution,-1,_shape,nullptr));
+    _rigidBody->setFriction(simGetEngineFloatParam(sim_bullet_body_friction,-1,_shape,nullptr));
 
     _rigidBody->setCollisionFlags(_rigidBody->getCollisionFlags()|btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK); // 22/02/2011: To allow the contact callback to be called!!
 

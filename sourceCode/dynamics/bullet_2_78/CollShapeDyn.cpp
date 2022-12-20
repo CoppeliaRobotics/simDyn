@@ -30,7 +30,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
     _indexVertexArrays=nullptr;
 
 
-    double marginScaling=simGetEngineFloatParameter(sim_bullet_global_collisionmarginfactor,-1,nullptr,nullptr);
+    double marginScaling=simGetEngineFloatParam(sim_bullet_global_collisionmarginfactor,-1,nullptr,nullptr);
     CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
 
     // Following parameter retrieval is OLD. Use instead following functions:
