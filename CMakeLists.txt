@@ -16,6 +16,15 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${LIBPLUGIN_DIR}/cmake)
 find_package(CoppeliaSim 4.1.0.0 REQUIRED)
 
+if(WIN32)
+    # bullet-2-83 fails to compile with:
+    # error LNK2038: mismatch detected for 'RuntimeLibrary': value
+    #                'MT_StaticRelease' doesn't match value 'MD_DynamicRelease'
+    if(POLICY CMP0091)
+        cmake_policy(SET CMP0091 NEW)
+    endif()
+endif()
+
 set(Bullet_2_78_default ON)
 set(Bullet_2_83_default ON)
 set(ODE_default ON)
@@ -260,6 +269,9 @@ if(WIN32)
         ${BULLET_BUILD_DIR}/lib/Release/BulletCollision.lib
         ${BULLET_BUILD_DIR}/lib/Release/LinearMath.lib
     )
+    # see about error LNK2038 at the top of this file:
+    set_property(TARGET simExtBullet-2-83 PROPERTY
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 elseif(UNIX)
     target_link_libraries(simExtBullet-2-83
         ${BULLET_BUILD_DIR}/src/BulletDynamics/libBulletDynamics.a
