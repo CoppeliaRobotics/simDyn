@@ -34,22 +34,8 @@ std::string CRigidBodyContainerDyn::init(const sReal floatParams[20],const int i
 {
     CRigidBodyContainerDyn_base::init(floatParams,intParams);
 
-    // Following parameter retrieval is OLD. Use instead following functions:
-    // - simGetEngineFloatParameter
-    // - simGetEngineInt32Parameter
-    // - simGetEngineBoolParameter
-    sReal fParams[2];
-    int iParams[2];
-    int ver=0;
-    _simGetNewtonParameters(nullptr,&ver,fParams,iParams);
-
-    const sReal stepSize=fParams[0];
-    const sReal contactMergeTolerance=fParams[1];
-
-    const int newtonIterationsCount=iParams[0];
-    const bool multithreaded=(iParams[1]&1)!=false;
-    const bool exactSolver=(iParams[1]&2)!=false;
-    const bool highJointAccuracy=(iParams[1]&4)!=false;
+    int newtonIterationsCount=simGetEngineInt32Param(sim_newton_global_constraintsolvingiterations,-1,nullptr,nullptr);
+    bool multithreaded=simGetEngineBoolParam(sim_newton_global_multithreading,-1,nullptr,nullptr);
 
     // TODO_NEWTON_X2
     // Above settings from CoppeliaSim are not used to configure the engine:

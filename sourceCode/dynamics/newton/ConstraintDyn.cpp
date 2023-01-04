@@ -850,16 +850,9 @@ void CConstraintDyn::_setNewtonParameters(CXJoint* joint)
     // - simGetEngineFloatParameter
     // - simGetEngineInt32Parameter
     // - simGetEngineBoolParameter
-    sReal floatParams[2];
-    int intParams[2];
-    int parVer=0;
-    _simGetNewtonParameters(joint,&parVer,floatParams,intParams);
-
-    const sReal dependencyFactor=floatParams[0];
-    const sReal dependencyOffset=floatParams[1];
-
-    const int dependencyJointA_ID=intParams[0];
-    const int dependencyJointB_ID=intParams[1]; // -1 if no dependent joint
+    sReal dependencyOffset,dependencyFactor;
+    int dependencyJointB_ID;
+    simGetJointDependency(_simGetObjectID(joint),&dependencyJointB_ID,&dependencyOffset,&dependencyFactor);
 
     if (jointType==sim_joint_revolute_subtype)
     {

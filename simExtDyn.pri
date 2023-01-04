@@ -143,7 +143,7 @@ NEWTON_ENGINE {
     #DEFINES += _NEWTON_USE_DOUBLE
     DEFINES += SIM_INTERFACE_SINGLE
     DEFINES += sReal=float
-    #CONFIG += USE_THREAD_EMULATION # not recomended. Use only if you need to handle Newton contacts in a contact callback script
+    #DEFINES += DG_USE_THREAD_EMULATION # not recomended. Use only if you need to handle Newton contacts in a contact callback script
     DEFINES += INCLUDE_NEWTON_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=20
     DEFINES += LIBRARY_NAME=\\\"Newton\\\"
@@ -152,9 +152,6 @@ NEWTON_ENGINE {
     DEFINES += _NEWTON_STATIC_LIB
     DEFINES += PTW32_STATIC_LIB
     DEFINES += _ASSERTE\\\(x\\\) #for _ASSERTE(x)
-    USE_THREAD_EMULATION {
-        DEFINES += DG_USE_THREAD_EMULATION
-    }
     !win32 {
         QMAKE_CXXFLAGS += -msse2 -msse3 -g -msse -msse2 -msse3 -msse4 -mfpmath=sse -ffloat-store -ffast-math -freciprocal-math -funsafe-math-optimizations -fsingle-precision-constant
     }

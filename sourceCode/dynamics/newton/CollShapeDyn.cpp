@@ -379,24 +379,6 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
 
 void CCollShapeDyn::_setNewtonParameters(CXShape* shape)
 { // This can probably be left empty! (same routine in CRigidBodyDyn)
-/*
-    // Following parameter retrieval is OLD. Use instead following functions:
-    // - simGetEngineFloatParameter
-    // - simGetEngineInt32Parameter
-    // - simGetEngineBoolParameter
-    sReal floatParams[5];
-    int intParams[1];
-    int parVer=0;
-    _simGetNewtonParameters(shape,&parVer,floatParams,intParams);
-
-    const sReal staticFriction=floatParams[0];
-    const sReal kineticFriction=floatParams[1];
-    const sReal restitution=floatParams[2];
-    const sReal linearDrag=floatParams[3];
-    const sReal angularDrag=floatParams[4];
-
-    const bool fastMoving=(intParams[0]&1)!=false;
-    */
 }
 
 NewtonCollision* CCollShapeDyn::getNewtonCollision()

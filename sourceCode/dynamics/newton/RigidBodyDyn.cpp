@@ -193,29 +193,12 @@ C7Vector CRigidBodyDyn::getNewtonMatrix() const
 
 void CRigidBodyDyn::_setNewtonParameters(CXShape* shape)
 {
-    // Following parameter retrieval is OLD. Use instead following functions:
-    // - simGetEngineFloatParameter
-    // - simGetEngineInt32Parameter
-    // - simGetEngineBoolParameter
-    sReal floatParams[5];
-    int intParams[1];
-    int parVer=0;
-    _simGetNewtonParameters(shape,&parVer,floatParams,intParams);
-
-    const sReal staticFriction=floatParams[0];
-    const sReal kineticFriction=floatParams[1];
-    const sReal restitution=floatParams[2];
-    const sReal linearDrag=floatParams[3];
-    const sReal angularDrag=floatParams[4];
-
-    const bool fastMoving=(intParams[0]&1)!=false;
-
-    _newtonStaticFriction=staticFriction;
-    _newtonKineticFriction=kineticFriction;
-    _newtonRestitution=restitution;
-    _newtonLinearDrag=linearDrag;
-    _newtonAngularDrag=angularDrag;
-    _newtonFastMoving=fastMoving;
+    _newtonStaticFriction=simGetEngineFloatParam(sim_newton_body_staticfriction,-1,shape,nullptr);
+    _newtonKineticFriction=simGetEngineFloatParam(sim_newton_body_kineticfriction,-1,shape,nullptr);
+    _newtonRestitution=simGetEngineFloatParam(sim_newton_body_restitution,-1,shape,nullptr);
+    _newtonLinearDrag=simGetEngineFloatParam(sim_newton_body_lineardrag,-1,shape,nullptr);
+    _newtonAngularDrag=simGetEngineFloatParam(sim_newton_body_angulardrag,-1,shape,nullptr);
+    _newtonFastMoving=simGetEngineBoolParam(sim_newton_body_fastmoving,-1,shape,nullptr);
 }
 
 void CRigidBodyDyn::TransformCallback(const NewtonBody* body, const dFloat* matrix, int threadIndex)
