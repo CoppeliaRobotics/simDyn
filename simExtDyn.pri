@@ -72,7 +72,7 @@ BULLET_2_78_ENGINE {
     DEFINES += sReal=double
     DEFINES += BT_USE_DOUBLE_PRECISION
     DEFINES += INCLUDE_BULLET_2_78_CODE
-    DEFINES += DYNAMICS_PLUGIN_VERSION=20
+    DEFINES += DYNAMICS_PLUGIN_VERSION=22
     DEFINES += LIBRARY_NAME=\\\"Bullet-2-78\\\"
     DEFINES += ENGINE_NAME=\\\"Bullet\\\"
 
@@ -86,7 +86,7 @@ BULLET_2_83_ENGINE {
     DEFINES += sReal=double
     DEFINES += BT_USE_DOUBLE_PRECISION
     DEFINES += INCLUDE_BULLET_2_83_CODE
-    DEFINES += DYNAMICS_PLUGIN_VERSION=20
+    DEFINES += DYNAMICS_PLUGIN_VERSION=22
     DEFINES += LIBRARY_NAME=\\\"Bullet-2-83\\\"
     DEFINES += ENGINE_NAME=\\\"Bullet\\\"
     *-msvc* {
@@ -115,7 +115,7 @@ ODE_ENGINE {
     DEFINES += dDOUBLE
     DEFINES += CCD_DOUBLE
     DEFINES += INCLUDE_ODE_CODE
-    DEFINES += DYNAMICS_PLUGIN_VERSION=20
+    DEFINES += DYNAMICS_PLUGIN_VERSION=22
     DEFINES += LIBRARY_NAME=\\\"ODE\\\"
     DEFINES += ENGINE_NAME=\\\"ODE\\\"
     DEFINES += dNODEBUG
@@ -145,7 +145,7 @@ NEWTON_ENGINE {
     DEFINES += sReal=float
     #DEFINES += DG_USE_THREAD_EMULATION # not recomended. Use only if you need to handle Newton contacts in a contact callback script
     DEFINES += INCLUDE_NEWTON_CODE
-    DEFINES += DYNAMICS_PLUGIN_VERSION=20
+    DEFINES += DYNAMICS_PLUGIN_VERSION=22
     DEFINES += LIBRARY_NAME=\\\"Newton\\\"
     DEFINES += ENGINE_NAME=\\\"Newton\\\"
     DEFINES += _CUSTOM_JOINTS_STATIC_LIB
@@ -180,7 +180,7 @@ VORTEX_ENGINE {
     DEFINES += sReal=double
     DEFINES += INCLUDE_VORTEX_CODE
     DEFINES += VX_DLL
-    DEFINES += DYNAMICS_PLUGIN_VERSION=20
+    DEFINES += DYNAMICS_PLUGIN_VERSION=22
     DEFINES += LIBRARY_NAME=\\\"Vortex\\\"
     DEFINES += ENGINE_NAME=\\\"Vortex\\\"
     win32 {
@@ -204,7 +204,7 @@ MUJOCO_ENGINE {
     DEFINES += SIM_MATH_DOUBLE
     DEFINES += sReal=double
     DEFINES += INCLUDE_MUJOCO_CODE
-    DEFINES += DYNAMICS_PLUGIN_VERSION=20
+    DEFINES += DYNAMICS_PLUGIN_VERSION=22
     DEFINES += LIBRARY_NAME=\\\"Mujoco\\\"
     DEFINES += ENGINE_NAME=\\\"Mujoco\\\"
     *-msvc* {
@@ -218,6 +218,37 @@ MUJOCO_ENGINE {
 
     INCLUDEPATH += $$MUJOCO_INCLUDEPATH
     INCLUDEPATH += "sourceCode/dynamics/mujoco"
+}
+
+PHYSX_ENGINE {
+    TARGET = simExtPhysx
+    DEFINES += SIM_MATH_DOUBLE
+    DEFINES += sReal=double
+    DEFINES += INCLUDE_PHYSX_CODE
+    DEFINES += DYNAMICS_PLUGIN_VERSION=22
+    DEFINES += LIBRARY_NAME=\\\"Physx\\\"
+    DEFINES += ENGINE_NAME=\\\"Physx\\\"
+    *-msvc* {
+        QMAKE_CFLAGS_RELEASE += -MT
+        QMAKE_CXXFLAGS_RELEASE += -MT
+        LIBS += $${PHYSX_LIBPATH}/PhysX_64.lib
+        LIBS += $${PHYSX_LIBPATH}/PhysXFoundation_64.lib
+        LIBS += $${PHYSX_LIBPATH}/PhysXCommon_64.lib
+        LIBS += $${PHYSX_LIBPATH}/PhysXExtensions_static_64.lib
+        LIBS += $${PHYSX_LIBPATH}/PhysXCooking_64.lib
+        LIBS += $${PHYSX_LIBPATH}/PhysXPvdSDK_static_64.lib
+    }
+    unix {
+        LIBS += $${PHYSX_LIBPATH}/PhysX.so
+        LIBS += $${PHYSX_LIBPATH}/PhysXFoundation.so
+        LIBS += $${PHYSX_LIBPATH}/PhysXCommon.so
+        LIBS += $${PHYSX_LIBPATH}/PhysXExtensions_static.so
+        LIBS += $${PHYSX_LIBPATH}/PhysXCooking.so
+        LIBS += $${PHYSX_LIBPATH}/PhysXPvdSDK_static.so
+    }
+
+    INCLUDEPATH += $$PHYSX_INCLUDEPATH
+    INCLUDEPATH += "sourceCode/dynamics/physx"
 }
 
 HEADERS += ../../coppeliaSimLib/sourceCode/interfaces/dummyClasses.h \
@@ -353,6 +384,19 @@ MUJOCO_ENGINE {
         sourceCode/dynamics/mujoco/ParticleDyn.cpp \
         sourceCode/dynamics/mujoco/tinyxml2.cpp \
         sourceCode/dynamics/mujoco/xmlser.cpp
+}
+
+PHYSX_ENGINE {
+    HEADERS +=sourceCode/dynamics/physx/CollShapeDyn.h \
+        sourceCode/dynamics/physx/RigidBodyDyn.h \
+        sourceCode/dynamics/physx/ConstraintDyn.h \
+        sourceCode/dynamics/physx/RigidBodyContainerDyn.h \
+        sourceCode/dynamics/physx/ParticleDyn.h 
+    SOURCES +=sourceCode/dynamics/physx/CollShapeDyn.cpp \
+        sourceCode/dynamics/physx/RigidBodyDyn.cpp \
+        sourceCode/dynamics/physx/ConstraintDyn.cpp \
+        sourceCode/dynamics/physx/RigidBodyContainerDyn.cpp \
+        sourceCode/dynamics/physx/ParticleDyn.cpp
 }
 
 BULLET_2_78_ENGINE {

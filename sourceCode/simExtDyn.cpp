@@ -242,6 +242,9 @@ SIM_DLLEXPORT char dynPlugin_startSimulation_D(int engine,int version,const doub
 #ifdef INCLUDE_MUJOCO_CODE
     if (engine==sim_physics_mujoco)
 #endif
+#ifdef INCLUDE_PHYSX_CODE
+    if (engine==sim_physics_physx)
+#endif
     {
         simAddLog(LIBRARY_NAME,sim_verbosity_infos,"initializing the physics engine...");
         CRigidBodyContainerDyn* dynWorld=new CRigidBodyContainerDyn();
