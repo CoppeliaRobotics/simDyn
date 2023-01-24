@@ -1474,8 +1474,10 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 double springref=simGetEngineFloatParam(sim_mujoco_joint_springref,-1,joint,nullptr);
                 double armature=simGetEngineFloatParam(sim_mujoco_joint_armature,-1,joint,nullptr);
                 double margin=simGetEngineFloatParam(sim_mujoco_joint_margin,-1,joint,nullptr);
+                double frictionLoss=simGetEngineFloatParam(sim_mujoco_joint_frictionloss,-1,joint,nullptr);
                 xmlDoc->setAttr("solreflimit",solrefLimit,2);
                 xmlDoc->setAttr("solimplimit",solimpLimit,5);
+                xmlDoc->setAttr("frictionloss",frictionLoss);
                 xmlDoc->setAttr("solreffriction",solrefFriction,2);
                 xmlDoc->setAttr("solimpfriction",solimpFriction,5);
                 xmlDoc->setAttr("stiffness",stiffness);
