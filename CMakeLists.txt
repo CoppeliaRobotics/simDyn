@@ -77,25 +77,25 @@ find_path(LIBCOPPELIASIM_SOURCE_DIR
 include_directories(sourceCode)
 include_directories(sourceCode/dynamics)
 include_directories(${LIBCOPPELIASIM_SOURCE_DIR}/sourceCode/interfaces)
-include_directories(${COPPELIASIM_ROOT_DIR}/programming/simMath)
 include_directories(${COPPELIASIM_INCLUDE_DIR})
 include_directories(${COPPELIASIM_INCLUDE_DIR}/stack)
+include_directories(${COPPELIASIM_INCLUDE_DIR}/simMath)
 
 set(COMMON_SOURCES
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/3Vector.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/4Vector.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/7Vector.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/3X3Matrix.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/4X4Matrix.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/MMatrix.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/MyMath.cpp
-    ${COPPELIASIM_COMMON_DIR}/stack/stackArray.cpp
-    ${COPPELIASIM_COMMON_DIR}/stack/stackBool.cpp
-    ${COPPELIASIM_COMMON_DIR}/stack/stackMap.cpp
-    ${COPPELIASIM_COMMON_DIR}/stack/stackNull.cpp
-    ${COPPELIASIM_COMMON_DIR}/stack/stackNumber.cpp
-    ${COPPELIASIM_COMMON_DIR}/stack/stackObject.cpp
-    ${COPPELIASIM_COMMON_DIR}/stack/stackString.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/3Vector.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/4Vector.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/7Vector.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/3X3Matrix.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/4X4Matrix.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/MMatrix.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/MyMath.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/stack/stackArray.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/stack/stackBool.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/stack/stackMap.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/stack/stackNull.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/stack/stackNumber.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/stack/stackObject.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/stack/stackString.cpp
     sourceCode/dynamics/CollShapeDyn_base.cpp
     sourceCode/dynamics/ConstraintDyn_base.cpp
     sourceCode/dynamics/ParticleObjectContainer_base.cpp
