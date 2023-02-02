@@ -17,7 +17,38 @@
 static LIBRARY simLib;
 
 #ifdef INCLUDE_MUJOCO_CODE
-#define LUA_MUJOCOINJECTXML_COMMAND "simMujoco.injectXML"
+#define LUA_MUJOCOREMOVEXML_COMMAND "simMujoco.removeXML"
+void LUA_MUJOCOREMOVEXML_CALLBACK(SScriptCallBack* p)
+{
+    if (simGetSimulationState()!=sim_simulation_stopped)
+    {
+        int eng;
+        simGetInt32Param(sim_intparam_dynamic_engine,&eng);
+        if (eng==sim_physics_mujoco)
+        {
+            int stack=p->stackID;
+            CStackArray inArguments;
+            inArguments.buildFromStack(stack);
+            if ( (inArguments.getSize()>=1)&&inArguments.isNumber(0) )
+            { // we expect 1 arguments: the injection ID
+                int injectionId=inArguments.getInt(0);
+                if (!CRigidBodyContainerDyn::removeInjection(injectionId))
+                    simSetLastError(LUA_MUJOCOREMOVEXML_COMMAND,"invalid injection ID.");
+            }
+            else
+                simSetLastError(LUA_MUJOCOREMOVEXML_COMMAND,"not enough arguments or wrong arguments.");
+
+            CStackArray outArguments;
+            outArguments.buildOntoStack(stack);
+        }
+        else
+            simSetLastError(LUA_MUJOCOREMOVEXML_COMMAND,"current engine is not MuJoCo.");
+    }
+    else
+        simSetLastError(LUA_MUJOCOREMOVEXML_COMMAND,"simulation is not yet running.");
+}
+
+#define LUA_MUJOCOINJECTXML_COMMAND "simMujoco._injectXML"
 void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
 {
     if (simGetSimulationState()!=sim_simulation_stopped)
@@ -26,6 +57,7 @@ void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
         simGetInt32Param(sim_intparam_dynamic_engine,&eng);
         if (eng==sim_physics_mujoco)
         {
+            int injectionId=-1;
             int stack=p->stackID;
             CStackArray inArguments;
             inArguments.buildFromStack(stack);
@@ -38,12 +70,24 @@ void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
                     element=inArguments.getString(1);
                 else
                     handle=inArguments.getInt(1);
-                CRigidBodyContainerDyn::injectXml(xml.c_str(),element.c_str(),handle);
+                std::string cbFunc;
+                std::string cbId;
+                int cbScript=p->scriptID;
+                if ( (inArguments.getSize()>2)&&inArguments.isMap(2) )
+                {
+                    CStackMap* map=inArguments.getMap(2);
+                    if (map->isString("cbFunc"))
+                        cbFunc=map->getString("cbFunc");
+                    if (map->isString("cbId"))
+                        cbId=map->getString("cbId");
+                }
+                injectionId=CRigidBodyContainerDyn::injectXml(xml.c_str(),element.c_str(),handle,cbFunc.c_str(),cbScript,cbId.c_str());
             }
             else
                 simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"not enough arguments or wrong arguments.");
 
             CStackArray outArguments;
+            outArguments.pushInt(injectionId);
             outArguments.buildOntoStack(stack);
         }
         else
@@ -53,7 +97,7 @@ void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
         simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"simulation is not yet running.");
 }
 
-#define LUA_MUJOCOCOMPOSITE_COMMAND "simMujoco.composite"
+#define LUA_MUJOCOCOMPOSITE_COMMAND "simMujoco._composite"
 void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
 {
     if (simGetSimulationState()!=sim_simulation_stopped)
@@ -62,6 +106,7 @@ void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
         simGetInt32Param(sim_intparam_dynamic_engine,&eng);
         if (eng==sim_physics_mujoco)
         {
+            int injectionId=-1;
             int stack=p->stackID;
             CStackArray inArguments;
             inArguments.buildFromStack(stack);
@@ -93,7 +138,13 @@ void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
                                 c[i]=size_t(arr->getInt(i));
                             // We do not support particles via composites, since they can't be named, thus, they can't be identified later on as particles
                             if ( /*(type=="particle")||*/(type=="grid")||(type=="rope")||(type=="loop")||(type=="cloth")||(type=="box")||(type=="cylinder")||(type=="ellipsoid") )
-                                CRigidBodyContainerDyn::injectCompositeXml(xml.c_str(),shapeHandle,element.c_str(),prefix.c_str(),c,type.c_str(),respondableMask,grow);
+                            {
+                                std::string cbFunc;
+                                if (map->isString("cbFunc"))
+                                    cbFunc=map->getString("cbFunc");
+                                int cbScript=p->scriptID;
+                                injectionId=CRigidBodyContainerDyn::injectCompositeXml(xml.c_str(),shapeHandle,element.c_str(),prefix.c_str(),c,type.c_str(),respondableMask,grow,cbFunc.c_str(),cbScript);
+                            }
                             else
                                 simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"invalid composite type.");
                         }
@@ -110,13 +161,14 @@ void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
                 simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"not enough arguments or wrong arguments.");
 
             CStackArray outArguments;
+            outArguments.pushInt(injectionId);
             outArguments.buildOntoStack(stack);
         }
         else
-            simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"current engine is not MuJoCo.");
+            simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"current engine is not MuJoCo.");
     }
     else
-        simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"simulation is not yet running.");
+        simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"simulation is not yet running.");
 }
 
 #define LUA_MUJOCOGETCOMPOSITEINFO_COMMAND "simMujoco.getCompositeInfo"
@@ -134,13 +186,19 @@ void LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK(SScriptCallBack* p)
             int count[3]={0,0,0};
             CStackArray inArguments;
             inArguments.buildFromStack(stack);
-            if ( (inArguments.getSize()>=2)&&inArguments.isString(0)&&inArguments.isNumber(1) )
+            if ( (inArguments.getSize()>=2)&&(inArguments.isNumber(0)||inArguments.isString(0))&&inArguments.isNumber(1) )
             { // we expect 2 argument: a prefix string and an int
-                std::string prefix(inArguments.getString(0));
-                int what=inArguments.getInt(1);
                 CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
                 if (dynWorld!=nullptr)
-                    type=dynWorld->getCompositeInfo(prefix.c_str(),what,info,count);
+                {
+                    int compIndex=-1;
+                    if (inArguments.isNumber(0))
+                        compIndex=dynWorld->getCompositeIndexFromInjectionId(inArguments.getInt(0));
+                    else
+                        compIndex=dynWorld->getCompositeIndexFromPrefix(inArguments.getString(0).c_str()); // for backward compatibility
+                    int what=inArguments.getInt(1);
+                    type=dynWorld->getCompositeInfo(compIndex,what,info,count);
+                }
             }
             else
                 simSetLastError(LUA_MUJOCOGETCOMPOSITEINFO_COMMAND,"not enough arguments or wrong arguments.");
@@ -160,10 +218,10 @@ void LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK(SScriptCallBack* p)
             outArguments.buildOntoStack(stack);
         }
         else
-            simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"current engine is not MuJoCo.");
+            simSetLastError(LUA_MUJOCOGETCOMPOSITEINFO_COMMAND,"current engine is not MuJoCo.");
     }
     else
-        simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"simulation is not yet running.");
+        simSetLastError(LUA_MUJOCOGETCOMPOSITEINFO_COMMAND,"simulation is not yet running.");
 }
 #endif
 
@@ -203,9 +261,10 @@ SIM_DLLEXPORT unsigned char simStart(void* reservedPointer,int reservedInt)
 #ifdef INCLUDE_MUJOCO_CODE
     simRegisterScriptVariable("simMujoco","require('simMujoco')",0);
 
-    simRegisterScriptCallbackFunction("simMujoco.injectXML@Mujoco","simMujoco.injectXML(string xml,string element)",LUA_MUJOCOINJECTXML_CALLBACK);
-    simRegisterScriptCallbackFunction("simMujoco.composite@Mujoco","simMujoco.composite(string xml,map info)",LUA_MUJOCOCOMPOSITE_CALLBACK);
-    simRegisterScriptCallbackFunction("simMujoco.getCompositeInfo@Mujoco","simMujoco.getCompositeInfo(string prefix,int what)",LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK);
+    simRegisterScriptCallbackFunction("simMujoco.removeXML@Mujoco","simMujoco.removeXML(int injectionId)",LUA_MUJOCOREMOVEXML_CALLBACK);
+    simRegisterScriptCallbackFunction("simMujoco._injectXML@Mujoco","",LUA_MUJOCOINJECTXML_CALLBACK);
+    simRegisterScriptCallbackFunction("simMujoco._composite@Mujoco","",LUA_MUJOCOCOMPOSITE_CALLBACK);
+    simRegisterScriptCallbackFunction("simMujoco.getCompositeInfo@Mujoco","map info=simMujoco.getCompositeInfo(int injectionId,int what)",LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK);
 #endif
 
     return(DYNAMICS_PLUGIN_VERSION);

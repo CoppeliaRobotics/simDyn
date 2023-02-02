@@ -8,12 +8,15 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include "stackArray.h"
+#include "stackMap.h"
 
 const bool useGlobalCoords=false; // global coords are easier, but composites require local coords!
 
 bool CRigidBodyContainerDyn::_simulationHalted=false;
 std::vector<SInject> CRigidBodyContainerDyn::_xmlInjections;
 std::vector<SCompositeInject> CRigidBodyContainerDyn::_xmlCompositeInjections;
+int CRigidBodyContainerDyn::_nextInjectionId=0;
 
 CRigidBodyContainerDyn::CRigidBodyContainerDyn()
 {
@@ -32,6 +35,7 @@ CRigidBodyContainerDyn::CRigidBodyContainerDyn()
     _xmlInjectionChanged=false;
     _particleChanged=false;
     _nextCompositeHandle=-3;
+    _nextInjectionId=0;
 
     _rebuildTrigger=simGetEngineInt32Param(sim_mujoco_global_rebuildtrigger,-1,nullptr,nullptr);
 }
@@ -42,9 +46,14 @@ CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
     mju_user_error=nullptr;
     mjcb_contactfilter=nullptr;
     mjcb_control=nullptr;
-    mj_deleteData(_mjDataCopy);
-    mj_deleteData(_mjData);
-    mj_deleteModel(_mjModel);
+    if (_mjModel!=nullptr)
+    {
+        if (_mjData!=nullptr)
+            mj_deleteData(_mjData);
+        if (_mjDataCopy!=nullptr)
+            mj_deleteData(_mjDataCopy);
+        mj_deleteModel(_mjModel);
+    }
     _xmlInjections.clear();
     _xmlCompositeInjections.clear();
 
@@ -712,12 +721,11 @@ void CRigidBodyContainerDyn::particlesAdded()
     _particleChanged=true;
 }
 
-std::string CRigidBodyContainerDyn::getCompositeInfo(const char* prefix,int what,std::vector<double>& info,int count[3]) const
+std::string CRigidBodyContainerDyn::getCompositeInfo(int compIndex,int what,std::vector<double>& info,int count[3]) const
 {
     std::string retVal;
     if (_mjData!=nullptr)
     {
-        int compIndex=getCompositeIndexFromPrefix(prefix);
         if (compIndex!=-1)
         {
             SCompositeInject* composite=&_xmlCompositeInjections[compIndex];
@@ -927,26 +935,49 @@ void CRigidBodyContainerDyn::_addInjections(CXmlSer* xmlDoc,int objectHandle,con
 {
     for (size_t inj=0;inj<_xmlInjections.size();inj++)
     {
-        if (_xmlInjections[inj].xmlDummyString.size()==0)
+        SInject* injection=&_xmlInjections[inj];
+        if (injection->xmlDummyString.size()==0)
         {
             std::string ds;
             if (objectHandle==-1)
             {
-                if (_xmlInjections[inj].element==currentElement)
+                if (injection->element==currentElement)
                     ds=std::string("__xmlInject__")+std::to_string(inj);
             }
             else
             {
-                if (_xmlInjections[inj].objectHandle==objectHandle)
+                if (injection->objectHandle==objectHandle)
                     ds=std::string("__xmlObjInject__")+std::to_string(objectHandle);
             }
             if (ds.size()>0)
             {
+                if (injection->cbFunc.size()>0)
+                { // possibly get updated composite data via callback:
+                    int stack=simCreateStack();
+                    CStackArray outArguments;
+                    outArguments.pushString(injection->xml);
+                    CStackMap* info=new CStackMap();
+                    info->setString("cbId",injection->cbId);
+                    outArguments.pushMap(info);
+                    outArguments.buildOntoStack(stack);
+                    if (simCallScriptFunctionEx(injection->cbScript,injection->cbFunc.c_str(),stack)!=-1)
+                    {
+                        CStackArray inArguments;
+                        inArguments.buildFromStack(stack);
+                        if (inArguments.getSize()>=1)
+                        {
+                            if (inArguments.isString(0))
+                                injection->xml=inArguments.getString(0);
+                        }
+                    }
+                    simReleaseStack(stack);
+                }
+
                 xmlDoc->pushNewNode(ds.c_str());
                 xmlDoc->pushNewNode("dummy");
                 xmlDoc->popNode();
                 xmlDoc->popNode();
-                _xmlInjections[inj].xmlDummyString=ds;
+                injection->xmlDummyString=ds;
             }
         }
     }
@@ -972,6 +1003,41 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
             }
             if (ds.size()>0)
             {
+                if (comp->cbFunc.size()>0)
+                { // possibly get updated composite data via callback:
+                    int stack=simCreateStack();
+                    CStackArray outArguments;
+                    outArguments.pushString(comp->xml);
+                    CStackMap* info=new CStackMap();
+                    info->setString("prefix",comp->prefix);
+                    info->setInt("respondableMask",comp->respondableMask);
+                    info->setDouble("grow",comp->grow);
+                    outArguments.pushMap(info);
+                    outArguments.buildOntoStack(stack);
+                    if (simCallScriptFunctionEx(comp->cbScript,comp->cbFunc.c_str(),stack)!=-1)
+                    {
+                        CStackArray inArguments;
+                        inArguments.buildFromStack(stack);
+                        if (inArguments.getSize()>=1)
+                        {
+                            if (inArguments.isString(0))
+                                comp->xml=inArguments.getString(0);
+                            if (inArguments.getSize()>=1)
+                            {
+                                if (inArguments.isMap(1))
+                                {
+                                    CStackMap* map=inArguments.getMap(1);
+                                    if (map->isNumber("respondableMask"))
+                                        comp->respondableMask=map->getInt("respondableMask");
+                                    if (map->isNumber("grow"))
+                                        comp->grow=map->getDouble("grow");
+                                }
+                            }
+                        }
+                    }
+                    simReleaseStack(stack);
+                }
+
                 if ( (comp->type=="box")||(comp->type=="cylinder")||(comp->type=="ellipsoid") )
                 {
                     SMjGeom g;
@@ -2688,19 +2754,56 @@ void CRigidBodyContainerDyn::_stepDynamics(double dt,int pass)
     mj_step(_mjModel,_mjData);
 }
 
-void CRigidBodyContainerDyn::injectXml(const char* xml,const char* element,int objectHandle)
+bool CRigidBodyContainerDyn::removeInjection(int injectionId)
+{
+    bool retVal=false;
+    for (size_t i=0;i<_xmlInjections.size();i++)
+    {
+        if (_xmlInjections[i].injectionId==injectionId)
+        {
+            _xmlInjections.erase(_xmlInjections.begin()+i);
+            retVal=true;
+            break;
+        }
+    }
+    if (!retVal)
+    {
+        for (size_t i=0;i<_xmlCompositeInjections.size();i++)
+        {
+            if (_xmlCompositeInjections[i].injectionId==injectionId)
+            {
+                _xmlCompositeInjections.erase(_xmlCompositeInjections.begin()+i);
+                retVal=true;
+                break;
+            }
+        }
+    }
+    if (retVal)
+        _dynWorld->_xmlInjectionChanged=true;
+    return(retVal);
+}
+
+int CRigidBodyContainerDyn::injectXml(const char* xml,const char* element,int objectHandle,const char* cbFunc,int cbScript,const char* cbId)
 {
     SInject inf;
+    inf.injectionId=_nextInjectionId++;
+    inf.cbFunc=cbFunc;
+    inf.cbScript=cbScript;
+    inf.cbId=cbId;
     inf.xml=xml;
     inf.element=element;
     inf.objectHandle=objectHandle;
     _xmlInjections.push_back(inf);
     _dynWorld->_xmlInjectionChanged=true;
+    return(inf.injectionId);
 }
 
-void CRigidBodyContainerDyn::injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow)
+int CRigidBodyContainerDyn::injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow,const char* cbFunc,int cbScript)
 {
     SCompositeInject inf;
+    inf.injectionId=_nextInjectionId++;
+    inf.cbFunc=cbFunc;
+    inf.cbScript=cbScript;
     inf.xml=xml;
     inf.shapeHandle=shapeHandle;
     inf.element=element;
@@ -2712,6 +2815,7 @@ void CRigidBodyContainerDyn::injectCompositeXml(const char* xml,int shapeHandle,
         inf.count[i]=count[i];
     _xmlCompositeInjections.push_back(inf);
     _dynWorld->_xmlInjectionChanged=true;
+    return(inf.injectionId);
 }
 
 int CRigidBodyContainerDyn::getCompositeIndexFromPrefix(const char* prefix)
@@ -2721,7 +2825,21 @@ int CRigidBodyContainerDyn::getCompositeIndexFromPrefix(const char* prefix)
     {
         if (_xmlCompositeInjections[i].prefix==prefix)
         {
-            index=i;
+            index=int(i);
+            break;
+        }
+    }
+    return(index);
+}
+
+int CRigidBodyContainerDyn::getCompositeIndexFromInjectionId(int id)
+{
+    int index=-1;
+    for (size_t i=0;i<_xmlCompositeInjections.size();i++)
+    {
+        if (_xmlCompositeInjections[i].injectionId==id)
+        {
+            index=int(i);
             break;
         }
     }

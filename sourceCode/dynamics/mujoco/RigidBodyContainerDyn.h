@@ -105,6 +105,10 @@ struct SInfo
 
 struct SInject
 {
+    int injectionId; // used to be able to remove an injection
+    std::string cbFunc;
+    int cbScript;
+    std::string cbId;
     std::string xml;
     std::string element;
     int objectHandle;
@@ -113,6 +117,9 @@ struct SInject
 
 struct SCompositeInject
 {
+    int injectionId; // used to be able to remove an injection
+    std::string cbFunc;
+    int cbScript;
     std::string xml;
     int shapeHandle;
     std::string element;
@@ -137,12 +144,15 @@ public:
     std::string getEngineInfo() const;
     bool isDynamicContentAvailable();
 
-    std::string getCompositeInfo(const char* prefix,int what,std::vector<double>& info,int count[3]) const;
+    std::string getCompositeInfo(int compIndex,int what,std::vector<double>& info,int count[3]) const;
     void particlesAdded();
     static double computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness=false);
-    static void injectXml(const char* xml,const char* element,int objectHandle);
-    static void injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow);
+    static int injectXml(const char* xml,const char* element,int objectHandle,const char* cbFunc,int cbScript,const char* cbId);
+    static int injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow,const char* cbFunc,int cbScript);
+    static bool removeInjection(int injectionId);
     static int getCompositeIndexFromPrefix(const char* prefix);
+    static int getCompositeIndexFromInjectionId(int id);
+
 
 protected:
     static std::string _getObjectName(CXSceneObject* object);
@@ -199,6 +209,7 @@ protected:
     int _rebuildTrigger;
     int _restartCount;
     bool _restartWarning;
-    int _nextCompositeHandle;
+    int _nextCompositeHandle; // negative, so as not to clash with CoppeliaSim object handles
+    static int _nextInjectionId;
     std::map<std::string,bool> _dynamicallyResetObjects;
 };
