@@ -1,6 +1,6 @@
 #pragma once
 
-#include "3Vector.h"
+#include <simMath/3Vector.h>
 
 class CParticleDyn_base
 {

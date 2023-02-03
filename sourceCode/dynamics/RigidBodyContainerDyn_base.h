@@ -5,7 +5,7 @@
 #include "ConstraintDyn_base.h"
 #include "ParticleObjectContainer_base.h"
 #include "dummyClasses.h"
-#include "3Vector.h"
+#include <simMath/3Vector.h>
 #include <string>
 #include <map>
 #include <set>

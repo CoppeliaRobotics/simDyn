@@ -61,10 +61,7 @@ INCLUDEPATH += $$BOOST_INCLUDEPATH
 INCLUDEPATH += "sourceCode"
 INCLUDEPATH += "sourceCode/dynamics"
 INCLUDEPATH += "../../coppeliaSimLib/sourceCode/interfaces"
-INCLUDEPATH += "../simMath"
 INCLUDEPATH += "../include"
-INCLUDEPATH += "../include/stack"
-INCLUDEPATH += "../common"
 
 BULLET_2_78_ENGINE {
     TARGET = simExtBullet-2-78
@@ -253,38 +250,38 @@ PHYSX_ENGINE {
 
 HEADERS += ../../coppeliaSimLib/sourceCode/interfaces/dummyClasses.h \
     ../include/simLib.h \
-    ../simMath/3Vector.h \
-    ../simMath/4Vector.h \
-    ../simMath/7Vector.h \
-    ../simMath/3X3Matrix.h \
-    ../simMath/4X4Matrix.h \
-    ../simMath/MMatrix.h \
-    ../simMath/MyMath.h \
+    ../include/simMath/3Vector.h \
+    ../include/simMath/4Vector.h \
+    ../include/simMath/7Vector.h \
+    ../include/simMath/3X3Matrix.h \
+    ../include/simMath/4X4Matrix.h \
+    ../include/simMath/MMatrix.h \
+    ../include/simMath/MyMath.h \
     
-SOURCES += ../common/simLib.cpp \
-    ../simMath/3Vector.cpp \
-    ../simMath/4Vector.cpp \
-    ../simMath/7Vector.cpp \
-    ../simMath/3X3Matrix.cpp \
-    ../simMath/4X4Matrix.cpp \
-    ../simMath/MMatrix.cpp \
-    ../simMath/MyMath.cpp \
+SOURCES += ../include/simLib.cpp \
+    ../include/simMath/3Vector.cpp \
+    ../include/simMath/4Vector.cpp \
+    ../include/simMath/7Vector.cpp \
+    ../include/simMath/3X3Matrix.cpp \
+    ../include/simMath/4X4Matrix.cpp \
+    ../include/simMath/MMatrix.cpp \
+    ../include/simMath/MyMath.cpp \
 
-HEADERS += ../include/stack/stackBool.h \
-    ../include/stack/stackNull.h \
-    ../include/stack/stackNumber.h \
-    ../include/stack/stackString.h \
-    ../include/stack/stackArray.h \
-    ../include/stack/stackMap.h \
-    ../include/stack/stackObject.h \
+HEADERS += ../include/simStack/stackBool.h \
+    ../include/simStack/stackNull.h \
+    ../include/simStack/stackNumber.h \
+    ../include/simStack/stackString.h \
+    ../include/simStack/stackArray.h \
+    ../include/simStack/stackMap.h \
+    ../include/simStack/stackObject.h \
 
-SOURCES += ../common/stack/stackBool.cpp \
-    ../common/stack/stackNull.cpp \
-    ../common/stack/stackNumber.cpp \
-    ../common/stack/stackString.cpp \
-    ../common/stack/stackArray.cpp \
-    ../common/stack/stackMap.cpp \
-    ../common/stack/stackObject.cpp \
+SOURCES += ../include/simStack/stackBool.cpp \
+    ../include/simStack/stackNull.cpp \
+    ../include/simStack/stackNumber.cpp \
+    ../include/simStack/stackString.cpp \
+    ../include/simStack/stackArray.cpp \
+    ../include/simStack/stackMap.cpp \
+    ../include/simStack/stackObject.cpp \
 
 HEADERS += sourceCode/dynamics/CollShapeDyn_base.h \
     sourceCode/dynamics/ConstraintDyn_base.h \

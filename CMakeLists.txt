@@ -78,8 +78,6 @@ include_directories(sourceCode)
 include_directories(sourceCode/dynamics)
 include_directories(${LIBCOPPELIASIM_SOURCE_DIR}/sourceCode/interfaces)
 include_directories(${COPPELIASIM_INCLUDE_DIR})
-include_directories(${COPPELIASIM_INCLUDE_DIR}/stack)
-include_directories(${COPPELIASIM_INCLUDE_DIR}/simMath)
 
 set(COMMON_SOURCES
     ${COPPELIASIM_INCLUDE_DIR}/simMath/3Vector.cpp
@@ -89,13 +87,13 @@ set(COMMON_SOURCES
     ${COPPELIASIM_INCLUDE_DIR}/simMath/4X4Matrix.cpp
     ${COPPELIASIM_INCLUDE_DIR}/simMath/MMatrix.cpp
     ${COPPELIASIM_INCLUDE_DIR}/simMath/MyMath.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/stack/stackArray.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/stack/stackBool.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/stack/stackMap.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/stack/stackNull.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/stack/stackNumber.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/stack/stackObject.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/stack/stackString.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackArray.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackBool.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackMap.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackNull.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackNumber.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackObject.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackString.cpp
     sourceCode/dynamics/CollShapeDyn_base.cpp
     sourceCode/dynamics/ConstraintDyn_base.cpp
     sourceCode/dynamics/ParticleObjectContainer_base.cpp

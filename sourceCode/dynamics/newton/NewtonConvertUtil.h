@@ -1,8 +1,8 @@
 #pragma once
 
-#include "3X3Matrix.h"
-#include "4X4Matrix.h"
-#include "7Vector.h"
+#include <simMath/3X3Matrix.h>
+#include <simMath/4X4Matrix.h>
+#include <simMath/7Vector.h>
 #include "dMatrix.h"
 
 inline dMatrix GetDMatrixFromCoppeliaSimTransformation (const C7Vector& tr)

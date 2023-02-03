@@ -1,7 +1,7 @@
 #include "RigidBodyContainerDyn.h"
 #include "CollShapeDyn.h"
 #include "ConstraintDyn.h"
-#include "simLib.h"
+#include <simLib.h>
 #include <iostream>
 #include "Vx/VxFrame.h"
 #include "Vx/VxUniverse.h"

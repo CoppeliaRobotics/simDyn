@@ -1,6 +1,6 @@
 #include "ParticleObjectContainer_base.h"
 #include "RigidBodyContainerDyn.h"
-#include "simLib.h"
+#include <simLib.h>
 
 CParticleObjectContainer_base::CParticleObjectContainer_base()
 {

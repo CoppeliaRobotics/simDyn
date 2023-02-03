@@ -1,6 +1,6 @@
 #include "ParticleDyn.h"
 #include "RigidBodyContainerDyn.h"
-#include "simLib.h"
+#include <simLib.h>
 
 CParticleDyn::CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,double size,double massOverVolume,double killTime,float addColor[3]) : CParticleDyn_base(position,velocity,objType,size,massOverVolume,killTime,addColor)
 {

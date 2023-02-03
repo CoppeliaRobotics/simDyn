@@ -2,14 +2,14 @@
 #include "CollShapeDyn.h"
 #include "RigidBodyDyn.h"
 #include "ConstraintDyn.h"
-#include "simLib.h"
-#include "4X4Matrix.h"
+#include <simLib.h>
+#include <simMath/4X4Matrix.h>
 #include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
-#include "stackArray.h"
-#include "stackMap.h"
+#include <simStack/stackArray.h>
+#include <simStack/stackMap.h>
 
 const bool useGlobalCoords=false; // global coords are easier, but composites require local coords!
 

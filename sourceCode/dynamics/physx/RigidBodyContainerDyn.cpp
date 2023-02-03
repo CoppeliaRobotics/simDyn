@@ -2,8 +2,8 @@
 #include "CollShapeDyn.h"
 #include "RigidBodyDyn.h"
 #include "ConstraintDyn.h"
-#include "simLib.h"
-#include "4X4Matrix.h"
+#include <simLib.h>
+#include <simMath/4X4Matrix.h>
 
 //bool CRigidBodyContainerDyn::_simulationHalted=false;
 

@@ -1,10 +1,10 @@
 #include "simExtDyn.h"
 #include "RigidBodyContainerDyn.h"
-#include "simLib.h"
+#include <simLib.h>
 #include <iostream>
 #include <cstdio>
-#include "stackArray.h"
-#include "stackMap.h"
+#include <simStack/stackArray.h>
+#include <simStack/stackMap.h>
 
 #ifdef _WIN32
 #include <direct.h>

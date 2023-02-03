@@ -2,7 +2,7 @@
 
 #ifdef INCLUDE_VORTEX_CODE
 
-#include "7Vector.h"
+#include <simMath/7Vector.h>
 #include "Vx/VxTransform.h"
 
 

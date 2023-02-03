@@ -2,7 +2,7 @@
 
 #include "dummyClasses.h"
 #include "CollShapeDyn.h"
-#include "7Vector.h"
+#include <simMath/7Vector.h>
 
 class CRigidBodyDyn_base
 {

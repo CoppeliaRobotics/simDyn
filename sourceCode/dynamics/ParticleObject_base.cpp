@@ -1,5 +1,5 @@
 #include "ParticleObject_base.h"
-#include "simLib.h"
+#include <simLib.h>
 #include "ParticleDyn.h"
 
 CParticleObject_base::CParticleObject_base(int theObjectType,sReal size,sReal massVolumic,const void* params,sReal lifeTime,int maxItemCount)

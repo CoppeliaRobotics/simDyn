@@ -1,6 +1,6 @@
 #include "ParticleDyn.h"
 #include "RigidBodyContainerDyn.h"
-#include "simLib.h"
+#include <simLib.h>
 #include "Vx/VxUniverse.h"
 #include "Vx/VxSphere.h"
 #include "Vx/VxPart.h"

@@ -1,8 +1,8 @@
 #include "RigidBodyContainerDyn.h"
 #include "CollShapeDyn.h"
 #include "NewtonConvertUtil.h"
-#include "4X4Matrix.h"
-#include "simLib.h"
+#include <simMath/4X4Matrix.h>
+#include <simLib.h>
 
 CRigidBodyDyn::CRigidBodyDyn()
 {

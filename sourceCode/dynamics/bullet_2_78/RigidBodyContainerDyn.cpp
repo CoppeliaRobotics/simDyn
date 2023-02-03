@@ -2,7 +2,7 @@
 #include "CollShapeDyn.h"
 #include "RigidBodyDyn.h"
 #include "ConstraintDyn.h"
-#include "simLib.h"
+#include <simLib.h>
 #include "BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h"
 
 // Modifications in Bullet v2.78 source:

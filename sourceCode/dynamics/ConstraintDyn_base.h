@@ -2,7 +2,7 @@
 
 #include "dummyClasses.h"
 #include "RigidBodyDyn.h"
-#include "7Vector.h"
+#include <simMath/7Vector.h>
 
 class CConstraintDyn_base  
 {

@@ -1,6 +1,6 @@
 #include "CollShapeDyn.h"
 #include "RigidBodyContainerDyn.h"
-#include "simLib.h"
+#include <simLib.h>
 
 CRigidBodyDyn::CRigidBodyDyn()
 {

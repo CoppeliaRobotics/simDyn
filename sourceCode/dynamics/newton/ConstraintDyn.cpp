@@ -1,7 +1,7 @@
 #include "ConstraintDyn.h"
 #include "RigidBodyContainerDyn.h"
-#include "simLib.h"
-#include "4X4Matrix.h"
+#include <simLib.h>
+#include <simMath/4X4Matrix.h>
 #include "NewtonConvertUtil.h"
 
 class CConstraintDyn::csimNewtonForceSensorJoint: public CustomHinge

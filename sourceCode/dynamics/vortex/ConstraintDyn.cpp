@@ -1,6 +1,6 @@
 #include "ConstraintDyn.h"
 #include "RigidBodyContainerDyn.h"
-#include "simLib.h"
+#include <simLib.h>
 #include "Vx/VxUniverse.h"
 #include "Vx/VxHinge.h"
 #include "Vx/VxPrismatic.h"
