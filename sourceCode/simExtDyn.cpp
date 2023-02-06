@@ -1,6 +1,6 @@
 #include "simExtDyn.h"
 #include "RigidBodyContainerDyn.h"
-#include <simLib.h>
+#include <simLib/simLib.h>
 #include <iostream>
 #include <cstdio>
 #include <simStack/stackArray.h>

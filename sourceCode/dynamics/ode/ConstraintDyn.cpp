@@ -1,6 +1,6 @@
 #include "ConstraintDyn.h"
 #include "RigidBodyContainerDyn.h"
-#include <simLib.h>
+#include <simLib/simLib.h>
 
 CConstraintDyn::CConstraintDyn()
 {

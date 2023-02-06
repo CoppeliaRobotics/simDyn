@@ -1,5 +1,5 @@
 #include "CollShapeDyn.h"
-#include <simLib.h>
+#include <simLib/simLib.h>
 #include "NewtonConvertUtil.h"
 #include "RigidBodyContainerDyn.h"
 

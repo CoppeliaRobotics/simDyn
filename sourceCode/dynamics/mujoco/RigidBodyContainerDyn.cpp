@@ -2,7 +2,7 @@
 #include "CollShapeDyn.h"
 #include "RigidBodyDyn.h"
 #include "ConstraintDyn.h"
-#include <simLib.h>
+#include <simLib/simLib.h>
 #include <simMath/4X4Matrix.h>
 #include <filesystem>
 #include <iostream>

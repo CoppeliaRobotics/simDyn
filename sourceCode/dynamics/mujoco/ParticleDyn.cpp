@@ -1,6 +1,6 @@
 #include "ParticleDyn.h"
 #include "RigidBodyContainerDyn.h"
-#include <simLib.h>
+#include <simLib/simLib.h>
 
 CXmlSer* CParticleDyn::xmlDoc=nullptr;
 std::vector<SMjGeom>* CParticleDyn::allGeoms=nullptr;

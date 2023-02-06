@@ -1,7 +1,7 @@
 #include "RigidBodyContainerDyn.h"
 #include "RigidBodyDyn.h"
 #include "CollShapeDyn.h"
-#include <simLib.h>
+#include <simLib/simLib.h>
 #include "Vx/VxPart.h"
 #include "Vx/VxUniverse.h"
 #include "Vx/VxMassProperties.h"

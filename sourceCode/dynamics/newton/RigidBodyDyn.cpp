@@ -2,7 +2,7 @@
 #include "CollShapeDyn.h"
 #include "NewtonConvertUtil.h"
 #include <simMath/4X4Matrix.h>
-#include <simLib.h>
+#include <simLib/simLib.h>
 
 CRigidBodyDyn::CRigidBodyDyn()
 {

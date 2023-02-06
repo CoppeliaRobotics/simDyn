@@ -1,7 +1,7 @@
 #include "ParticleDyn.h"
 #include "RigidBodyContainerDyn.h"
 #include "NewtonConvertUtil.h"
-#include <simLib.h>
+#include <simLib/simLib.h>
 
 CParticleDyn::CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,sReal size,sReal massOverVolume,sReal killTime,float addColor[3]) : CParticleDyn_base(position,velocity,objType,size,massOverVolume,killTime,addColor)
 {
