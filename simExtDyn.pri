@@ -249,7 +249,7 @@ PHYSX_ENGINE {
 }
 
 HEADERS += ../../coppeliaSimLib/sourceCode/interfaces/dummyClasses.h \
-    ../include/simLib.h \
+    ../include/simLib/simLib.h \
     ../include/simMath/3Vector.h \
     ../include/simMath/4Vector.h \
     ../include/simMath/7Vector.h \
@@ -258,7 +258,7 @@ HEADERS += ../../coppeliaSimLib/sourceCode/interfaces/dummyClasses.h \
     ../include/simMath/MMatrix.h \
     ../include/simMath/MyMath.h \
     
-SOURCES += ../include/simLib.cpp \
+SOURCES += ../include/simLib/simLib.cpp \
     ../include/simMath/3Vector.cpp \
     ../include/simMath/4Vector.cpp \
     ../include/simMath/7Vector.cpp \
