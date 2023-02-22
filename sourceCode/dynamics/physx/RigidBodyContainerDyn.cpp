@@ -1472,7 +1472,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
             f.write((char*)hDataF.data(),sizeof(float)*xCnt*yCnt);
         }
         else
-            _simGetVerticesLocalFrame(sc,geomPose.X.data,geomPose.Q.data);
+            _simGetVerticesLocalFrame(object,sc,geomPose.X.data,geomPose.Q.data);
         geomPose=objectPose*geomPose;
 
         if ( (pType==sim_primitiveshape_plane)||(pType==sim_primitiveshape_cuboid) )
@@ -1535,7 +1535,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
             int allVerticesSize;
             int* allIndices;
             int allIndicesSize;
-            _simGetCumulativeMeshes(sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+            _simGetCumulativeMeshes(object,sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
             double* mv=new double[allVerticesSize*4];
             int* mi=new int[allIndicesSize*4];
             double xmm[2]={9999.0,-9999.0};

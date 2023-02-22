@@ -47,7 +47,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
 
                 C7Vector aax;
                 // for pure shapes, the vertice frame also indicates the pure shape origin
-                _simGetVerticesLocalFrame(sc, aax.X.data, aax.Q.data); 
+                _simGetVerticesLocalFrame(shape,sc, aax.X.data, aax.Q.data);
                 C7Vector xxx(inverseLocalInertiaFrame_scaled * aax);
 
                 int subshapeType =_simGetPurePrimitiveType(sc);
@@ -244,7 +244,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
             int allVerticesSize;
             int* allIndices;
             int allIndicesSize;
-            _simGetCumulativeMeshes(geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+            _simGetCumulativeMeshes(shape,geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
             _meshIndices.assign(allIndices,allIndices+allIndicesSize);
 
             for (int i=0;i<allVerticesSize/3;i++)
@@ -296,7 +296,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                     int allVerticesSize;
                     int* allIndices;
                     int allIndicesSize;
-                    _simGetCumulativeMeshes(sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                    _simGetCumulativeMeshes(shape,sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
                     _meshVertices_scaled.clear();
 
                     C3Vector c;// this is the inside point
@@ -340,7 +340,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                 int allVerticesSize;
                 int* allIndices;
                 int allIndicesSize;
-                _simGetCumulativeMeshes(geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                _simGetCumulativeMeshes(shape,geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
                 _meshIndices.assign(allIndices,allIndices+allIndicesSize);
 
                 C3Vector c;

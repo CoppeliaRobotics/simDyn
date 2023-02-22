@@ -108,7 +108,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                     dGeomTransformSetGeom(_odeGeom,odeGeom);
                 }
                 C7Vector aax;
-                _simGetVerticesLocalFrame(sc,aax.X.data,aax.Q.data); // for pure shapes, the vertice frame also indicates the pure shape origin
+                _simGetVerticesLocalFrame(shape,sc,aax.X.data,aax.Q.data); // for pure shapes, the vertice frame also indicates the pure shape origin
                 aax.X*=linScaling; // ********** SCALING
                 C7Vector xxx(inverseLocalInertiaFrame_scaled*aax);
                 dGeomSetPosition(odeGeom,xxx.X(0),xxx.X(1),xxx.X(2));
@@ -212,7 +212,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
             C7Vector aax;
             aax.setIdentity();
             if (primType!=sim_primitiveshape_heightfield) // that condition was forgotten and corrected on 16/1/2013
-                _simGetVerticesLocalFrame(geomInfo,aax.X.data,aax.Q.data);  // for pure shapes (except for heightfields!!), the vertice frame also indicates the pure shape origin.
+                _simGetVerticesLocalFrame(shape,geomInfo,aax.X.data,aax.Q.data);  // for pure shapes (except for heightfields!!), the vertice frame also indicates the pure shape origin.
             aax.X*=linScaling; // ********** SCALING
             C7Vector xxx(inverseLocalInertiaFrame_scaled*aax);
             xxx.Q*=additionalRotation_forHeightfieldOnly;
@@ -238,7 +238,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
             int allVerticesSize;
             int* allIndices;
             int allIndicesSize;
-            _simGetCumulativeMeshes(geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+            _simGetCumulativeMeshes(shape,geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
             _meshIndices.assign(allIndices,allIndices+allIndicesSize);
 
             for (int i=0;i<allVerticesSize/3;i++)
@@ -288,7 +288,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                     int allVerticesSize;
                     int* allIndices;
                     int allIndicesSize;
-                    _simGetCumulativeMeshes(sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                    _simGetCumulativeMeshes(shape,sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
                     _meshVertices_scaled.clear();
                     _odeConvexPolygons.clear();
                     _odeConvexPlanes_scaled.clear();
@@ -375,7 +375,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                 int allVerticesSize;
                 int* allIndices;
                 int allIndicesSize;
-                _simGetCumulativeMeshes(geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                _simGetCumulativeMeshes(shape,geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
                 _meshIndices.assign(allIndices,allIndices+allIndicesSize);
 
                 // We need to find a point inside of the shape, and shift the data to have that point at the origin, otherwise ODE complains:

@@ -185,7 +185,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                     Vx::VxGeometry* vortexGeom = _createVortexSimpleGeometry(pType, s,hollowScaling, nullptr, 1.0);
 
                     C7Vector aax;
-                    _simGetVerticesLocalFrame(sc,aax.X.data,aax.Q.data); // for pure shapes, the vertice frame also indicates the pure shape origin
+                    _simGetVerticesLocalFrame(shape,sc,aax.X.data,aax.Q.data); // for pure shapes, the vertice frame also indicates the pure shape origin
                     C7Vector xxx(inverseLocalInertiaFrame_scaled*aax);
 
                     Vx::VxTransform tm;
@@ -223,7 +223,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                 C7Vector aax;
                 aax.setIdentity();
                 if (primType!=sim_primitiveshape_heightfield) // that condition was forgotten and corrected on 16/1/2013
-                    _simGetVerticesLocalFrame(geomInfo,aax.X.data,aax.Q.data);  // for pure shapes (except for heightfields!!), the vertice frame also indicates the pure shape origin.
+                    _simGetVerticesLocalFrame(shape,geomInfo,aax.X.data,aax.Q.data);  // for pure shapes (except for heightfields!!), the vertice frame also indicates the pure shape origin.
                 C7Vector xxx(inverseLocalInertiaFrame_scaled*aax);
 
                 Vx::VxTransform tm;
@@ -262,7 +262,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                     int allVerticesSize;
                     int* allIndices;
                     int allIndicesSize;
-                    _simGetCumulativeMeshes(sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                    _simGetCumulativeMeshes(shape,sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
                     Vx::VxGeometry* vortexGeometry = nullptr;
 
                     if (!treatRandomShapesAsTerrain)
@@ -312,7 +312,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                 int allVerticesSize;
                 int* allIndices;
                 int allIndicesSize;
-                _simGetCumulativeMeshes(geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                _simGetCumulativeMeshes(shape,geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
                 Vx::VxGeometry* vortexGeometry = nullptr;
 
                 if (!treatRandomShapesAsTerrain)
@@ -376,7 +376,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                     int allVerticesSize;
                     int* allIndices;
                     int allIndicesSize;
-                    _simGetCumulativeMeshes(sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                    _simGetCumulativeMeshes(shape,sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
 
                     Vx::VxReal3* vortexVertices_scaled = new Vx::VxReal3[allVerticesSize/3];
 
@@ -437,7 +437,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                 int allVerticesSize;
                 int* allIndices;
                 int allIndicesSize;
-                _simGetCumulativeMeshes(geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                _simGetCumulativeMeshes(shape,geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
 
                 Vx::VxReal3* vortexVertices_scaled = new Vx::VxReal3[allVerticesSize/3];
 

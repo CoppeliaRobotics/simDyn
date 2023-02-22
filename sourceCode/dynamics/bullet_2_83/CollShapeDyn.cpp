@@ -115,7 +115,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                     collShape->setMargin(collShape->getMargin()*ms); // Margins also need scaling! 16/03/2011
 
                 C7Vector aax;
-                _simGetVerticesLocalFrame(sc,aax.X.data,aax.Q.data); // for pure shapes, the vertice frame also indicates the pure shape origin
+                _simGetVerticesLocalFrame(shape,sc,aax.X.data,aax.Q.data); // for pure shapes, the vertice frame also indicates the pure shape origin
                 aax.X*=linScaling; // ********** SCALING
                 C7Vector xxx(inverseLocalInertiaFrame_scaled*aax);
                 btQuaternion wtq(xxx.Q(1),xxx.Q(2),xxx.Q(3),xxx.Q(0));
@@ -191,7 +191,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
             C7Vector aax;
             aax.setIdentity();
             if (primType!=sim_primitiveshape_heightfield) // that condition was forgotten and corrected on 16/1/2013
-                _simGetVerticesLocalFrame(geomInfo,aax.X.data,aax.Q.data);  // for pure shapes (except for heightfields!!), the vertice frame also indicates the pure shape origin.
+                _simGetVerticesLocalFrame(shape,geomInfo,aax.X.data,aax.Q.data);  // for pure shapes (except for heightfields!!), the vertice frame also indicates the pure shape origin.
             aax.X*=linScaling; // ********** SCALING
             C7Vector xxx(inverseLocalInertiaFrame_scaled*aax);
             btQuaternion wtq(xxx.Q(1),xxx.Q(2),xxx.Q(3),xxx.Q(0));
@@ -212,7 +212,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
             int allVerticesSize;
             int* allIndices;
             int allIndicesSize;
-            _simGetCumulativeMeshes(geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+            _simGetCumulativeMeshes(shape,geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
             _meshIndices.assign(allIndices,allIndices+allIndicesSize);
             for (int i=0;i<allVerticesSize/3;i++)
             { // We need to take into account the position of the inertia frame
@@ -256,7 +256,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                     int allVerticesSize;
                     int* allIndices;
                     int allIndicesSize;
-                    _simGetCumulativeMeshes(sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                    _simGetCumulativeMeshes(shape,sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
                     _meshVertices_scaled.clear();
 
                     // We need to find a point inside the shape and shift the shape about it, otherwise we have some strange collisions all over the place :
@@ -344,7 +344,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                 int allVerticesSize;
                 int* allIndices;
                 int allIndicesSize;
-                _simGetCumulativeMeshes(geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                _simGetCumulativeMeshes(shape,geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
                 _meshIndices.assign(allIndices,allIndices+allIndicesSize);
 
                 // We need to find a point inside the shape and shift the shape about it, otherwise we have some strange collisions all over the place :
