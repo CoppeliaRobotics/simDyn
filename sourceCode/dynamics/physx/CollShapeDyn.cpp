@@ -10,6 +10,6 @@ CCollShapeDyn::~CCollShapeDyn()
 {
 }
 
-void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled)
+void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled)
 {
 }

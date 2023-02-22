@@ -17,9 +17,9 @@ CCollShapeDyn::~CCollShapeDyn()
     delete _collisionShape;
 }
 
-void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled)
+void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled)
 {
-    CCollShapeDyn_base::init(shape,geomData,willBeStatic,inverseLocalInertiaFrame_scaled);
+    CCollShapeDyn_base::init(shape,willBeStatic,inverseLocalInertiaFrame_scaled);
 
     // In version 2.76 following collision margins are applied by default (in Bullet):
     // btSphereShape: 4 cm
@@ -30,7 +30,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
     // But CoppeliaSim sets the btConeShapeZ margin to zero (see below)
     _indexVertexArrays=nullptr;
 
-    CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
+    CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
     double marginScaling=simGetEngineFloatParam(sim_bullet_global_collisionmarginfactor,-1,nullptr,nullptr);
     bool isConvex=_simIsGeomWrapConvex(geomInfo)!=0;
     bool isNotPure=(_simGetPurePrimitiveType(geomInfo)==sim_primitiveshape_none);

@@ -25,9 +25,9 @@ CCollShapeDyn::~CCollShapeDyn()
         delete _odeMconvexPolygons[i];
 }
 
-void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled)
+void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled)
 {
-    CCollShapeDyn_base::init(shape,geomData,willBeStatic,inverseLocalInertiaFrame_scaled);
+    CCollShapeDyn_base::init(shape,willBeStatic,inverseLocalInertiaFrame_scaled);
 
     dSpaceID space=CRigidBodyContainerDyn::getDynWorld()->getOdeSpace();
 
@@ -38,7 +38,7 @@ void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,
 
 
     double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
-    CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
+    CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
     // Do we have a pure primitive?
     int primType=_simGetPurePrimitiveType(geomInfo);
     if ( (primType!=sim_primitiveshape_none) )//&&(primType!=sim_primitiveshape_heightfield) ) // second part is temporary (ODE heightfields are buggy right now, so we use meshes instead)

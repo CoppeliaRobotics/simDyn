@@ -54,10 +54,10 @@ CCollShapeDyn::~CCollShapeDyn()
         delete _vortexMconvexPolygons[i];
 }
 
-void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled)
+void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled)
 { // This is the init of a collision shape wrapper. The wrapper can contain several collision objects grouped in a compound
-    CCollShapeDyn_base::init(shape,geomData,willBeStatic,inverseLocalInertiaFrame_scaled);
-    CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
+    CCollShapeDyn_base::init(shape,willBeStatic,inverseLocalInertiaFrame_scaled);
+    CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
 
     Vx::VxUniverse* universe=CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
@@ -577,8 +577,8 @@ Vx::VxTriangleMeshUVGrid* CCollShapeDyn::_createVortexUVGridMesh(double* allVert
     *  This UV plane are usually fit to the largest extension of the mesh for best efficiency. A Bounding box will be used for this
     *  Then the number of sell subdivision should be done so that there are not too many tringle in a cell.
     */
-    C3Vector minS(FLOAT_MAX,FLOAT_MAX,FLOAT_MAX);
-    C3Vector maxS(-FLOAT_MAX,-FLOAT_MAX,-FLOAT_MAX);
+    C3Vector minS(REAL_MAX,REAL_MAX,REAL_MAX);
+    C3Vector maxS(-REAL_MAX,-REAL_MAX,-REAL_MAX);
 
     for (int i=0;i<allVerticesSize/3;i++)
     { // We need to scale the vertices

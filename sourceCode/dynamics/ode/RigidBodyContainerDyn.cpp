@@ -110,10 +110,8 @@ void CRigidBodyContainerDyn::_odeCollisionCallback(void* data,dGeomID o1,dGeomID
                 canCollide=false;
             if (canCollide)
             { // Ok, the two object have flags that make them respondable to each other
-                CXGeomProxy* shapeAProxy=(CXGeomProxy*)_simGetGeomProxyFromShape(shapeA);
-                CXGeomWrap* shapeAWrap=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shapeAProxy);
-                CXGeomProxy* shapeBProxy=(CXGeomProxy*)_simGetGeomProxyFromShape(shapeB);
-                CXGeomWrap* shapeBWrap=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shapeBProxy);
+                CXGeomWrap* shapeAWrap=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shapeA);
+                CXGeomWrap* shapeBWrap=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shapeB);
 
                 // Following parameter retrieval is OLD. Use instead following functions:
                 // - simGetEngineFloatParam
@@ -190,8 +188,7 @@ void CRigidBodyContainerDyn::_odeCollisionCallback(void* data,dGeomID o1,dGeomID
                     if (canCollide)
                     {
                         dataInt[1]=1;
-                        CXGeomProxy* shapeProxy=(CXGeomProxy*)_simGetGeomProxyFromShape(shape);
-                        CXGeomWrap* shapeWrap=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shapeProxy);
+                        CXGeomWrap* shapeWrap=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
 
                         // Following parameter retrieval is OLD. Use instead following functions:
                         // - simGetEngineFloatParam

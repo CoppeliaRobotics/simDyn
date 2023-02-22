@@ -667,7 +667,7 @@ void CConstraintDyn::_setForceSensorBrokenUnbrokenConstraints_bullet(btGeneric6D
         m->m_upperLimit[i]=0.0;
         m->m_enableMotor[i]=true;
         m->m_targetVelocity[i]=0.0;
-        m->m_maxMotorForce[i]=FLOAT_MAX;
+        m->m_maxMotorForce[i]=REAL_MAX;
     }
 
     for (size_t i=0;i<3;i++) // Now rotational constraints:
@@ -676,7 +676,7 @@ void CConstraintDyn::_setForceSensorBrokenUnbrokenConstraints_bullet(btGeneric6D
         r[i]->m_hiLimit=0.0;
         r[i]->m_enableMotor=true;
         r[i]->m_targetVelocity=0.0;
-        r[i]->m_maxMotorForce=FLOAT_MAX;
+        r[i]->m_maxMotorForce=REAL_MAX;
     }
 }
 

@@ -151,8 +151,7 @@ bool CRigidBodyContainerDyn_base::_addRigidBodyFromShape(CXShape* shape,bool for
     CRigidBodyDyn* body=_getRigidBodyFromObjectHandle(_simGetObjectID(shape));
     if (body==nullptr)
     { // We have to add that shape!
-        CXGeomProxy* geom=(CXGeomProxy*)_simGetGeomProxyFromShape(shape); // even non respondable shapes have a geom
-        CXGeomWrap* geomInfoFromShape=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geom);
+        CXGeomWrap* geomInfoFromShape=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
 
         // Following to display a warning with static respondable shapes build on a non-static construction:
         if ((_simIsShapeDynamicallyStatic(shape)||forceStatic)&&(_simIsShapeDynamicallyRespondable(shape)&&(!forceNonRespondable)))
@@ -175,7 +174,7 @@ bool CRigidBodyContainerDyn_base::_addRigidBodyFromShape(CXShape* shape,bool for
         }
 
         // Following to display a warning if using non-pure non-convex shapes:
-        if ((_simGetPurePrimitiveType(geomInfoFromShape)==sim_primitiveshape_none)&&(geom!=nullptr)&&(_simIsGeomWrapConvex(geomInfoFromShape)==0)&&_simIsShapeDynamicallyRespondable(shape)&&(_simGetTreeDynamicProperty(shape)&sim_objdynprop_respondable))
+        if ((_simGetPurePrimitiveType(geomInfoFromShape)==sim_primitiveshape_none)&&(_simIsGeomWrapConvex(geomInfoFromShape)==0)&&_simIsShapeDynamicallyRespondable(shape)&&(_simGetTreeDynamicProperty(shape)&sim_objdynprop_respondable))
             _simMakeDynamicAnnouncement(sim_announce_containsnonpurenonconvexshapes);
 
         // Now create the rigid body

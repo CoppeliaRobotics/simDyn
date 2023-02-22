@@ -205,8 +205,7 @@ void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondabl
     _simGetObjectCumulativeTransformation(shape,cumulPart1_scaled.X.data,cumulPart1_scaled.Q.data,true);
 
     C7Vector tr(cumulPart1_scaled*_localInertiaFrame_scaled);
-    CXGeomProxy* geomData=(CXGeomProxy*)_simGetGeomProxyFromShape(shape);
-    CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
+    CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
     double mass=_mass_scaled;
 
     _vortexRigidBody = new Vx::VxPart(mass);

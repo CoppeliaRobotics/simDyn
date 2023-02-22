@@ -12,13 +12,13 @@ CCollShapeDyn::~CCollShapeDyn()
     NewtonDestroyCollision (_shape);
 }
 
-void CCollShapeDyn::init(CXShape* shape,CXGeomProxy* geomData,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled)
+void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled)
 {
-    CCollShapeDyn_base::init(shape,geomData,willBeStatic,inverseLocalInertiaFrame_scaled);
+    CCollShapeDyn_base::init(shape,willBeStatic,inverseLocalInertiaFrame_scaled);
 
     NewtonWorld* world=CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
-    CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(geomData);
+    CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
 
     // Do we have a pure primitive?
     int primType=_simGetPurePrimitiveType(geomInfo);
