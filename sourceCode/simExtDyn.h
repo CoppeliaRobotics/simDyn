@@ -29,5 +29,6 @@ SIM_DLLEXPORT char dynPlugin_getContactForce_D(int dynamicPass,int objectHandle,
 SIM_DLLEXPORT int dynPlugin_getDynamicStepDivider();
 #ifdef INCLUDE_MUJOCO_CODE
 SIM_DLLEXPORT double mujocoPlugin_computeInertia(int shapeHandle,double* relPos,double* relQuat,double* diagI);
+SIM_DLLEXPORT double mujocoPlugin_computePMI(const double* vertices,int verticesL,const int* indices,int indicesL,double* relPos,double* relQuat,double* diagI);
 #endif
 #endif

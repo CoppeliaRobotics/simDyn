@@ -1715,6 +1715,80 @@ void CRigidBodyContainerDyn::_addInertiaElement(CXmlSer* xmlDoc,double mass,cons
     xmlDoc->popNode();
 }
 
+double CRigidBodyContainerDyn::computePMI(const double* vertices,int verticesL,const int* indices,int indicesL,C7Vector& tr,C3Vector& diagI)
+{ // returns the diagonal mass-less inertia, for a density of 1000. Errors are silent here
+    mju_user_warning=nullptr;
+    mju_user_error=nullptr;
+
+    double mass=0.0;
+    char* _dir=simGetStringParam(sim_stringparam_tempdir);
+    std::string dir(_dir);
+    std::string mjFile(_dir);
+    simReleaseBuffer(_dir);
+    mjFile+="/inertiaCalc.xml";
+    CXmlSer* xmlDoc=new CXmlSer(mjFile.c_str());
+    xmlDoc->pushNewNode("worldbody");
+
+    xmlDoc->pushNewNode("body");
+    xmlDoc->setAttr("name","inertia");
+    xmlDoc->setAttr("pos",0.0,0.0,0.0);
+    xmlDoc->setAttr("quat",1.0,0.0,0.0,0.0);
+    xmlDoc->pushNewNode("freejoint");
+    xmlDoc->popNode(); // freejoint
+
+    xmlDoc->pushNewNode("geom");
+    //xmlDoc->setAttr("name","inertia");
+    xmlDoc->setAttr("type","mesh");
+    const char* tmpFileName=simGetStringParam(sim_stringparam_uniqueid);
+    std::string fn(tmpFileName);
+    simReleaseBuffer(tmpFileName);
+    xmlDoc->setAttr("mesh",fn.c_str());
+    fn+=".stl";
+    std::string meshFile(fn);
+    fn=dir+"/"+fn;
+    simExportMesh(4,fn.c_str(),0,1.0,1,(const double**)&vertices,&verticesL,(const int**)&indices,&indicesL,nullptr,nullptr);
+    xmlDoc->popNode(); // geom
+
+    xmlDoc->popNode(); // body
+    xmlDoc->popNode(); // worldbody
+
+    xmlDoc->pushNewNode("asset");
+    xmlDoc->pushNewNode("mesh");
+    xmlDoc->setAttr("file",meshFile.c_str());
+    xmlDoc->popNode(); // mesh
+    xmlDoc->popNode(); // asset
+    xmlDoc->popNode(); // file
+
+    delete xmlDoc; // saves the file
+
+    char error[1000] = "could not load binary model";
+    mjModel* m=mj_loadXML(mjFile.c_str(),0,error,1000);
+    if (m!=nullptr)
+    {
+        mjData* d=mj_makeData(m);
+        int id=mj_name2id(m,mjOBJ_BODY,"inertia");
+        mass=m->body_mass[id];
+        diagI(0)=m->body_inertia[3*id+0];
+        diagI(1)=m->body_inertia[3*id+1];
+        diagI(2)=m->body_inertia[3*id+2];
+        diagI/=mass;
+        tr.X(0)=m->body_ipos[3*id+0];
+        tr.X(1)=m->body_ipos[3*id+1];
+        tr.X(2)=m->body_ipos[3*id+2];
+        tr.Q(0)=m->body_iquat[4*id+0];
+        tr.Q(1)=m->body_iquat[4*id+1];
+        tr.Q(2)=m->body_iquat[4*id+2];
+        tr.Q(3)=m->body_iquat[4*id+3];
+        mj_deleteData(d);
+        mj_deleteModel(m);
+    }
+    else
+        mass=0.0; // error
+    mju_user_error=_errorCallback;
+    mju_user_warning=_warningCallback;
+    return(mass);
+}
+
 double CRigidBodyContainerDyn::computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness)
 { // returns the diagonal mass-less inertia, for a density of 1000
     // Errors are silent here. Function can be reentrant (max. 1 time)

@@ -146,6 +146,7 @@ public:
 
     std::string getCompositeInfo(int compIndex,int what,std::vector<double>& info,int count[3]) const;
     void particlesAdded();
+    static double computePMI(const double* vertices,int verticesSize,const int* indices,int indicesSize,C7Vector& tr,C3Vector& diagI);
     static double computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness=false);
     static int injectXml(const char* xml,const char* element,int objectHandle,const char* cbFunc,int cbScript,const char* cbId);
     static int injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow,const char* cbFunc,int cbScript);

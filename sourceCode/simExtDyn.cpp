@@ -536,5 +536,17 @@ SIM_DLLEXPORT double mujocoPlugin_computeInertia(int shapeHandle,double* relPos,
     diag.getData(diagI);
     return(mass);
 }
+
+SIM_DLLEXPORT double mujocoPlugin_computePMI(const double* vertices,int verticesL,const int* indices,int indicesL,double* relPos,double* relQuat,double* diagI)
+{ // returns the diagonal massless inertia (and mass, for a density of 1000)
+    C7Vector tr;
+    C3Vector diag;
+    double mass=CRigidBodyContainerDyn::computePMI(vertices,verticesL,indices,indicesL,tr,diag);
+    tr.X.getData(relPos);
+    tr.Q.getData(relQuat);
+    diag.getData(diagI);
+    return(mass);
+}
+
 #endif
 
