@@ -2278,9 +2278,9 @@ int CRigidBodyContainerDyn::_handleContact(const mjModel* m,mjData* d,int geom1,
             unsigned int collFB=gm2->respondableMask;
             canCollide=(_simIsShapeDynamicallyRespondable(shapeA)&&_simIsShapeDynamicallyRespondable(shapeB) );
 
-// Following does not have the expected effect: it adds strangely more contacts:
-//            if ( gm1->belongsToStaticItem&&gm2->belongsToStaticItem )
-//                canCollide=false;
+            // Following used to not have the expected effect: it added strangely more contacts. But somehow now that works just fine...
+            if ( gm1->belongsToStaticItem&&gm2->belongsToStaticItem )
+                canCollide=false;
 
             if (canCollide)
             {
