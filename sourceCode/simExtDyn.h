@@ -1,13 +1,7 @@
 #ifndef SIMEXTDYN_H
 #define SIMEXTDYN_H
 
-#ifdef _WIN32
-#define SIM_DLLEXPORT extern "C" __declspec(dllexport)
-#endif
-
-#if defined (__linux) || defined (__APPLE__)
-#define SIM_DLLEXPORT extern "C"
-#endif
+#include <simLib/simExp.h>
 
 SIM_DLLEXPORT unsigned char simStart(void* reservedPointer,int reservedInt);
 SIM_DLLEXPORT void simEnd();
