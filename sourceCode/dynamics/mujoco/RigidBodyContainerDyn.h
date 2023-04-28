@@ -156,6 +156,7 @@ public:
 
 
 protected:
+    static void _displayWarningAboutCPUCompatibility();
     static std::string _getObjectName(CXSceneObject* object);
     static bool _addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms,bool shapeIsStatic);
     int _hasContentChanged();

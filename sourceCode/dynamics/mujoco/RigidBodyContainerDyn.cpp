@@ -521,10 +521,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep,double sim
     }
     delete xmlDoc; // saves the file
 
-    static bool passed=false;
-    if (!passed)
-        simAddLog(LIBRARY_NAME,sim_verbosity_warnings|sim_verbosity_onlyterminal,"make sure your CPU supports AVX, SSE and similar, otherwise you might see a crash now...");
-    passed=true;
+    _displayWarningAboutCPUCompatibility();
 
     std::string retVal;
     char error[1000] = "could not load binary model";
@@ -1107,6 +1104,14 @@ void CRigidBodyContainerDyn::_addComposites(CXmlSer* xmlDoc,int shapeHandle,cons
             }
         }
     }
+}
+
+void CRigidBodyContainerDyn::_displayWarningAboutCPUCompatibility()
+{
+    static bool done=false;
+    if (!done)
+        simAddLog(LIBRARY_NAME,sim_verbosity_warnings|sim_verbosity_onlyterminal,"make sure your CPU supports AVX, SSE and similar, otherwise you might see a crash now...");
+    done=true;
 }
 
 std::string CRigidBodyContainerDyn::_getObjectName(CXSceneObject* object)
@@ -1761,6 +1766,8 @@ double CRigidBodyContainerDyn::computePMI(const double* vertices,int verticesL,c
 
     delete xmlDoc; // saves the file
 
+    _displayWarningAboutCPUCompatibility();
+
     char error[1000] = "could not load binary model";
     mjModel* m=mj_loadXML(mjFile.c_str(),0,error,1000);
     if (m!=nullptr)
@@ -1835,6 +1842,8 @@ double CRigidBodyContainerDyn::computeInertia(int shapeHandle,C7Vector& tr,C3Vec
     xmlDoc->popNode(); // file
 
     delete xmlDoc; // saves the file
+
+    _displayWarningAboutCPUCompatibility();
 
     char error[1000] = "could not load binary model";
     mjModel* m=mj_loadXML(mjFile.c_str(),0,error,1000);
