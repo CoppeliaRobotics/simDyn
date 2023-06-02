@@ -1,4 +1,4 @@
-local simMujoco={}
+local simMujoco=loadPlugin('simMujoco')
 
 function simMujoco.composite(...)
     local xml,info=checkargs({{type='string'},{type='table'}},...)
@@ -46,14 +46,5 @@ function simMujoco.injectXML(...)
     sim.setThreadAutomaticSwitch(lb)
     return injectionId
 end
-
-function simMujoco.init()
-    -- can only be executed once sim.* functions were initialized
-    sim.registerScriptFunction('simMujoco.composite@simIK','int injectionId=simMujoco.composite(string xml,map info)')
-    sim.registerScriptFunction('simMujoco.injectXML@simIK','int injectionId=simMujoco.injectXML(string xml,string element,map info)')
-    simMujoco.init=nil
-end
-
-sim.registerScriptFuncHook('sysCall_init','simMujoco.init',true)
 
 return simMujoco

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(simExtDyn)
+project(simDyn)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MACOSX_RPATH 1)
@@ -101,13 +101,13 @@ set(COMMON_SOURCES
     sourceCode/dynamics/ParticleDyn_base.cpp
     sourceCode/dynamics/RigidBodyDyn_base.cpp
     sourceCode/dynamics/RigidBodyContainerDyn_base.cpp
-    sourceCode/simExtDyn.cpp
+    sourceCode/simDyn.cpp
 )
 
 set(Bullet_2_78 ${Bullet_2_78_default} CACHE BOOL "")
 if(Bullet_2_78)
 coppeliasim_add_plugin(
-    simExtBullet-2-78
+    simBullet-2-78
     LEGACY
     SOURCES
     ${COMMON_SOURCES}
@@ -228,21 +228,21 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/bullet_2_78/bullet_2_78/LinearMath/btConvexHull.cpp
     sourceCode/dynamics/bullet_2_78/bullet_2_78/LinearMath/btAlignedAllocator.cpp
 )
-target_compile_definitions(simExtBullet-2-78 PRIVATE SIM_MATH_DOUBLE)
-target_compile_definitions(simExtBullet-2-78 PRIVATE sReal=double)
-target_compile_definitions(simExtBullet-2-78 PRIVATE BT_USE_DOUBLE_PRECISION)
-target_compile_definitions(simExtBullet-2-78 PRIVATE INCLUDE_BULLET_2_78_CODE)
-target_compile_definitions(simExtBullet-2-78 PRIVATE DYNAMICS_PLUGIN_VERSION=20)
-target_compile_definitions(simExtBullet-2-78 PRIVATE LIBRARY_NAME=\"Bullet-2-78\")
-target_compile_definitions(simExtBullet-2-78 PRIVATE ENGINE_NAME=\"Bullet\")
-target_include_directories(simExtBullet-2-78 PRIVATE sourceCode/dynamics/bullet_2_78)
-target_include_directories(simExtBullet-2-78 PRIVATE sourceCode/dynamics/bullet_2_78/bullet_2_78)
+target_compile_definitions(simBullet-2-78 PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simBullet-2-78 PRIVATE sReal=double)
+target_compile_definitions(simBullet-2-78 PRIVATE BT_USE_DOUBLE_PRECISION)
+target_compile_definitions(simBullet-2-78 PRIVATE INCLUDE_BULLET_2_78_CODE)
+target_compile_definitions(simBullet-2-78 PRIVATE DYNAMICS_PLUGIN_VERSION=20)
+target_compile_definitions(simBullet-2-78 PRIVATE LIBRARY_NAME=\"Bullet-2-78\")
+target_compile_definitions(simBullet-2-78 PRIVATE ENGINE_NAME=\"Bullet\")
+target_include_directories(simBullet-2-78 PRIVATE sourceCode/dynamics/bullet_2_78)
+target_include_directories(simBullet-2-78 PRIVATE sourceCode/dynamics/bullet_2_78/bullet_2_78)
 endif(Bullet_2_78)
 
 set(Bullet_2_83 ${Bullet_2_83_default} CACHE BOOL "")
 if(Bullet_2_83)
 coppeliasim_add_plugin(
-    simExtBullet-2-83
+    simBullet-2-83
     LEGACY
     SOURCES
     ${COMMON_SOURCES}
@@ -252,26 +252,26 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/bullet_2_83/RigidBodyContainerDyn.cpp
     sourceCode/dynamics/bullet_2_83/ParticleDyn.cpp
 )
-target_compile_definitions(simExtBullet-2-83 PRIVATE SIM_MATH_DOUBLE)
-target_compile_definitions(simExtBullet-2-83 PRIVATE sReal=double)
-target_compile_definitions(simExtBullet-2-83 PRIVATE BT_USE_DOUBLE_PRECISION)
-target_compile_definitions(simExtBullet-2-83 PRIVATE INCLUDE_BULLET_2_83_CODE)
-target_compile_definitions(simExtBullet-2-83 PRIVATE DYNAMICS_PLUGIN_VERSION=20)
-target_compile_definitions(simExtBullet-2-83 PRIVATE LIBRARY_NAME=\"Bullet-2-83\")
-target_compile_definitions(simExtBullet-2-83 PRIVATE ENGINE_NAME=\"Bullet\")
-target_include_directories(simExtBullet-2-83 PRIVATE ${BULLET_INCLUDEPATH})
-target_include_directories(simExtBullet-2-83 PRIVATE sourceCode/dynamics/bullet_2_83)
+target_compile_definitions(simBullet-2-83 PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simBullet-2-83 PRIVATE sReal=double)
+target_compile_definitions(simBullet-2-83 PRIVATE BT_USE_DOUBLE_PRECISION)
+target_compile_definitions(simBullet-2-83 PRIVATE INCLUDE_BULLET_2_83_CODE)
+target_compile_definitions(simBullet-2-83 PRIVATE DYNAMICS_PLUGIN_VERSION=20)
+target_compile_definitions(simBullet-2-83 PRIVATE LIBRARY_NAME=\"Bullet-2-83\")
+target_compile_definitions(simBullet-2-83 PRIVATE ENGINE_NAME=\"Bullet\")
+target_include_directories(simBullet-2-83 PRIVATE ${BULLET_INCLUDEPATH})
+target_include_directories(simBullet-2-83 PRIVATE sourceCode/dynamics/bullet_2_83)
 if(WIN32)
-    target_link_libraries(simExtBullet-2-83
+    target_link_libraries(simBullet-2-83
         ${BULLET_BUILD_DIR}/lib/Release/BulletDynamics.lib
         ${BULLET_BUILD_DIR}/lib/Release/BulletCollision.lib
         ${BULLET_BUILD_DIR}/lib/Release/LinearMath.lib
     )
     # see about error LNK2038 at the top of this file:
-    set_property(TARGET simExtBullet-2-83 PROPERTY
+    set_property(TARGET simBullet-2-83 PROPERTY
         MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 elseif(UNIX)
-    target_link_libraries(simExtBullet-2-83
+    target_link_libraries(simBullet-2-83
         ${BULLET_BUILD_DIR}/src/BulletDynamics/libBulletDynamics.a
         ${BULLET_BUILD_DIR}/src/BulletCollision/libBulletCollision.a
         ${BULLET_BUILD_DIR}/src/LinearMath/libLinearMath.a
@@ -282,7 +282,7 @@ endif(Bullet_2_83)
 set(ODE ${ODE_default} CACHE BOOL "")
 if(ODE)
 coppeliasim_add_plugin(
-    simExtODE
+    simODE
     LEGACY
     SOURCES
     ${COMMON_SOURCES}
@@ -402,29 +402,29 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/ode/ode/libccd/src/support.c
     sourceCode/dynamics/ode/ode/libccd/src/vec3.c
 )
-target_compile_definitions(simExtODE PRIVATE SIM_MATH_DOUBLE)
-target_compile_definitions(simExtODE PRIVATE sReal=double)
-target_compile_definitions(simExtODE PRIVATE dDOUBLE)
-target_compile_definitions(simExtODE PRIVATE CCD_DOUBLE)
-target_compile_definitions(simExtODE PRIVATE INCLUDE_ODE_CODE)
-target_compile_definitions(simExtODE PRIVATE DYNAMICS_PLUGIN_VERSION=20)
-target_compile_definitions(simExtODE PRIVATE LIBRARY_NAME=\"ODE\")
-target_compile_definitions(simExtODE PRIVATE ENGINE_NAME=\"ODE\")
-target_compile_definitions(simExtODE PRIVATE dNODEBUG)
-target_compile_definitions(simExtODE PRIVATE dLIBCCD_ENABLED)
-target_compile_definitions(simExtODE PRIVATE dLIBCCD_CYL_CYL)
-target_compile_definitions(simExtODE PRIVATE ODE_LIB)
-target_compile_definitions(simExtODE PRIVATE dLIBCCD_CONVEX_BOX)
-target_compile_definitions(simExtODE PRIVATE dLIBCCD_CONVEX_CYL)
-target_compile_definitions(simExtODE PRIVATE dLIBCCD_CONVEX_SPHERE)
-target_compile_definitions(simExtODE PRIVATE dLIBCCD_CONVEX_CONVEX)
-target_compile_definitions(simExtODE PRIVATE dTRIMESH_ENABLED)
-target_compile_definitions(simExtODE PRIVATE dTRIMESH_OPCODE)
-target_include_directories(simExtODE PRIVATE sourceCode/dynamics/ode)
-target_include_directories(simExtODE PRIVATE sourceCode/dynamics/ode/ode)
-target_include_directories(simExtODE PRIVATE sourceCode/dynamics/ode/ode/src)
-target_include_directories(simExtODE PRIVATE sourceCode/dynamics/ode/ode/OPCODE)
-target_include_directories(simExtODE PRIVATE sourceCode/dynamics/ode/ode/libccd/src)
+target_compile_definitions(simODE PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simODE PRIVATE sReal=double)
+target_compile_definitions(simODE PRIVATE dDOUBLE)
+target_compile_definitions(simODE PRIVATE CCD_DOUBLE)
+target_compile_definitions(simODE PRIVATE INCLUDE_ODE_CODE)
+target_compile_definitions(simODE PRIVATE DYNAMICS_PLUGIN_VERSION=20)
+target_compile_definitions(simODE PRIVATE LIBRARY_NAME=\"ODE\")
+target_compile_definitions(simODE PRIVATE ENGINE_NAME=\"ODE\")
+target_compile_definitions(simODE PRIVATE dNODEBUG)
+target_compile_definitions(simODE PRIVATE dLIBCCD_ENABLED)
+target_compile_definitions(simODE PRIVATE dLIBCCD_CYL_CYL)
+target_compile_definitions(simODE PRIVATE ODE_LIB)
+target_compile_definitions(simODE PRIVATE dLIBCCD_CONVEX_BOX)
+target_compile_definitions(simODE PRIVATE dLIBCCD_CONVEX_CYL)
+target_compile_definitions(simODE PRIVATE dLIBCCD_CONVEX_SPHERE)
+target_compile_definitions(simODE PRIVATE dLIBCCD_CONVEX_CONVEX)
+target_compile_definitions(simODE PRIVATE dTRIMESH_ENABLED)
+target_compile_definitions(simODE PRIVATE dTRIMESH_OPCODE)
+target_include_directories(simODE PRIVATE sourceCode/dynamics/ode)
+target_include_directories(simODE PRIVATE sourceCode/dynamics/ode/ode)
+target_include_directories(simODE PRIVATE sourceCode/dynamics/ode/ode/src)
+target_include_directories(simODE PRIVATE sourceCode/dynamics/ode/ode/OPCODE)
+target_include_directories(simODE PRIVATE sourceCode/dynamics/ode/ode/libccd/src)
 endif(ODE)
 
 set(Newton ${Newton_default} CACHE BOOL "")
@@ -438,7 +438,7 @@ if(WIN32)
     )
 endif()
 coppeliasim_add_plugin(
-    simExtNewton
+    simNewton
     LEGACY
     SOURCES
     ${COMMON_SOURCES}
@@ -577,40 +577,40 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers/dTree.cpp
     ${NEWTON_PLATFORM_SPECIFIC_SOURCES}
 )
-#target_compile_definitions(simExtNewton PRIVATE USE_THREAD_EMULATION) # not recomended. Use only if you need to handle Newton contacts in a contact callback script
-#target_compile_definitions(simExtNewton PRIVATE SIM_MATH_DOUBLE)
-#target_compile_definitions(simExtNewton PRIVATE _NEWTON_USE_DOUBLE)
-target_compile_definitions(simExtNewton PRIVATE SIM_INTERFACE_SINGLE)
-target_compile_definitions(simExtNewton PRIVATE sReal=float)
-target_compile_definitions(simExtNewton PRIVATE INCLUDE_NEWTON_CODE)
-target_compile_definitions(simExtNewton PRIVATE DYNAMICS_PLUGIN_VERSION=20)
-target_compile_definitions(simExtNewton PRIVATE LIBRARY_NAME=\"Newton\")
-target_compile_definitions(simExtNewton PRIVATE ENGINE_NAME=\"Newton\")
-target_compile_definitions(simExtNewton PRIVATE _CUSTOM_JOINTS_STATIC_LIB)
-target_compile_definitions(simExtNewton PRIVATE _NEWTON_STATIC_LIB)
-target_compile_definitions(simExtNewton PRIVATE PTW32_STATIC_LIB)
-target_compile_definitions(simExtNewton PRIVATE _ASSERTE=void)
+#target_compile_definitions(simNewton PRIVATE USE_THREAD_EMULATION) # not recomended. Use only if you need to handle Newton contacts in a contact callback script
+#target_compile_definitions(simNewton PRIVATE SIM_MATH_DOUBLE)
+#target_compile_definitions(simNewton PRIVATE _NEWTON_USE_DOUBLE)
+target_compile_definitions(simNewton PRIVATE SIM_INTERFACE_SINGLE)
+target_compile_definitions(simNewton PRIVATE sReal=float)
+target_compile_definitions(simNewton PRIVATE INCLUDE_NEWTON_CODE)
+target_compile_definitions(simNewton PRIVATE DYNAMICS_PLUGIN_VERSION=20)
+target_compile_definitions(simNewton PRIVATE LIBRARY_NAME=\"Newton\")
+target_compile_definitions(simNewton PRIVATE ENGINE_NAME=\"Newton\")
+target_compile_definitions(simNewton PRIVATE _CUSTOM_JOINTS_STATIC_LIB)
+target_compile_definitions(simNewton PRIVATE _NEWTON_STATIC_LIB)
+target_compile_definitions(simNewton PRIVATE PTW32_STATIC_LIB)
+target_compile_definitions(simNewton PRIVATE _ASSERTE=void)
 if(USE_THREAD_EMULATION)
-    target_compile_definitions(simExtNewton PRIVATE DG_USE_THREAD_EMULATION)
+    target_compile_definitions(simNewton PRIVATE DG_USE_THREAD_EMULATION)
 endif()
-target_include_directories(simExtNewton PRIVATE sourceCode/dynamics/newton)
-target_include_directories(simExtNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/newton)
-target_include_directories(simExtNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/core)
-target_include_directories(simExtNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/physics)
-target_include_directories(simExtNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/meshUtil)
-target_include_directories(simExtNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/ampPhysics)
-target_include_directories(simExtNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dMath)
-target_include_directories(simExtNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints)
-target_include_directories(simExtNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers)
+target_include_directories(simNewton PRIVATE sourceCode/dynamics/newton)
+target_include_directories(simNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/newton)
+target_include_directories(simNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/core)
+target_include_directories(simNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/physics)
+target_include_directories(simNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/meshUtil)
+target_include_directories(simNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/ampPhysics)
+target_include_directories(simNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dMath)
+target_include_directories(simNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dCustomJoints)
+target_include_directories(simNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/packages/dContainers)
 if(WIN32)
-    target_include_directories(simExtNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/pthreads.2)
+    target_include_directories(simNewton PRIVATE sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/pthreads.2)
 endif()
 endif(Newton)
 
 set(Vortex ${Vortex_default} CACHE BOOL "")
 if(Vortex)
 coppeliasim_add_plugin(
-    simExtVortex
+    simVortex
     LEGACY
     SOURCES
     ${COMMON_SOURCES}
@@ -620,33 +620,33 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/vortex/RigidBodyContainerDyn.cpp
     sourceCode/dynamics/vortex/ParticleDyn.cpp
 )
-target_compile_definitions(simExtVortex PRIVATE SIM_MATH_DOUBLE)
-target_compile_definitions(simExtVortex PRIVATE sReal=double)
-target_compile_definitions(simExtVortex PRIVATE INCLUDE_VORTEX_CODE)
-target_compile_definitions(simExtVortex PRIVATE VX_DLL)
-target_compile_definitions(simExtVortex PRIVATE DYNAMICS_PLUGIN_VERSION=20)
-target_compile_definitions(simExtVortex PRIVATE LIBRARY_NAME=\"Vortex\")
-target_compile_definitions(simExtVortex PRIVATE ENGINE_NAME=\"Vortex\")
-target_compile_definitions(simExtVortex PRIVATE _GLIBCXX_USE_CXX11_ABI=0)
+target_compile_definitions(simVortex PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simVortex PRIVATE sReal=double)
+target_compile_definitions(simVortex PRIVATE INCLUDE_VORTEX_CODE)
+target_compile_definitions(simVortex PRIVATE VX_DLL)
+target_compile_definitions(simVortex PRIVATE DYNAMICS_PLUGIN_VERSION=20)
+target_compile_definitions(simVortex PRIVATE LIBRARY_NAME=\"Vortex\")
+target_compile_definitions(simVortex PRIVATE ENGINE_NAME=\"Vortex\")
+target_compile_definitions(simVortex PRIVATE _GLIBCXX_USE_CXX11_ABI=0)
 if(WIN32)
-    target_link_libraries(simExtVortex ${VORTEX_LIBPATH}/VxCore.lib)
-    target_link_libraries(simExtVortex ${VORTEX_LIBPATH}/VxFoundation.lib)
-    target_link_libraries(simExtVortex ${VORTEX_LIBPATH}/VxPlatform.lib)
-    target_link_libraries(simExtVortex ${VORTEX_LIBPATH}/VxMath.lib)
+    target_link_libraries(simVortex ${VORTEX_LIBPATH}/VxCore.lib)
+    target_link_libraries(simVortex ${VORTEX_LIBPATH}/VxFoundation.lib)
+    target_link_libraries(simVortex ${VORTEX_LIBPATH}/VxPlatform.lib)
+    target_link_libraries(simVortex ${VORTEX_LIBPATH}/VxMath.lib)
 endif()
 if(UNIX AND NOT APPLE)
-    target_link_libraries(simExtVortex ${VORTEX_LIBPATH}/libVxCore.so)
-    target_link_libraries(simExtVortex ${VORTEX_LIBPATH}/libVxPlatform.so)
-    target_link_libraries(simExtVortex ${VORTEX_LIBPATH}/libVxMath.so)
+    target_link_libraries(simVortex ${VORTEX_LIBPATH}/libVxCore.so)
+    target_link_libraries(simVortex ${VORTEX_LIBPATH}/libVxPlatform.so)
+    target_link_libraries(simVortex ${VORTEX_LIBPATH}/libVxMath.so)
 endif()
-target_include_directories(simExtVortex PRIVATE ${VORTEX_INCLUDEPATH})
-target_include_directories(simExtVortex PRIVATE sourceCode/dynamics/vortex)
+target_include_directories(simVortex PRIVATE ${VORTEX_INCLUDEPATH})
+target_include_directories(simVortex PRIVATE sourceCode/dynamics/vortex)
 endif(Vortex)
 
 set(Mujoco ${Mujoco_default} CACHE BOOL "")
 if(Mujoco)
 coppeliasim_add_plugin(
-    simExtMujoco
+    simMujoco
     LEGACY
     SOURCES
     ${COMMON_SOURCES}
@@ -658,21 +658,22 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/mujoco/xmlser.cpp
     sourceCode/dynamics/mujoco/tinyxml2.cpp
 )
-target_compile_definitions(simExtMujoco PRIVATE SIM_MATH_DOUBLE)
-target_compile_definitions(simExtMujoco PRIVATE sReal=double)
-target_compile_definitions(simExtMujoco PRIVATE INCLUDE_MUJOCO_CODE)
-target_compile_definitions(simExtMujoco PRIVATE DYNAMICS_PLUGIN_VERSION=20)
-target_compile_definitions(simExtMujoco PRIVATE LIBRARY_NAME=\"Mujoco\")
-target_compile_definitions(simExtMujoco PRIVATE ENGINE_NAME=\"Mujoco\")
-target_include_directories(simExtMujoco PRIVATE ${MUJOCO_INCLUDEPATH})
-target_include_directories(simExtMujoco PRIVATE sourceCode/dynamics/mujoco)
+target_compile_definitions(simMujoco PRIVATE SIM_MATH_DOUBLE)
+target_compile_definitions(simMujoco PRIVATE sReal=double)
+target_compile_definitions(simMujoco PRIVATE INCLUDE_MUJOCO_CODE)
+target_compile_definitions(simMujoco PRIVATE DYNAMICS_PLUGIN_VERSION=20)
+target_compile_definitions(simMujoco PRIVATE LIBRARY_NAME=\"Mujoco\")
+target_compile_definitions(simMujoco PRIVATE ENGINE_NAME=\"Mujoco\")
+target_include_directories(simMujoco PRIVATE ${MUJOCO_INCLUDEPATH})
+target_include_directories(simMujoco PRIVATE sourceCode/dynamics/mujoco)
 if(WIN32)
-    target_link_libraries(simExtMujoco ${MUJOCO_LIBPATH}/mujoco.lib)
+    target_link_libraries(simMujoco ${MUJOCO_LIBPATH}/mujoco.lib)
 elseif(UNIX AND APPLE)
-    target_link_libraries(simExtMujoco ${MUJOCO_LIBPATH}/libmujoco.dylib)
+    target_link_libraries(simMujoco ${MUJOCO_LIBPATH}/libmujoco.dylib)
 elseif(UNIX)
-    target_link_libraries(simExtMujoco ${MUJOCO_LIBPATH}/libmujoco.so)
+    target_link_libraries(simMujoco ${MUJOCO_LIBPATH}/libmujoco.so)
 endif()
 coppeliasim_add_lua(simMujoco.lua)
+coppeliasim_add_lua(simMujoco-ce.lua)
 endif(Mujoco)
 

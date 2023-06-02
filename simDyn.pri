@@ -65,12 +65,12 @@ INCLUDEPATH += "../../coppeliaSimLib/sourceCode/interfaces"
 INCLUDEPATH += "../include"
 
 BULLET_2_78_ENGINE {
-    TARGET = simExtBullet-2-78
+    TARGET = simBullet-2-78
     DEFINES += SIM_MATH_DOUBLE
     DEFINES += sReal=double
     DEFINES += BT_USE_DOUBLE_PRECISION
     DEFINES += INCLUDE_BULLET_2_78_CODE
-    DEFINES += DYNAMICS_PLUGIN_VERSION=22
+    DEFINES += DYNAMICS_PLUGIN_VERSION=23
     DEFINES += LIBRARY_NAME=\\\"Bullet-2-78\\\"
     DEFINES += ENGINE_NAME=\\\"Bullet\\\"
 
@@ -79,12 +79,12 @@ BULLET_2_78_ENGINE {
 }
 
 BULLET_2_83_ENGINE {
-    TARGET = simExtBullet-2-83
+    TARGET = simBullet-2-83
     DEFINES += SIM_MATH_DOUBLE
     DEFINES += sReal=double
     DEFINES += BT_USE_DOUBLE_PRECISION
     DEFINES += INCLUDE_BULLET_2_83_CODE
-    DEFINES += DYNAMICS_PLUGIN_VERSION=22
+    DEFINES += DYNAMICS_PLUGIN_VERSION=23
     DEFINES += LIBRARY_NAME=\\\"Bullet-2-83\\\"
     DEFINES += ENGINE_NAME=\\\"Bullet\\\"
     *-msvc* {
@@ -107,13 +107,13 @@ BULLET_2_83_ENGINE {
 }
 
 ODE_ENGINE {
-    TARGET = simExtODE
+    TARGET = simODE
     DEFINES += SIM_MATH_DOUBLE
     DEFINES += sReal=double
     DEFINES += dDOUBLE
     DEFINES += CCD_DOUBLE
     DEFINES += INCLUDE_ODE_CODE
-    DEFINES += DYNAMICS_PLUGIN_VERSION=22
+    DEFINES += DYNAMICS_PLUGIN_VERSION=23
     DEFINES += LIBRARY_NAME=\\\"ODE\\\"
     DEFINES += ENGINE_NAME=\\\"ODE\\\"
     DEFINES += dNODEBUG
@@ -135,7 +135,7 @@ ODE_ENGINE {
 }
 
 NEWTON_ENGINE {
-    TARGET = simExtNewton
+    TARGET = simNewton
     #something is broken with Newton and double precision... revert to single precision for now
     #DEFINES += SIM_MATH_DOUBLE
     #DEFINES += _NEWTON_USE_DOUBLE
@@ -143,7 +143,7 @@ NEWTON_ENGINE {
     DEFINES += sReal=float
     #DEFINES += DG_USE_THREAD_EMULATION # not recomended. Use only if you need to handle Newton contacts in a contact callback script
     DEFINES += INCLUDE_NEWTON_CODE
-    DEFINES += DYNAMICS_PLUGIN_VERSION=22
+    DEFINES += DYNAMICS_PLUGIN_VERSION=23
     DEFINES += LIBRARY_NAME=\\\"Newton\\\"
     DEFINES += ENGINE_NAME=\\\"Newton\\\"
     DEFINES += _CUSTOM_JOINTS_STATIC_LIB
@@ -172,13 +172,13 @@ NEWTON_ENGINE {
 }
 
 VORTEX_ENGINE {
-    TARGET = simExtVortex
+    TARGET = simVortex
     CONFIG += c++11
     DEFINES += SIM_MATH_DOUBLE
     DEFINES += sReal=double
     DEFINES += INCLUDE_VORTEX_CODE
     DEFINES += VX_DLL
-    DEFINES += DYNAMICS_PLUGIN_VERSION=22
+    DEFINES += DYNAMICS_PLUGIN_VERSION=23
     DEFINES += LIBRARY_NAME=\\\"Vortex\\\"
     DEFINES += ENGINE_NAME=\\\"Vortex\\\"
     win32 {
@@ -198,11 +198,11 @@ VORTEX_ENGINE {
 }
 
 MUJOCO_ENGINE {
-    TARGET = simExtMujoco
+    TARGET = simMujoco
     DEFINES += SIM_MATH_DOUBLE
     DEFINES += sReal=double
     DEFINES += INCLUDE_MUJOCO_CODE
-    DEFINES += DYNAMICS_PLUGIN_VERSION=22
+    DEFINES += DYNAMICS_PLUGIN_VERSION=23
     DEFINES += LIBRARY_NAME=\\\"Mujoco\\\"
     DEFINES += ENGINE_NAME=\\\"Mujoco\\\"
     *-msvc* {
@@ -219,11 +219,11 @@ MUJOCO_ENGINE {
 }
 
 PHYSX_ENGINE {
-    TARGET = simExtPhysx
+    TARGET = simPhysx
     DEFINES += SIM_MATH_DOUBLE
     DEFINES += sReal=double
     DEFINES += INCLUDE_PHYSX_CODE
-    DEFINES += DYNAMICS_PLUGIN_VERSION=22
+    DEFINES += DYNAMICS_PLUGIN_VERSION=23
     DEFINES += LIBRARY_NAME=\\\"Physx\\\"
     DEFINES += ENGINE_NAME=\\\"Physx\\\"
     *-msvc* {
@@ -291,7 +291,7 @@ HEADERS += sourceCode/dynamics/CollShapeDyn_base.h \
     sourceCode/dynamics/ParticleDyn_base.h \
     sourceCode/dynamics/RigidBodyDyn_base.h \
     sourceCode/dynamics/RigidBodyContainerDyn_base.h \
-    sourceCode/simExtDyn.h \
+    sourceCode/simDyn.h \
 
 SOURCES += sourceCode/dynamics/CollShapeDyn_base.cpp \
     sourceCode/dynamics/ConstraintDyn_base.cpp \
@@ -300,7 +300,7 @@ SOURCES += sourceCode/dynamics/CollShapeDyn_base.cpp \
     sourceCode/dynamics/ParticleDyn_base.cpp \
     sourceCode/dynamics/RigidBodyDyn_base.cpp \
     sourceCode/dynamics/RigidBodyContainerDyn_base.cpp \
-    sourceCode/simExtDyn.cpp \
+    sourceCode/simDyn.cpp \
 
 BULLET_2_78_ENGINE {
     HEADERS +=sourceCode/dynamics/bullet_2_78/CollShapeDyn.h \

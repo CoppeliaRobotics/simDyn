@@ -1,13 +1,12 @@
-#ifndef SIMEXTDYN_H
-#define SIMEXTDYN_H
+#pragma once
 
 #include <simLib/simExp.h>
 
-SIM_DLLEXPORT unsigned char simStart(void* reservedPointer,int reservedInt);
-SIM_DLLEXPORT void simEnd();
-SIM_DLLEXPORT void* simMessage(int message,int* auxiliaryData,void* customData,int* replyData);
+SIM_DLLEXPORT int simInit(const char* pluginName);
+SIM_DLLEXPORT void simCleanup();
+SIM_DLLEXPORT void simMsg(int message,int* auxData,void* pointerdata);
 
-SIM_DLLEXPORT char dynPlugin_startSimulation_D(int engine,int version,const double floatParams[20],const int intParams[20]);
+SIM_DLLEXPORT char dynPlugin_startSimulation_D(const double floatParams[20],const int intParams[20]);
 SIM_DLLEXPORT void dynPlugin_endSimulation();
 SIM_DLLEXPORT void dynPlugin_step_D(double timeStep,double simulationTime);
 SIM_DLLEXPORT char dynPlugin_isDynamicContentAvailable();
@@ -25,4 +24,25 @@ SIM_DLLEXPORT int dynPlugin_getDynamicStepDivider();
 SIM_DLLEXPORT double mujocoPlugin_computeInertia(int shapeHandle,double* relPos,double* relQuat,double* diagI);
 SIM_DLLEXPORT double mujocoPlugin_computePMI(const double* vertices,int verticesL,const int* indices,int indicesL,double* relPos,double* relQuat,double* diagI);
 #endif
+
+#ifdef INCLUDE_BULLET_2_78_CODE
+SIM_DLLEXPORT void dynPlugin_bullet278();
+#endif
+#ifdef INCLUDE_BULLET_2_83_CODE
+SIM_DLLEXPORT void dynPlugin_bullet283();
+#endif
+#ifdef INCLUDE_ODE_CODE
+SIM_DLLEXPORT void dynPlugin_ode();
+#endif
+#ifdef INCLUDE_VORTEX_CODE
+SIM_DLLEXPORT void dynPlugin_vortex();
+#endif
+#ifdef INCLUDE_NEWTON_CODE
+SIM_DLLEXPORT void dynPlugin_newton();
+#endif
+#ifdef INCLUDE_MUJOCO_CODE
+SIM_DLLEXPORT void dynPlugin_mujoco();
+#endif
+#ifdef INCLUDE_PHYSX_CODE
+SIM_DLLEXPORT void dynPlugin_physx();
 #endif

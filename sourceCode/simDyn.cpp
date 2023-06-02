@@ -1,4 +1,4 @@
-#include "simExtDyn.h"
+#include "simDyn.h"
 #include "RigidBodyContainerDyn.h"
 #include <simLib/simLib.h>
 #include <iostream>
@@ -33,19 +33,19 @@ void LUA_MUJOCOREMOVEXML_CALLBACK(SScriptCallBack* p)
             { // we expect 1 arguments: the injection ID
                 int injectionId=inArguments.getInt(0);
                 if (!CRigidBodyContainerDyn::removeInjection(injectionId))
-                    simSetLastError(LUA_MUJOCOREMOVEXML_COMMAND,"invalid injection ID.");
+                    simSetLastError(nullptr,"invalid injection ID.");
             }
             else
-                simSetLastError(LUA_MUJOCOREMOVEXML_COMMAND,"not enough arguments or wrong arguments.");
+                simSetLastError(nullptr,"not enough arguments or wrong arguments.");
 
             CStackArray outArguments;
             outArguments.buildOntoStack(stack);
         }
         else
-            simSetLastError(LUA_MUJOCOREMOVEXML_COMMAND,"current engine is not MuJoCo.");
+            simSetLastError(nullptr,"current engine is not MuJoCo.");
     }
     else
-        simSetLastError(LUA_MUJOCOREMOVEXML_COMMAND,"simulation is not yet running.");
+        simSetLastError(nullptr,"simulation is not yet running.");
 }
 
 #define LUA_MUJOCOINJECTXML_COMMAND "simMujoco._injectXML"
@@ -84,17 +84,17 @@ void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
                 injectionId=CRigidBodyContainerDyn::injectXml(xml.c_str(),element.c_str(),handle,cbFunc.c_str(),cbScript,cbId.c_str());
             }
             else
-                simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"not enough arguments or wrong arguments.");
+                simSetLastError(nullptr,"not enough arguments or wrong arguments.");
 
             CStackArray outArguments;
             outArguments.pushInt(injectionId);
             outArguments.buildOntoStack(stack);
         }
         else
-            simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"current engine is not MuJoCo.");
+            simSetLastError(nullptr,"current engine is not MuJoCo.");
     }
     else
-        simSetLastError(LUA_MUJOCOINJECTXML_COMMAND,"simulation is not yet running.");
+        simSetLastError(nullptr,"simulation is not yet running.");
 }
 
 #define LUA_MUJOCOCOMPOSITE_COMMAND "simMujoco._composite"
@@ -146,29 +146,29 @@ void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
                                 injectionId=CRigidBodyContainerDyn::injectCompositeXml(xml.c_str(),shapeHandle,element.c_str(),prefix.c_str(),c,type.c_str(),respondableMask,grow,cbFunc.c_str(),cbScript);
                             }
                             else
-                                simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"invalid composite type.");
+                                simSetLastError(nullptr,"invalid composite type.");
                         }
                         else
-                            simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"invalid prefix.");
+                            simSetLastError(nullptr,"invalid prefix.");
                     }
                     else
-                        simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"info map does not contain all required items.");
+                        simSetLastError(nullptr,"info map does not contain all required items.");
                 }
                 else
-                    simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"info map should contain either shapeHandle(int) or element(string).");
+                    simSetLastError(nullptr,"info map should contain either shapeHandle(int) or element(string).");
             }
             else
-                simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"not enough arguments or wrong arguments.");
+                simSetLastError(nullptr,"not enough arguments or wrong arguments.");
 
             CStackArray outArguments;
             outArguments.pushInt(injectionId);
             outArguments.buildOntoStack(stack);
         }
         else
-            simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"current engine is not MuJoCo.");
+            simSetLastError(nullptr,"current engine is not MuJoCo.");
     }
     else
-        simSetLastError(LUA_MUJOCOCOMPOSITE_COMMAND,"simulation is not yet running.");
+        simSetLastError(nullptr,"simulation is not yet running.");
 }
 
 #define LUA_MUJOCOGETCOMPOSITEINFO_COMMAND "simMujoco.getCompositeInfo"
@@ -201,7 +201,7 @@ void LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK(SScriptCallBack* p)
                 }
             }
             else
-                simSetLastError(LUA_MUJOCOGETCOMPOSITEINFO_COMMAND,"not enough arguments or wrong arguments.");
+                simSetLastError(nullptr,"not enough arguments or wrong arguments.");
 
             CStackArray outArguments;
             CStackMap* map=new CStackMap();
@@ -218,15 +218,15 @@ void LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK(SScriptCallBack* p)
             outArguments.buildOntoStack(stack);
         }
         else
-            simSetLastError(LUA_MUJOCOGETCOMPOSITEINFO_COMMAND,"current engine is not MuJoCo.");
+            simSetLastError(nullptr,"current engine is not MuJoCo.");
     }
     else
-        simSetLastError(LUA_MUJOCOGETCOMPOSITEINFO_COMMAND,"simulation is not yet running.");
+        simSetLastError(nullptr,"simulation is not yet running.");
 }
 #endif
 
 
-SIM_DLLEXPORT unsigned char simStart(void* reservedPointer,int reservedInt)
+SIM_DLLEXPORT int simInit(const char* pluginName)
 {
     char curDirAndFile[1024];
  #ifdef _WIN32
@@ -248,85 +248,59 @@ SIM_DLLEXPORT unsigned char simStart(void* reservedPointer,int reservedInt)
      simLib=loadSimLibrary(temp.c_str());
      if (simLib==nullptr)
     {
-         printf("simExt%s: error: could not find or correctly load the CoppeliaSim library. Cannot start the plugin.\n",LIBRARY_NAME); // cannot use simAddLog here.
+         simAddLog(pluginName,sim_verbosity_errors,"could not find or correctly load the CoppeliaSim library. Cannot start the plugin.");
          return(0);
     }
      if (getSimProcAddresses(simLib)==0)
     {
-         printf("simExt%s: error: could not find all required functions in the CoppeliaSim library. Cannot start the plugin.\n",LIBRARY_NAME); // cannot use simAddLog here.
+         simAddLog(pluginName,sim_verbosity_errors,"could not find all required functions in the CoppeliaSim library. Cannot start the plugin.");
          unloadSimLibrary(simLib);
          return(0);
     }
 
 #ifdef INCLUDE_MUJOCO_CODE
-    simRegisterScriptVariable("simMujoco","require('simMujoco')",0);
-
-    simRegisterScriptCallbackFunction("simMujoco.removeXML@Mujoco","simMujoco.removeXML(int injectionId)",LUA_MUJOCOREMOVEXML_CALLBACK);
-    simRegisterScriptCallbackFunction("simMujoco._injectXML@Mujoco","",LUA_MUJOCOINJECTXML_CALLBACK);
-    simRegisterScriptCallbackFunction("simMujoco._composite@Mujoco","",LUA_MUJOCOCOMPOSITE_CALLBACK);
-    simRegisterScriptCallbackFunction("simMujoco.getCompositeInfo@Mujoco","map info=simMujoco.getCompositeInfo(int injectionId,int what)",LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK);
+    simRegisterScriptCallbackFunction("removeXML",nullptr,LUA_MUJOCOREMOVEXML_CALLBACK);
+    simRegisterScriptCallbackFunction("_injectXML",nullptr,LUA_MUJOCOINJECTXML_CALLBACK);
+    simRegisterScriptCallbackFunction("_composite",nullptr,LUA_MUJOCOCOMPOSITE_CALLBACK);
+    simRegisterScriptCallbackFunction("getCompositeInfo",nullptr,LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK);
 #endif
 
     return(DYNAMICS_PLUGIN_VERSION);
 }
 
-SIM_DLLEXPORT void simEnd()
+SIM_DLLEXPORT void simCleanup()
 {
     unloadSimLibrary(simLib);
 }
 
-SIM_DLLEXPORT void* simMessage(int message,int* auxiliaryData,void* customData,int* replyData)
+SIM_DLLEXPORT void simMsg(int message,int* auxData,void* pointerData)
 {
-    return(nullptr);
 }
 
-SIM_DLLEXPORT char dynPlugin_startSimulation_D(int engine,int version,const double floatParams[20],const int intParams[20])
+SIM_DLLEXPORT char dynPlugin_startSimulation_D(const double floatParams[20],const int intParams[20])
 {
     char retVal=0;
-#ifdef INCLUDE_BULLET_2_78_CODE
-    if ( (engine==sim_physics_bullet)&&(version==0) )
-#endif
-#ifdef INCLUDE_BULLET_2_83_CODE
-    if ( (engine==sim_physics_bullet)&&(version==283) )
-#endif
-#ifdef INCLUDE_ODE_CODE
-    if (engine==sim_physics_ode)
-#endif
-#ifdef INCLUDE_NEWTON_CODE
-    if (engine==sim_physics_newton)
-#endif
-#ifdef INCLUDE_VORTEX_CODE
-    if (engine==sim_physics_vortex)
-#endif
-#ifdef INCLUDE_MUJOCO_CODE
-    if (engine==sim_physics_mujoco)
-#endif
-#ifdef INCLUDE_PHYSX_CODE
-    if (engine==sim_physics_physx)
-#endif
-    {
-        simAddLog(LIBRARY_NAME,sim_verbosity_infos,"initializing the physics engine...");
-        CRigidBodyContainerDyn* dynWorld=new CRigidBodyContainerDyn();
-        CRigidBodyContainerDyn::setDynWorld(dynWorld);
+    simAddLog(LIBRARY_NAME,sim_verbosity_infos,"initializing the physics engine...");
+    CRigidBodyContainerDyn* dynWorld=new CRigidBodyContainerDyn();
+    CRigidBodyContainerDyn::setDynWorld(dynWorld);
 #ifdef SIM_MATH_DOUBLE
-        std::string err(dynWorld->init(floatParams,intParams));
+    std::string err(dynWorld->init(floatParams,intParams));
 #else
-        sReal fParams[20];
-        for (size_t i=0;i<20;i++)
-            fParams[i]=(sReal)floatParams[i];
-        std::string err(dynWorld->init(fParams,intParams));
+    sReal fParams[20];
+    for (size_t i=0;i<20;i++)
+        fParams[i]=(sReal)floatParams[i];
+    std::string err(dynWorld->init(fParams,intParams));
 #endif
-        std::string tmp("engine: ");
-        tmp+=dynWorld->getEngineInfo();
-        tmp+=", plugin version: ";
-        tmp+=std::to_string(DYNAMICS_PLUGIN_VERSION);
-        simAddLog(LIBRARY_NAME,sim_verbosity_infos,tmp.c_str());
-        if (err.size()!=0)
-            simAddLog(LIBRARY_NAME,sim_verbosity_errors,err.c_str());
-        else
-            simAddLog(LIBRARY_NAME,sim_verbosity_infos,"initialization successful.");
-        retVal=1;
-    }
+    std::string tmp("engine: ");
+    tmp+=dynWorld->getEngineInfo();
+    tmp+=", plugin version: ";
+    tmp+=std::to_string(DYNAMICS_PLUGIN_VERSION);
+    simAddLog(LIBRARY_NAME,sim_verbosity_infos,tmp.c_str());
+    if (err.size()!=0)
+        simAddLog(LIBRARY_NAME,sim_verbosity_errors,err.c_str());
+    else
+        simAddLog(LIBRARY_NAME,sim_verbosity_infos,"initialization successful.");
+    retVal=1;
     return(retVal);
 }
 
@@ -550,3 +524,24 @@ SIM_DLLEXPORT double mujocoPlugin_computePMI(const double* vertices,int vertices
 
 #endif
 
+#ifdef INCLUDE_BULLET_2_78_CODE
+SIM_DLLEXPORT void dynPlugin_bullet278(){}
+#endif
+#ifdef INCLUDE_BULLET_2_83_CODE
+SIM_DLLEXPORT void dynPlugin_bullet283(){}
+#endif
+#ifdef INCLUDE_ODE_CODE
+SIM_DLLEXPORT void dynPlugin_ode(){}
+#endif
+#ifdef INCLUDE_VORTEX_CODE
+SIM_DLLEXPORT void dynPlugin_vortex(){}
+#endif
+#ifdef INCLUDE_NEWTON_CODE
+SIM_DLLEXPORT void dynPlugin_newton(){}
+#endif
+#ifdef INCLUDE_MUJOCO_CODE
+SIM_DLLEXPORT void dynPlugin_mujoco(){}
+#endif
+#ifdef INCLUDE_PHYSX_CODE
+SIM_DLLEXPORT void dynPlugin_physx(){}
+#endif
