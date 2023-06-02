@@ -17,7 +17,6 @@
 static LIBRARY simLib;
 
 #ifdef INCLUDE_MUJOCO_CODE
-#define LUA_MUJOCOREMOVEXML_COMMAND "simMujoco.removeXML"
 void LUA_MUJOCOREMOVEXML_CALLBACK(SScriptCallBack* p)
 {
     if (simGetSimulationState()!=sim_simulation_stopped)
@@ -48,7 +47,6 @@ void LUA_MUJOCOREMOVEXML_CALLBACK(SScriptCallBack* p)
         simSetLastError(nullptr,"simulation is not yet running.");
 }
 
-#define LUA_MUJOCOINJECTXML_COMMAND "simMujoco._injectXML"
 void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
 {
     if (simGetSimulationState()!=sim_simulation_stopped)
@@ -97,7 +95,6 @@ void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
         simSetLastError(nullptr,"simulation is not yet running.");
 }
 
-#define LUA_MUJOCOCOMPOSITE_COMMAND "simMujoco._composite"
 void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
 {
     if (simGetSimulationState()!=sim_simulation_stopped)
@@ -171,7 +168,6 @@ void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
         simSetLastError(nullptr,"simulation is not yet running.");
 }
 
-#define LUA_MUJOCOGETCOMPOSITEINFO_COMMAND "simMujoco.getCompositeInfo"
 void LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK(SScriptCallBack* p)
 {
     if (simGetSimulationState()!=sim_simulation_stopped)
