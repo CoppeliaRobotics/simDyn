@@ -1,4 +1,4 @@
-local simMujoco=loadPlugin('simMujoco')
+local simMujoco=loadPlugin'simMujoco';
 
 function simMujoco.composite(...)
     local xml,info=checkargs({{type='string'},{type='table'}},...)
