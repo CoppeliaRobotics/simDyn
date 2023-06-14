@@ -155,7 +155,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep,double sim
     for (size_t i=0;i<2;i++)
         w[i]=simGetEngineFloatParam(sim_mujoco_global_overridesolref1+i,-1,nullptr,nullptr);
     xmlDoc->setAttr("o_solref",w,2);
-    for (size_t i=0;i<2;i++)
+    for (size_t i=0;i<5;i++)
         w[i]=simGetEngineFloatParam(sim_mujoco_global_overridesolimp1+i,-1,nullptr,nullptr);
     xmlDoc->setAttr("o_solimp",w,5);
     const char* integrator[]={"Euler","RK4","implicit"};
