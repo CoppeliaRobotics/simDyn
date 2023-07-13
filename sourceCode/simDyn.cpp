@@ -6,14 +6,6 @@
 #include <simStack/stackArray.h>
 #include <simStack/stackMap.h>
 
-#ifdef _WIN32
-#include <direct.h>
-#endif
-
-#if defined (__linux) || defined (__APPLE__)
-    #include <unistd.h>
-#endif
-
 static LIBRARY simLib;
 
 #ifdef INCLUDE_MUJOCO_CODE
@@ -222,34 +214,17 @@ void LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK(SScriptCallBack* p)
 #endif
 
 
-SIM_DLLEXPORT int simInit(const char* pluginName)
+SIM_DLLEXPORT int simInit(SSimInit* info)
 {
-    char curDirAndFile[1024];
- #ifdef _WIN32
-    _getcwd(curDirAndFile, sizeof(curDirAndFile));
- #elif defined (__linux) || defined (__APPLE__)
-    getcwd(curDirAndFile, sizeof(curDirAndFile));
- #endif
-    std::string currentDirAndPath(curDirAndFile);
-
-    std::string temp(currentDirAndPath);
- #ifdef _WIN32
-     temp+="/coppeliaSim.dll";
- #elif defined (__linux)
-     temp+="/libcoppeliaSim.so";
- #elif defined (__APPLE__)
-     temp+="/libcoppeliaSim.dylib";
- #endif /* __linux || __APPLE__ */
-
-     simLib=loadSimLibrary(temp.c_str());
+    simLib=loadSimLibrary(info->coppeliaSimLibPath);
      if (simLib==nullptr)
     {
-         simAddLog(pluginName,sim_verbosity_errors,"could not find or correctly load the CoppeliaSim library. Cannot start the plugin.");
+         simAddLog(info->pluginName,sim_verbosity_errors,"could not find or correctly load the CoppeliaSim library. Cannot start the plugin.");
          return(0);
     }
      if (getSimProcAddresses(simLib)==0)
     {
-         simAddLog(pluginName,sim_verbosity_errors,"could not find all required functions in the CoppeliaSim library. Cannot start the plugin.");
+         simAddLog(info->pluginName,sim_verbosity_errors,"could not find all required functions in the CoppeliaSim library. Cannot start the plugin.");
          unloadSimLibrary(simLib);
          return(0);
     }
@@ -269,7 +244,7 @@ SIM_DLLEXPORT void simCleanup()
     unloadSimLibrary(simLib);
 }
 
-SIM_DLLEXPORT void simMsg(int message,int* auxData,void* pointerData)
+SIM_DLLEXPORT void simMsg(SSimMsg*)
 {
 }
 

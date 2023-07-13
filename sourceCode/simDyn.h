@@ -1,10 +1,11 @@
 #pragma once
 
+#include <simLib/simTypes.h>
 #include <simLib/simExp.h>
 
-SIM_DLLEXPORT int simInit(const char* pluginName);
+SIM_DLLEXPORT int simInit(SSimInit*);
 SIM_DLLEXPORT void simCleanup();
-SIM_DLLEXPORT void simMsg(int message,int* auxData,void* pointerdata);
+SIM_DLLEXPORT void simMsg(SSimMsg*);
 
 SIM_DLLEXPORT char dynPlugin_startSimulation_D(const double floatParams[20],const int intParams[20]);
 SIM_DLLEXPORT void dynPlugin_endSimulation();
