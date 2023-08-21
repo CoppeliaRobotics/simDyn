@@ -263,6 +263,7 @@ target_include_directories(simBullet-2-83 PRIVATE ${BULLET_INCLUDEPATH})
 target_include_directories(simBullet-2-83 PRIVATE sourceCode/dynamics/bullet_2_83)
 if(WIN32)
     target_link_libraries(simBullet-2-83
+        PRIVATE
         ${BULLET_BUILD_DIR}/lib/Release/BulletDynamics.lib
         ${BULLET_BUILD_DIR}/lib/Release/BulletCollision.lib
         ${BULLET_BUILD_DIR}/lib/Release/LinearMath.lib
@@ -272,6 +273,7 @@ if(WIN32)
         MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 elseif(UNIX)
     target_link_libraries(simBullet-2-83
+        PRIVATE
         ${BULLET_BUILD_DIR}/src/BulletDynamics/libBulletDynamics.a
         ${BULLET_BUILD_DIR}/src/BulletCollision/libBulletCollision.a
         ${BULLET_BUILD_DIR}/src/LinearMath/libLinearMath.a
@@ -629,15 +631,15 @@ target_compile_definitions(simVortex PRIVATE LIBRARY_NAME=\"Vortex\")
 target_compile_definitions(simVortex PRIVATE ENGINE_NAME=\"Vortex\")
 target_compile_definitions(simVortex PRIVATE _GLIBCXX_USE_CXX11_ABI=0)
 if(WIN32)
-    target_link_libraries(simVortex ${VORTEX_LIBPATH}/VxCore.lib)
-    target_link_libraries(simVortex ${VORTEX_LIBPATH}/VxFoundation.lib)
-    target_link_libraries(simVortex ${VORTEX_LIBPATH}/VxPlatform.lib)
-    target_link_libraries(simVortex ${VORTEX_LIBPATH}/VxMath.lib)
+    target_link_libraries(simVortex PRIVATE ${VORTEX_LIBPATH}/VxCore.lib)
+    target_link_libraries(simVortex PRIVATE ${VORTEX_LIBPATH}/VxFoundation.lib)
+    target_link_libraries(simVortex PRIVATE ${VORTEX_LIBPATH}/VxPlatform.lib)
+    target_link_libraries(simVortex PRIVATE ${VORTEX_LIBPATH}/VxMath.lib)
 endif()
 if(UNIX AND NOT APPLE)
-    target_link_libraries(simVortex ${VORTEX_LIBPATH}/libVxCore.so)
-    target_link_libraries(simVortex ${VORTEX_LIBPATH}/libVxPlatform.so)
-    target_link_libraries(simVortex ${VORTEX_LIBPATH}/libVxMath.so)
+    target_link_libraries(simVortex PRIVATE ${VORTEX_LIBPATH}/libVxCore.so)
+    target_link_libraries(simVortex PRIVATE ${VORTEX_LIBPATH}/libVxPlatform.so)
+    target_link_libraries(simVortex PRIVATE ${VORTEX_LIBPATH}/libVxMath.so)
 endif()
 target_include_directories(simVortex PRIVATE ${VORTEX_INCLUDEPATH})
 target_include_directories(simVortex PRIVATE sourceCode/dynamics/vortex)
@@ -667,11 +669,11 @@ target_compile_definitions(simMujoco PRIVATE ENGINE_NAME=\"Mujoco\")
 target_include_directories(simMujoco PRIVATE ${MUJOCO_INCLUDEPATH})
 target_include_directories(simMujoco PRIVATE sourceCode/dynamics/mujoco)
 if(WIN32)
-    target_link_libraries(simMujoco ${MUJOCO_LIBPATH}/mujoco.lib)
+    target_link_libraries(simMujoco PRIVATE ${MUJOCO_LIBPATH}/mujoco.lib)
 elseif(UNIX AND APPLE)
-    target_link_libraries(simMujoco ${MUJOCO_LIBPATH}/libmujoco.dylib)
+    target_link_libraries(simMujoco PRIVATE ${MUJOCO_LIBPATH}/libmujoco.dylib)
 elseif(UNIX)
-    target_link_libraries(simMujoco ${MUJOCO_LIBPATH}/libmujoco.so)
+    target_link_libraries(simMujoco PRIVATE ${MUJOCO_LIBPATH}/libmujoco.so)
 endif()
 coppeliasim_add_lua(simMujoco.lua)
 coppeliasim_add_lua(simMujoco-ce.lua)
