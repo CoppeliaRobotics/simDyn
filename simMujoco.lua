@@ -2,7 +2,7 @@ local simMujoco=loadPlugin'simMujoco';
 
 function simMujoco.composite(...)
     local xml,info=checkargs({{type='string'},{type='table'}},...)
-    local lb=sim.setAutoYield(false)
+    local lb=sim.setStepping(true)
     function __cb1(xml,info)
         local xmlOut,infoOut=_S.mujocoCbs[info.prefix](xml,info)
         return xmlOut,infoOut
@@ -16,13 +16,13 @@ function simMujoco.composite(...)
         info.cbFunc='__cb1'
     end
     local injectionId=simMujoco._composite(xml,info)
-    sim.setAutoYield(lb)
+    sim.setStepping(lb)
     return injectionId
 end
 
 function simMujoco.injectXML(...)
     local xml,item2,info=checkargs({{type='string'},{type='any'},{type='table',default=NIL,nullable=true}},...)
-    local lb=sim.setAutoYield(false)
+    local lb=sim.setStepping(true)
     function __cb2(xml,info)
         local xmlOut=_S.mujocoCbs[info.cbId](xml)
         return xmlOut
@@ -43,7 +43,7 @@ function simMujoco.injectXML(...)
         info.cbId=id
     end
     local injectionId=simMujoco._injectXML(xml,item2,info)
-    sim.setAutoYield(lb)
+    sim.setStepping(lb)
     return injectionId
 end
 
