@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-typedef sim::tinyxml2::XMLElement xmlNode;
+typedef tinyxml2::XMLElement xmlNode;
 
 class CXmlSer
 {
@@ -46,7 +46,7 @@ private:
     xmlNode* _createNode(const char* name);
     void _pushNode(xmlNode* node);
     
-    sim::tinyxml2::XMLDocument _document;
+    tinyxml2::XMLDocument _document;
     std::vector<xmlNode*> _nodes;
     std::string _filename;
     std::string _xml;

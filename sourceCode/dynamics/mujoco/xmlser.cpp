@@ -28,7 +28,7 @@ std::string CXmlSer::getString()
 {
     if (_xml.size()==0)
     {
-        sim::tinyxml2::XMLPrinter printer;
+        tinyxml2::XMLPrinter printer;
         _document.Print(&printer);
         _xml=printer.CStr();
     }
