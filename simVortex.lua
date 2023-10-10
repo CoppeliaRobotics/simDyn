@@ -1,3 +1,3 @@
-local simVortex=loadPlugin('simVortex')
+local simVortex = loadPlugin('simVortex');
 
 return simVortex

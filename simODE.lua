@@ -1,3 +1,3 @@
-local simODE=loadPlugin('simODE')
+local simODE = loadPlugin('simODE');
 
 return simODE

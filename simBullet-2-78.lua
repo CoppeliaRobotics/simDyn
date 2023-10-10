@@ -1,3 +1,3 @@
-local simBullet=loadPlugin('simBullet-2-78')
+local simBullet = loadPlugin('simBullet-2-78');
 
 return simBullet

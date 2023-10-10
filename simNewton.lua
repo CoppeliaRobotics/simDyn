@@ -1,3 +1,3 @@
-local simNewton=loadPlugin('simNewton')
+local simNewton = loadPlugin('simNewton');
 
 return simNewton
