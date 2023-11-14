@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ParticleDyn_base.h"
-#include "xmlser.h"
+#include <ParticleDyn_base.h>
+#include <xmlser.h>
 #include <mujoco/mujoco.h>
 
 struct SMjGeom;

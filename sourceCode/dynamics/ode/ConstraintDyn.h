@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ConstraintDyn_base.h"
-#include "ode/ode.h"
+#include <ConstraintDyn_base.h>
+#include <ode/ode.h>
 
 class CConstraintDyn : public CConstraintDyn_base
 {

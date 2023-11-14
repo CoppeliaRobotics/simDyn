@@ -249,8 +249,7 @@ PHYSX_ENGINE {
     INCLUDEPATH += "sourceCode/dynamics/physx"
 }
 
-HEADERS += ../../coppeliaSimLib/sourceCode/interfaces/dummyClasses.h \
-    ../include/simLib/simLib.h \
+HEADERS += ../include/simLib/simLib.h \
     ../include/simMath/3Vector.h \
     ../include/simMath/4Vector.h \
     ../include/simMath/7Vector.h \

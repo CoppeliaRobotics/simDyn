@@ -1,5 +1,5 @@
-#include "RigidBodyDyn_base.h"
-#include "RigidBodyContainerDyn.h"
+#include <RigidBodyDyn_base.h>
+#include <RigidBodyContainerDyn.h>
 #include <simLib/simLib.h>
 
 CRigidBodyDyn_base::CRigidBodyDyn_base()

@@ -1,18 +1,18 @@
-#include "RigidBodyContainerDyn.h"
-#include "RigidBodyDyn.h"
-#include "CollShapeDyn.h"
+#include <RigidBodyContainerDyn.h>
+#include <RigidBodyDyn.h>
+#include <CollShapeDyn.h>
 #include <simLib/simLib.h>
-#include "Vx/VxPart.h"
-#include "Vx/VxUniverse.h"
-#include "Vx/VxMassProperties.h"
-#include "Vx/VxCompositeCollisionGeometry.h"
-#include "Vx/VxTransform.h"
-#include "Vx/VxQuaternion.h"
-#include "Vx/VxFrictionDirection.h"
-#include "Vx/VxMessage.h"
-#include "Vx/VxFrame.h"
-#include "Vx/VxIntersectFilter.h"
-#include "VortexConvertUtil.h"
+#include <Vx/VxPart.h>
+#include <Vx/VxUniverse.h>
+#include <Vx/VxMassProperties.h>
+#include <Vx/VxCompositeCollisionGeometry.h>
+#include <Vx/VxTransform.h>
+#include <Vx/VxQuaternion.h>
+#include <Vx/VxFrictionDirection.h>
+#include <Vx/VxMessage.h>
+#include <Vx/VxFrame.h>
+#include <Vx/VxIntersectFilter.h>
+#include <VortexConvertUtil.h>
 
 Vx::VxIntersectFilter* CRigidBodyDyn::_sVortexIntersectFilter = nullptr;
 /* Returns true if the friction is same along/around primary and secondary axes.

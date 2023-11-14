@@ -1,7 +1,7 @@
 #pragma once
 
-#include "RigidBodyDyn_base.h"
-#include "btBulletDynamicsCommon.h"
+#include <RigidBodyDyn_base.h>
+#include <btBulletDynamicsCommon.h>
 
 class CRigidBodyDyn : public CRigidBodyDyn_base
 {

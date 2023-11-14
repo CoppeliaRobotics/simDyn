@@ -1,5 +1,5 @@
-#include "ConstraintDyn_base.h"
-#include "RigidBodyContainerDyn.h"
+#include <ConstraintDyn_base.h>
+#include <RigidBodyContainerDyn.h>
 #include <simLib/simLib.h>
 
 CConstraintDyn_base::CConstraintDyn_base()

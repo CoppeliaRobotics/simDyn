@@ -1,10 +1,10 @@
 #pragma once
 
-#include "RigidBodyDyn.h"
-#include "CollShapeDyn.h"
-#include "ConstraintDyn_base.h"
-#include "ParticleObjectContainer_base.h"
-#include "dummyClasses.h"
+#include <RigidBodyDyn.h>
+#include <CollShapeDyn.h>
+#include <ConstraintDyn_base.h>
+#include <ParticleObjectContainer_base.h>
+#include <utils.h>
 #include <simMath/3Vector.h>
 #include <string>
 #include <map>
@@ -54,8 +54,6 @@ public:
     sReal getGravityScalingFactorDyn() const;
     sReal getDynamicsInternalTimeStep() const;
     int getDynamicParticlesIdStart() const;
-
-    static bool isJointInDynamicMode(CXSceneObject* joint);
 
 protected:
     virtual void _applyGravity();

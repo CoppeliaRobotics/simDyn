@@ -1,7 +1,7 @@
-#include "CollShapeDyn.h"
+#include <CollShapeDyn.h>
 #include <simLib/simLib.h>
-#include "NewtonConvertUtil.h"
-#include "RigidBodyContainerDyn.h"
+#include <NewtonConvertUtil.h>
+#include <RigidBodyContainerDyn.h>
 
 CCollShapeDyn::CCollShapeDyn()
 {

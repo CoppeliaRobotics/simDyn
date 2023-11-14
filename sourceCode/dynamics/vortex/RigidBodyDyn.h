@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RigidBodyDyn_base.h"
+#include <RigidBodyDyn_base.h>
 namespace Vx
 {
     class VxPart;

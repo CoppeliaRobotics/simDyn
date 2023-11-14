@@ -1,5 +1,5 @@
-#include "simDyn.h"
-#include "RigidBodyContainerDyn.h"
+#include <simDyn.h>
+#include <RigidBodyContainerDyn.h>
 #include <simLib/simLib.h>
 #include <iostream>
 #include <cstdio>

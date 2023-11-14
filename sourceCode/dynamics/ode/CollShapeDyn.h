@@ -1,7 +1,7 @@
 #pragma once
 
-#include "CollShapeDyn_base.h"
-#include "ode/ode.h"
+#include <CollShapeDyn_base.h>
+#include <ode/ode.h>
 
 class CCollShapeDyn : public CCollShapeDyn_base
 {

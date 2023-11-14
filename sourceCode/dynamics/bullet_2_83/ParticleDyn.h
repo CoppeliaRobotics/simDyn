@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ParticleDyn_base.h"
-#include "btBulletDynamicsCommon.h"
+#include <ParticleDyn_base.h>
+#include <btBulletDynamicsCommon.h>
 
 class CParticleDyn : public CParticleDyn_base
 {

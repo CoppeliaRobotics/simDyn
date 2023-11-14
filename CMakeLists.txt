@@ -66,17 +66,8 @@ if(APPLE)
     add_definitions(-D_MACOSX_VER)
 endif()
 
-set(LIBCOPPELIASIM_SOURCE_DIR NOT-FOUND CACHE PATH "Location of coppeliaSimLib source tree")
-find_path(LIBCOPPELIASIM_SOURCE_DIR
-    sourceCode/interfaces/dummyClasses.h
-    PATHS ${LIBCOPPELIASIM_SOURCE_DIR} ../coppeliaSimLib ../../coppeliaSimLib
-    DOC "Location of coppeliaSimLib/sourceCode/interfaces"
-    REQUIRED NO_DEFAULT_PATH
-)
-
 include_directories(sourceCode)
 include_directories(sourceCode/dynamics)
-include_directories(${LIBCOPPELIASIM_SOURCE_DIR}/sourceCode/interfaces)
 include_directories(${COPPELIASIM_INCLUDE_DIR})
 
 set(COMMON_SOURCES

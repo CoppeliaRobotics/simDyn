@@ -1,7 +1,7 @@
 #pragma once
 
-#include "RigidBodyDyn_base.h"
-#include "Newton.h"
+#include <RigidBodyDyn_base.h>
+#include <Newton.h>
 
 class CRigidBodyDyn : public CRigidBodyDyn_base
 {

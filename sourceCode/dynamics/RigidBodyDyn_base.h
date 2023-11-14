@@ -1,7 +1,7 @@
 #pragma once
 
-#include "dummyClasses.h"
-#include "CollShapeDyn.h"
+#include <utils.h>
+#include <CollShapeDyn.h>
 #include <simMath/7Vector.h>
 
 class CRigidBodyDyn_base

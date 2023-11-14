@@ -1,14 +1,14 @@
-#include "ParticleDyn.h"
-#include "RigidBodyContainerDyn.h"
+#include <ParticleDyn.h>
+#include <RigidBodyContainerDyn.h>
 #include <simLib/simLib.h>
-#include "Vx/VxUniverse.h"
-#include "Vx/VxSphere.h"
-#include "Vx/VxPart.h"
-#include "Vx/VxCollisionGeometry.h"
-#include "Vx/VxMaterialTable.h"
-#include "Vx/VxResponseModel.h"
-#include "Vx/VxRigidBodyResponseModel.h"
-#include "VortexConvertUtil.h"
+#include <Vx/VxUniverse.h>
+#include <Vx/VxSphere.h>
+#include <Vx/VxPart.h>
+#include <Vx/VxCollisionGeometry.h>
+#include <Vx/VxMaterialTable.h>
+#include <Vx/VxResponseModel.h>
+#include <Vx/VxRigidBodyResponseModel.h>
+#include <VortexConvertUtil.h>
 #include <boost/lexical_cast.hpp>
 
 CParticleDyn::CParticleDyn(const C3Vector& position,const C3Vector& velocity,int objType,double size,double massOverVolume,double killTime,float addColor[3]) : CParticleDyn_base(position,velocity,objType,size,massOverVolume,killTime,addColor)

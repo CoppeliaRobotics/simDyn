@@ -1,7 +1,7 @@
 #pragma once
 
-#include "RigidBodyContainerDyn_base.h"
-#include "ode/ode.h"
+#include <RigidBodyContainerDyn_base.h>
+#include <ode/ode.h>
 
 struct SOdeContactData
 {

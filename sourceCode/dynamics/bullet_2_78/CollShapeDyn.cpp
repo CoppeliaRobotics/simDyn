@@ -1,8 +1,8 @@
-#include "CollShapeDyn.h"
-#include "RigidBodyContainerDyn.h"
+#include <CollShapeDyn.h>
+#include <RigidBodyContainerDyn.h>
 #include <simLib/simLib.h>
-#include "BulletCollision/Gimpact/btGImpactShape.h"
-#include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
+#include <BulletCollision/Gimpact/btGImpactShape.h>
+#include <BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
 
 CCollShapeDyn::CCollShapeDyn()
 {

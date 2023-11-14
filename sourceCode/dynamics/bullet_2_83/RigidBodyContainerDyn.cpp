@@ -1,13 +1,13 @@
-#include "RigidBodyContainerDyn.h"
-#include "CollShapeDyn.h"
-#include "RigidBodyDyn.h"
-#include "ConstraintDyn.h"
+#include <RigidBodyContainerDyn.h>
+#include <CollShapeDyn.h>
+#include <RigidBodyDyn.h>
+#include <ConstraintDyn.h>
 #include <simLib/simLib.h>
-#include "BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h"
-#include "BulletDynamics/ConstraintSolver/btNNCGConstraintSolver.h"
-#include "BulletDynamics/MLCPSolvers/btDantzigSolver.h"
-#include "BulletDynamics/MLCPSolvers/btSolveProjectedGaussSeidel.h"
-#include "BulletDynamics/MLCPSolvers/btMLCPSolver.h"
+#include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
+#include <BulletDynamics/ConstraintSolver/btNNCGConstraintSolver.h>
+#include <BulletDynamics/MLCPSolvers/btDantzigSolver.h>
+#include <BulletDynamics/MLCPSolvers/btSolveProjectedGaussSeidel.h>
+#include <BulletDynamics/MLCPSolvers/btMLCPSolver.h>
 
 bool CRigidBodyContainerDyn::_bulletContactCallback_useCustom;
 double CRigidBodyContainerDyn::_bulletContactCallback_combinedFriction;

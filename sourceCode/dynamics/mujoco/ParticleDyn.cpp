@@ -1,5 +1,5 @@
-#include "ParticleDyn.h"
-#include "RigidBodyContainerDyn.h"
+#include <ParticleDyn.h>
+#include <RigidBodyContainerDyn.h>
 #include <simLib/simLib.h>
 
 CXmlSer* CParticleDyn::xmlDoc=nullptr;

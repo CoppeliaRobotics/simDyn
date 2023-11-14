@@ -1,7 +1,7 @@
-#include "RigidBodyContainerDyn.h"
-#include "CollShapeDyn.h"
-#include "RigidBodyDyn.h"
-#include "ConstraintDyn.h"
+#include <RigidBodyContainerDyn.h>
+#include <CollShapeDyn.h>
+#include <RigidBodyDyn.h>
+#include <ConstraintDyn.h>
 #include <simLib/simLib.h>
 #include <simMath/4X4Matrix.h>
 #include <filesystem>
@@ -1189,6 +1189,7 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
         CXSceneObject* child=nullptr;
         if (objType==sim_object_joint_type)
         {
+/*
             int childrenCount;
             CXSceneObject** childrenPointer=(CXSceneObject**)_simGetObjectChildren(object,&childrenCount);
             if ( (parent!=nullptr)&&((_simGetObjectType(parent)==sim_object_shape_type)||(_simGetObjectType(parent)==sim_object_joint_type))&&(childrenCount==1)&&(isJointInDynamicMode(object)||_simIsJointInHybridOperation(object))&&(dynProp&sim_objdynprop_dynamic) )
@@ -1202,9 +1203,23 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
                 else
                     child=childrenPointer[0]; // check further down if that joint is involved in a loop closure
             }
+*/
+            int t;
+            CXSceneObject* cld = getJointOrFsensorChild(object, &t);
+            if ( (parent!=nullptr)&&((_simGetObjectType(parent)==sim_object_shape_type)||(_simGetObjectType(parent)==sim_object_joint_type))&&(cld != nullptr)&&(isJointInDynamicMode(object)||_simIsJointInHybridOperation(object))&&(dynProp&sim_objdynprop_dynamic) )
+            { // parent is shape (or joint, consecutive joints are allowed!), joint is in correct mode, and has one possible correct child
+                if ( (t == sim_object_shape_type) ||(t == sim_object_joint_type) )
+                { // child is a dyn. shape (or a dyn. joint)
+                    _addObjectBranch(cld,object,xmlDoc,info);
+                    ignoreChildren=true;
+                }
+                else
+                    child=cld; // check further down if that joint is involved in a loop closure
+            }
         }
         if (objType==sim_object_forcesensor_type)
         {
+/*
             int childrenCount;
             CXSceneObject** childrenPointer=(CXSceneObject**)_simGetObjectChildren(object,&childrenCount);
             if ( (parent!=nullptr)&&(_simGetObjectType(parent)==sim_object_shape_type)&&(childrenCount==1)&&(dynProp&sim_objdynprop_dynamic) )
@@ -1216,6 +1231,19 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
                 }
                 else
                     child=childrenPointer[0]; // check further down if that force sensor is involved in a loop closure
+            }
+*/
+            int t;
+            CXSceneObject* cld = getJointOrFsensorChild(object, &t);
+            if ( (parent!=nullptr)&&(_simGetObjectType(parent)==sim_object_shape_type)&&(cld != nullptr)&&(dynProp&sim_objdynprop_dynamic) )
+            { // parent is shape, and force sensor has an appropriate child
+                if (t==sim_object_shape_type)
+                { // child is a dyn. shape
+                    _addObjectBranch(cld,object,xmlDoc,info);
+                    ignoreChildren=true;
+                }
+                else
+                    child=cld; // check further down if that force sensor is involved in a loop closure
             }
         }
         if (objType==sim_object_dummy_type)

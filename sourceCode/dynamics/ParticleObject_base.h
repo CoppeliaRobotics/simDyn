@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ParticleDyn.h"
+#include <ParticleDyn.h>
 #include <vector>
 
 class CParticleObject_base

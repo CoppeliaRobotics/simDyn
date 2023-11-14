@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ParticleDyn_base.h"
-#include "ode/ode.h"
+#include <ParticleDyn_base.h>
+#include <ode/ode.h>
 
 class CParticleDyn : public CParticleDyn_base
 {

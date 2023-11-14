@@ -1,7 +1,7 @@
 #pragma once
 
-#include "CollShapeDyn_base.h"
-#include "btBulletDynamicsCommon.h"
+#include <CollShapeDyn_base.h>
+#include <btBulletDynamicsCommon.h>
 
 class CCollShapeDyn : public CCollShapeDyn_base
 {

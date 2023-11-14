@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ConstraintDyn_base.h"
-#include "btBulletDynamicsCommon.h"
+#include <ConstraintDyn_base.h>
+#include <btBulletDynamicsCommon.h>
 
 class CConstraintDyn : public CConstraintDyn_base
 {

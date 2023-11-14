@@ -1,7 +1,7 @@
 #pragma once
 
-#include "dummyClasses.h"
-#include "RigidBodyDyn.h"
+#include <utils.h>
+#include <RigidBodyDyn.h>
 #include <simMath/7Vector.h>
 
 class CConstraintDyn_base  

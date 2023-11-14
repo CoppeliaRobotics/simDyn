@@ -1,8 +1,8 @@
 #include <simLib/simLib.h>
-#include "RigidBodyContainerDyn.h"
-#include "CollShapeDyn.h"
-#include "RigidBodyDyn.h"
-#include "ConstraintDyn.h"
+#include <RigidBodyContainerDyn.h>
+#include <CollShapeDyn.h>
+#include <RigidBodyDyn.h>
+#include <ConstraintDyn.h>
 
 CRigidBodyContainerDyn* CRigidBodyContainerDyn_base::_dynWorld=nullptr;
 
@@ -127,22 +127,6 @@ int CRigidBodyContainerDyn_base::getDynamicsCalculationPasses() const
 sReal CRigidBodyContainerDyn_base::getSimulationTime() const
 {
     return(_simulationTime);
-}
-
-bool CRigidBodyContainerDyn_base::isJointInDynamicMode(CXSceneObject* joint)
-{
-    int m=_simGetJointMode(joint);
-    while (m==sim_jointmode_dependent)
-    {
-        int masterJ;
-        sReal off,mult;
-        simGetJointDependency(_simGetObjectID(joint),&masterJ,&off,&mult);
-        if (masterJ==-1)
-            break;
-        joint=(CXSceneObject*)_simGetObject(masterJ);
-        m=_simGetJointMode(joint);
-    }
-    return(m==sim_jointmode_dynamic);
 }
 
 bool CRigidBodyContainerDyn_base::_addRigidBodyFromShape(CXShape* shape,bool forceStatic,bool forceNonRespondable)
@@ -538,11 +522,16 @@ void CRigidBodyContainerDyn_base::_updateConstraintsFromJointsAndForceSensors()
                 if ( (_simGetDynamicsFullRefreshFlag(sceneObject)==0)&&((_simGetTreeDynamicProperty(sceneObject)&sim_objdynprop_dynamic)!=0) )
                 { // We have to make sure the bodies are still there! (also with the same hierarchy relationship!)
                     CXSceneObject* parent=(CXSceneObject*)_simGetParentObject(sceneObject);
-                    int childrenCount;
-                    CXSceneObject** childrenPointer=(CXSceneObject**)_simGetObjectChildren(sceneObject,&childrenCount);
-                    if ( (parent!=nullptr)&&(childrenCount==1) )
+
+                    int hdl;
+                    CXSceneObject* child = getJointOrFsensorChild(sceneObject, nullptr, &hdl);
+                    if ( (parent!=nullptr) && (child != nullptr) )
                     {
-                        CXSceneObject* child=childrenPointer[0];
+//                    int childrenCount;
+//                    CXSceneObject** childrenPointer=(CXSceneObject**)_simGetObjectChildren(sceneObject,&childrenCount);
+//                    if ( (parent!=nullptr)&&(childrenCount==1) )
+//                    {
+//                        CXSceneObject* child=childrenPointer[0];
                         if (_simGetObjectID(parent)==constraint->getShapeAHandle())
                         { // the parent is still there
                             CXShape* shapeA=(CXShape*)parent;
@@ -550,7 +539,8 @@ void CRigidBodyContainerDyn_base::_updateConstraintsFromJointsAndForceSensors()
                             int dummyAHandle=constraint->getDummyAHandle();
                             if (dummyAHandle==-1)
                             { // we have the regular case: shape --> joint/fsensor --> shape
-                                if (_simGetObjectID(child)==constraint->getShapeBHandle())
+                                if (hdl == constraint->getShapeBHandle())
+//                                if (_simGetObjectID(child)==constraint->getShapeBHandle())
                                 { // we have the same child
                                     CXShape* shapeB=(CXShape*)child;
                                     if ( (_simIsShapeDynamicallyStatic(shapeA)==0)||(_simIsShapeDynamicallyStatic(shapeB)==0) )
@@ -560,8 +550,8 @@ void CRigidBodyContainerDyn_base::_updateConstraintsFromJointsAndForceSensors()
                             else
                             { // we have a complex case: shape --> joint/fsensor --> dummy -- dummy <-- shape
                                 int childChildListSize;
-                                _simGetObjectChildren(child,&childChildListSize);
-                                if ( (_simGetObjectID(child)==dummyAHandle)&&(childChildListSize==0) )
+                                _simGetObjectChildren(child, &childChildListSize);
+                                if ( (_simGetObjectID(child)==dummyAHandle) && (childChildListSize==0) )
                                 {
                                     CXDummy* dummyA=(CXDummy*)child;
                                     int dummyALinkedDummyID;
@@ -682,12 +672,19 @@ bool CRigidBodyContainerDyn_base::_addConstraintFromJointOrForceSensor(CXSceneOb
     if (constraint==nullptr)
     { // We have to add that constraint (maybe)!
         CXSceneObject* parentObj=(CXSceneObject*)_simGetParentObject(object);
-        int jointChildListSize;
-        CXSceneObject** jointChildrenPointer=(CXSceneObject**)_simGetObjectChildren(object,&jointChildListSize);
-        if ( (jointChildListSize==1)&&(parentObj!=nullptr)&&(_simGetObjectType(parentObj)==sim_object_shape_type) )
+
+        int tp, hdl;
+        CXSceneObject* childObj = getJointOrFsensorChild(object, &tp, &hdl);
+        if ( (childObj !=nullptr)&&(parentObj!=nullptr)&&(_simGetObjectType(parentObj)==sim_object_shape_type) )
         {
-            CXSceneObject* childObj=jointChildrenPointer[0];
-            if (_simGetObjectType(childObj)==sim_object_shape_type)
+            if (tp == sim_object_shape_type)
+
+//        int jointChildListSize;
+//        CXSceneObject** jointChildrenPointer=(CXSceneObject**)_simGetObjectChildren(object,&jointChildListSize);
+//        if ( (jointChildListSize==1)&&(parentObj!=nullptr)&&(_simGetObjectType(parentObj)==sim_object_shape_type) )
+//        {
+//            CXSceneObject* childObj=jointChildrenPointer[0];
+//            if (_simGetObjectType(childObj)==sim_object_shape_type)
             { // regular case: the link is shape --> joint/fsensor --> shape
                 CRigidBodyDyn* bodyA(_getRigidBodyFromObjectHandle(_simGetObjectID(parentObj)));
                 CRigidBodyDyn* bodyB(_getRigidBodyFromObjectHandle(_simGetObjectID(childObj)));

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "CollShapeDyn_base.h"
-#include "Vx/VxCollisionGeometry.h"
+#include <CollShapeDyn_base.h>
+#include <Vx/VxCollisionGeometry.h>
 
 namespace Vx
 {

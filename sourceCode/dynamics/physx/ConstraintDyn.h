@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ConstraintDyn_base.h"
+#include <ConstraintDyn_base.h>
 
 class CConstraintDyn : public CConstraintDyn_base
 {

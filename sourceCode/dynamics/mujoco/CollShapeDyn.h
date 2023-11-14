@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CollShapeDyn_base.h"
+#include <CollShapeDyn_base.h>
 
 class CCollShapeDyn : public CCollShapeDyn_base
 {

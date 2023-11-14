@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ParticleObject_base.h"
+#include <ParticleObject_base.h>
 #include <map>
 
 class CParticleObjectContainer_base

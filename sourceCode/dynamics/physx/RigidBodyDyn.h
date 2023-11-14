@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RigidBodyDyn_base.h"
+#include <RigidBodyDyn_base.h>
 
 class CRigidBodyDyn : public CRigidBodyDyn_base
 {

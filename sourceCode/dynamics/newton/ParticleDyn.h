@@ -1,14 +1,14 @@
 #pragma once
 
-#include "ParticleDyn_base.h"
-#include "Newton.h"
-#include "dMatrix.h"
-#include "CustomJoint.h"
-#include "CustomHinge.h"
-#include "CustomSlider.h"
-#include "CustomBallAndSocket.h"
-#include "CustomHingeActuator.h"
-#include "CustomSliderActuator.h"
+#include <ParticleDyn_base.h>
+#include <Newton.h>
+#include <dMatrix.h>
+#include <CustomJoint.h>
+#include <CustomHinge.h>
+#include <CustomSlider.h>
+#include <CustomBallAndSocket.h>
+#include <CustomHingeActuator.h>
+#include <CustomSliderActuator.h>
 
 class CParticleDyn : public CParticleDyn_base
 {

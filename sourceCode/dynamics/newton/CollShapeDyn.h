@@ -1,14 +1,14 @@
 #pragma once
 
-#include "CollShapeDyn_base.h"
-#include "Newton.h"
-#include "dMatrix.h"
-#include "CustomJoint.h"
-#include "CustomHinge.h"
-#include "CustomSlider.h"
-#include "CustomBallAndSocket.h"
-#include "CustomHingeActuator.h"
-#include "CustomSliderActuator.h"
+#include <CollShapeDyn_base.h>
+#include <Newton.h>
+#include <dMatrix.h>
+#include <CustomJoint.h>
+#include <CustomHinge.h>
+#include <CustomSlider.h>
+#include <CustomBallAndSocket.h>
+#include <CustomHingeActuator.h>
+#include <CustomSliderActuator.h>
 
 class CCollShapeDyn : public CCollShapeDyn_base
 {

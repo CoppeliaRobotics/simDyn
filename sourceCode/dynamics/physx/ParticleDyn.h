@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ParticleDyn_base.h"
+#include <ParticleDyn_base.h>
 
 class CParticleDyn : public CParticleDyn_base
 {

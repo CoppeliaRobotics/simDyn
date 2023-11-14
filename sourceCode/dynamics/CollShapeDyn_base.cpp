@@ -1,4 +1,4 @@
-#include "CollShapeDyn_base.h"
+#include <CollShapeDyn_base.h>
 
 CCollShapeDyn_base::CCollShapeDyn_base()
 {
