@@ -860,10 +860,21 @@ void CRigidBodyContainerDyn_base::_getShapesToConsiderAsRigidBodies(std::set<CXS
                 if ( (parentShape!=nullptr)&&(_simGetObjectType(parentShape)==sim_object_shape_type) )
                 {
                     if ( shapesToConsiderAsRigidBodies.find((CXShape*)parentShape)==shapesToConsiderAsRigidBodies.end() )
-                    { // b) and c) We just check for staticAndNotRespondableShape --> dynJoint/fsensor --> uniqueChild
+                    { // b) and c) We just check for staticAndNotRespondableShape --> dynJoint/fsensor --> unique shape as child (and no joint/fsensor)
                         int itChildListSize;
-                        _simGetObjectChildren(it,&itChildListSize);
-                        if (itChildListSize==1)
+                        CXSceneObject** childrenPointer=(CXSceneObject**)_simGetObjectChildren(it,&itChildListSize);
+                        int childShapeCnt = 0;
+                        int childJointOrFSensorCnt = 0;
+                        for (int j = 0; j < itChildListSize; j++)
+                        {
+                            if (_simGetObjectType(childrenPointer[j]) == sim_object_shape_type)
+                                childShapeCnt++;
+                            else if (_simGetObjectType(childrenPointer[j]) == sim_object_joint_type)
+                                childJointOrFSensorCnt++;
+                            else if (_simGetObjectType(childrenPointer[j]) == sim_object_forcesensor_type)
+                                childJointOrFSensorCnt++;
+                        }
+                        if ( (childShapeCnt == 1) && (childJointOrFSensorCnt == 0) )
                             shapesToConsiderAsRigidBodies.insert((CXShape*)parentShape);
                     }
                 }
