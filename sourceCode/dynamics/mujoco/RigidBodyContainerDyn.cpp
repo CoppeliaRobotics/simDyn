@@ -1937,14 +1937,15 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
     int priority=simGetEngineInt32Param(sim_mujoco_body_priority,-1,object,nullptr);
 
     int componentListSize=_simGetGeometricCount(geomInfo);
-    CXGeometric** componentList=new CXGeometric*[componentListSize];
-    _simGetAllGeometrics(geomInfo,(void**)componentList);
+    std::vector<CXGeometric*> componentList;
+    componentList.resize(componentListSize);
+    _simGetAllGeometrics(geomInfo,(void**)componentList.data());
     C7Vector objectPose;
     if (useGlobalCoords)
         _simGetObjectCumulativeTransformation(object,objectPose.X.data,objectPose.Q.data,1);
     else
         objectPose=C7Vector::identityTransformation;
-    for (int i=0;i<componentListSize;i++)
+    for (size_t i=0;i<componentList.size();i++)
     {
         xmlDoc->pushNewNode("geom");
         xmlDoc->setAttr("friction",friction,3);
@@ -1990,9 +1991,9 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
             double mmax=-1000.0;
             std::vector<float> hDataF;
             hDataF.resize(xCnt*yCnt);
-            for (size_t j=0;j<xCnt*yCnt;j++)
+            for (size_t j=0;j<size_t(xCnt*yCnt);j++)
             {
-                hDataF[j]=hData[j];
+                hDataF[j]=float(hData[j]);
                 double v=hData[j];
                 if (v>mmax)
                     mmax=v;
@@ -2657,7 +2658,12 @@ bool CRigidBodyContainerDyn::_updateWorldFromCoppeliaSim()
         { // only shapes that exist in CoppeliaSim
             if (_allShapes[i].shapeMode<=shapeModes::kinematicMode)
             { // prepare for static shape motion interpol.
-                int bodyId=_mjModel->body_mocapid[_allShapes[i].mjIdStatic];
+                int mid;
+                if (_allShapes[i].shapeMode == shapeModes::kinematicMode)
+                    mid = _allShapes[i].mjIdStatic;
+                if (_allShapes[i].shapeMode == shapeModes::staticMode)
+                    mid = _allShapes[i].mjId;
+                int bodyId=_mjModel->body_mocapid[mid];
                 _allShapes[i].staticShapeStart.X=C3Vector(_mjData->mocap_pos[3*bodyId+0],_mjData->mocap_pos[3*bodyId+1],_mjData->mocap_pos[3*bodyId+2]);
                 _allShapes[i].staticShapeStart.Q=C4Vector(_mjData->mocap_quat[4*bodyId+0],_mjData->mocap_quat[4*bodyId+1],_mjData->mocap_quat[4*bodyId+2],_mjData->mocap_quat[4*bodyId+3]);
                 _allShapes[i].staticShapeGoal=_allShapes[i].staticShapeStart;
@@ -2704,7 +2710,12 @@ void CRigidBodyContainerDyn::_handleKinematicBodies_step(double t,double cumulat
                 CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
                 if (shape!=nullptr)
                 {
-                    int bodyId=_mjModel->body_mocapid[_allShapes[i].mjIdStatic];
+                    int mid;
+                    if (_allShapes[i].shapeMode == shapeModes::kinematicMode)
+                        mid = _allShapes[i].mjIdStatic;
+                    if (_allShapes[i].shapeMode == shapeModes::staticMode)
+                        mid = _allShapes[i].mjId;
+                    int bodyId=_mjModel->body_mocapid[mid];
                     C7Vector tr;
                     tr.buildInterpolation(_allShapes[i].staticShapeStart,_allShapes[i].staticShapeGoal,t);
                     _mjData->mocap_pos[3*bodyId+0]=tr.X(0);
@@ -2782,11 +2793,12 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(double simulationTime,int
         }
     }
 
+
     // Then shapes:
     for (size_t i=0;i<_allShapes.size();i++)
-    { // objectHandle should be ordered so that each object's ancestor comes before
+    {
         if (_allShapes[i].itemType==shapeItem)
-        { // only shapes that exist in CoppeliaSim
+        { // only shapes that exist in CoppeliaSim (we want to exclude dummyShapeItem, particleItem, etc.)
             CXSceneObject* shape=(CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
             if (shape!=nullptr)
             {

@@ -11,7 +11,7 @@ enum shapeModes{staticMode=0,kinematicMode=1,freeMode=2,attachedMode=3};
 enum itemTypes{shapeItem=0,particleItem=1,compositeItem=2,dummyShapeItem=3};
 
 struct SMjShape
-{ // only the shapes that exist as joints in CoppeliaSim.
+{ // only the shapes that have a counterpart in CoppeliaSim.
     int objectHandle;
     std::string name;
     CXSceneObject* object;
