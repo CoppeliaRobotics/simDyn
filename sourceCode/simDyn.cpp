@@ -17,20 +17,25 @@ void LUA_MUJOCOREMOVEXML_CALLBACK(SScriptCallBack* p)
         simGetInt32Param(sim_intparam_dynamic_engine,&eng);
         if (eng==sim_physics_mujoco)
         {
-            int stack=p->stackID;
-            CStackArray inArguments;
-            inArguments.buildFromStack(stack);
-            if ( (inArguments.getSize()>=1)&&inArguments.isNumber(0) )
-            { // we expect 1 arguments: the injection ID
-                int injectionId=inArguments.getInt(0);
-                if (!CRigidBodyContainerDyn::removeInjection(injectionId))
-                    simSetLastError(nullptr,"invalid injection ID.");
+            if (CRigidBodyContainerDyn::getDynWorld() != nullptr)
+            {
+                int stack=p->stackID;
+                CStackArray inArguments;
+                inArguments.buildFromStack(stack);
+                if ( (inArguments.getSize()>=1)&&inArguments.isNumber(0) )
+                { // we expect 1 arguments: the injection ID
+                    int injectionId=inArguments.getInt(0);
+                    if (!CRigidBodyContainerDyn::removeInjection(injectionId))
+                        simSetLastError(nullptr,"invalid injection ID.");
+                }
+                else
+                    simSetLastError(nullptr,"not enough arguments or wrong arguments.");
+
+                CStackArray outArguments;
+                outArguments.buildOntoStack(stack);
             }
             else
-                simSetLastError(nullptr,"not enough arguments or wrong arguments.");
-
-            CStackArray outArguments;
-            outArguments.buildOntoStack(stack);
+                simSetLastError(nullptr,"engine not initialized.");
         }
         else
             simSetLastError(nullptr,"current engine is not MuJoCo.");
@@ -47,38 +52,43 @@ void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
         simGetInt32Param(sim_intparam_dynamic_engine,&eng);
         if (eng==sim_physics_mujoco)
         {
-            int injectionId=-1;
-            int stack=p->stackID;
-            CStackArray inArguments;
-            inArguments.buildFromStack(stack);
-            if ( (inArguments.getSize()>=2)&&inArguments.isString(0)&&(inArguments.isString(1)||inArguments.isNumber(1)) )
-            { // we expect 2 arguments: an xml string and an element name or objectHandle
-                std::string xml(inArguments.getString(0));
-                std::string element;
-                int handle=-1;
-                if (inArguments.isString(1))
-                    element=inArguments.getString(1);
-                else
-                    handle=inArguments.getInt(1);
-                std::string cbFunc;
-                std::string cbId;
-                int cbScript=p->scriptID;
-                if ( (inArguments.getSize()>2)&&inArguments.isMap(2) )
-                {
-                    CStackMap* map=inArguments.getMap(2);
-                    if (map->isString("cbFunc"))
-                        cbFunc=map->getString("cbFunc");
-                    if (map->isString("cbId"))
-                        cbId=map->getString("cbId");
+            if (CRigidBodyContainerDyn::getDynWorld() != nullptr)
+            {
+                int injectionId=-1;
+                int stack=p->stackID;
+                CStackArray inArguments;
+                inArguments.buildFromStack(stack);
+                if ( (inArguments.getSize()>=2)&&inArguments.isString(0)&&(inArguments.isString(1)||inArguments.isNumber(1)) )
+                { // we expect 2 arguments: an xml string and an element name or objectHandle
+                    std::string xml(inArguments.getString(0));
+                    std::string element;
+                    int handle=-1;
+                    if (inArguments.isString(1))
+                        element=inArguments.getString(1);
+                    else
+                        handle=inArguments.getInt(1);
+                    std::string cbFunc;
+                    std::string cbId;
+                    int cbScript=p->scriptID;
+                    if ( (inArguments.getSize()>2)&&inArguments.isMap(2) )
+                    {
+                        CStackMap* map=inArguments.getMap(2);
+                        if (map->isString("cbFunc"))
+                            cbFunc=map->getString("cbFunc");
+                        if (map->isString("cbId"))
+                            cbId=map->getString("cbId");
+                    }
+                    injectionId=CRigidBodyContainerDyn::injectXml(xml.c_str(),element.c_str(),handle,cbFunc.c_str(),cbScript,cbId.c_str());
                 }
-                injectionId=CRigidBodyContainerDyn::injectXml(xml.c_str(),element.c_str(),handle,cbFunc.c_str(),cbScript,cbId.c_str());
+                else
+                    simSetLastError(nullptr,"not enough arguments or wrong arguments.");
+
+                CStackArray outArguments;
+                outArguments.pushInt(injectionId);
+                outArguments.buildOntoStack(stack);
             }
             else
-                simSetLastError(nullptr,"not enough arguments or wrong arguments.");
-
-            CStackArray outArguments;
-            outArguments.pushInt(injectionId);
-            outArguments.buildOntoStack(stack);
+                simSetLastError(nullptr,"engine not initialized.");
         }
         else
             simSetLastError(nullptr,"current engine is not MuJoCo.");
@@ -107,38 +117,43 @@ void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
                 {
                     if ( (map->isString("prefix"))&&(map->isArray("count"))&&(map->isString("type")) )
                     {
-                        int shapeHandle=map->getInt("shapeHandle");
-                        std::string element(map->getString("element"));
-                        std::string prefix(map->getString("prefix"));
-                        if (CRigidBodyContainerDyn::getCompositeIndexFromPrefix(prefix.c_str())==-1)
+                        if (CRigidBodyContainerDyn::getDynWorld() != nullptr)
                         {
-                            std::string type(map->getString("type"));
-                            int respondableMask=0xffff;
-                            if ( (type=="box")||(type=="cylinder")||(type=="ellipsoide") )
-                                 respondableMask=0xff00;   // do not collide with other composite elements
-                            if (map->isNumber("respondableMask"))
-                                respondableMask=map->getInt("respondableMask");
-                            double grow=0.0;
-                            if (map->isNumber("grow"))
-                                grow=map->getDouble("grow");
-                            size_t c[3]={1,1,1};
-                            CStackArray* arr=map->getArray("count");
-                            for (size_t i=0;i<std::min<size_t>(3,arr->getSize());i++)
-                                c[i]=size_t(arr->getInt(i));
-                            // We do not support particles via composites, since they can't be named, thus, they can't be identified later on as particles
-                            if ( /*(type=="particle")||*/(type=="grid")||(type=="rope")||(type=="loop")||(type=="cloth")||(type=="box")||(type=="cylinder")||(type=="ellipsoid") )
+                            int shapeHandle=map->getInt("shapeHandle");
+                            std::string element(map->getString("element"));
+                            std::string prefix(map->getString("prefix"));
+                            if (CRigidBodyContainerDyn::getCompositeIndexFromPrefix(prefix.c_str())==-1)
                             {
-                                std::string cbFunc;
-                                if (map->isString("cbFunc"))
-                                    cbFunc=map->getString("cbFunc");
-                                int cbScript=p->scriptID;
-                                injectionId=CRigidBodyContainerDyn::injectCompositeXml(xml.c_str(),shapeHandle,element.c_str(),prefix.c_str(),c,type.c_str(),respondableMask,grow,cbFunc.c_str(),cbScript);
+                                std::string type(map->getString("type"));
+                                int respondableMask=0xffff;
+                                if ( (type=="box")||(type=="cylinder")||(type=="ellipsoide") )
+                                     respondableMask=0xff00;   // do not collide with other composite elements
+                                if (map->isNumber("respondableMask"))
+                                    respondableMask=map->getInt("respondableMask");
+                                double grow=0.0;
+                                if (map->isNumber("grow"))
+                                    grow=map->getDouble("grow");
+                                size_t c[3]={1,1,1};
+                                CStackArray* arr=map->getArray("count");
+                                for (size_t i=0;i<std::min<size_t>(3,arr->getSize());i++)
+                                    c[i]=size_t(arr->getInt(i));
+                                // We do not support particles via composites, since they can't be named, thus, they can't be identified later on as particles
+                                if ( /*(type=="particle")||*/(type=="grid")||(type=="rope")||(type=="loop")||(type=="cloth")||(type=="box")||(type=="cylinder")||(type=="ellipsoid") )
+                                {
+                                    std::string cbFunc;
+                                    if (map->isString("cbFunc"))
+                                        cbFunc=map->getString("cbFunc");
+                                    int cbScript=p->scriptID;
+                                    injectionId=CRigidBodyContainerDyn::injectCompositeXml(xml.c_str(),shapeHandle,element.c_str(),prefix.c_str(),c,type.c_str(),respondableMask,grow,cbFunc.c_str(),cbScript);
+                                }
+                                else
+                                    simSetLastError(nullptr,"invalid composite type.");
                             }
                             else
-                                simSetLastError(nullptr,"invalid composite type.");
+                                simSetLastError(nullptr,"invalid prefix.");
                         }
                         else
-                            simSetLastError(nullptr,"invalid prefix.");
+                            simSetLastError(nullptr,"engine not initialized.");
                     }
                     else
                         simSetLastError(nullptr,"info map does not contain all required items.");
@@ -168,42 +183,47 @@ void LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK(SScriptCallBack* p)
         simGetInt32Param(sim_intparam_dynamic_engine,&eng);
         if (eng==sim_physics_mujoco)
         {
-            int stack=p->stackID;
-            std::vector<double> info;
-            std::string type;
-            int count[3]={0,0,0};
-            CStackArray inArguments;
-            inArguments.buildFromStack(stack);
-            if ( (inArguments.getSize()>=2)&&(inArguments.isNumber(0)||inArguments.isString(0))&&inArguments.isNumber(1) )
-            { // we expect 2 argument: a prefix string and an int
-                CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
-                if (dynWorld!=nullptr)
-                {
-                    int compIndex=-1;
-                    if (inArguments.isNumber(0))
-                        compIndex=dynWorld->getCompositeIndexFromInjectionId(inArguments.getInt(0));
-                    else
-                        compIndex=dynWorld->getCompositeIndexFromPrefix(inArguments.getString(0).c_str()); // for backward compatibility
-                    int what=inArguments.getInt(1);
-                    type=dynWorld->getCompositeInfo(compIndex,what,info,count);
+            if (CRigidBodyContainerDyn::getDynWorld() != nullptr)
+            {
+                int stack=p->stackID;
+                std::vector<double> info;
+                std::string type;
+                int count[3]={0,0,0};
+                CStackArray inArguments;
+                inArguments.buildFromStack(stack);
+                if ( (inArguments.getSize()>=2)&&(inArguments.isNumber(0)||inArguments.isString(0))&&inArguments.isNumber(1) )
+                { // we expect 2 argument: a prefix string and an int
+                    CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
+                    if (dynWorld!=nullptr)
+                    {
+                        int compIndex=-1;
+                        if (inArguments.isNumber(0))
+                            compIndex=dynWorld->getCompositeIndexFromInjectionId(inArguments.getInt(0));
+                        else
+                            compIndex=dynWorld->getCompositeIndexFromPrefix(inArguments.getString(0).c_str()); // for backward compatibility
+                        int what=inArguments.getInt(1);
+                        type=dynWorld->getCompositeInfo(compIndex,what,info,count);
+                    }
                 }
+                else
+                    simSetLastError(nullptr,"not enough arguments or wrong arguments.");
+
+                CStackArray outArguments;
+                CStackMap* map=new CStackMap();
+                CStackArray* infoArray=new CStackArray();
+                if (info.size()>0)
+                    infoArray->setDoubleArray(&info[0],info.size());
+                map->setArray("info",infoArray);
+                map->setString("type",type);
+                CStackArray* countArray=new CStackArray();
+                for (size_t i=0;i<3;i++)
+                    countArray->pushInt(count[i]);
+                map->setArray("count",countArray);
+                outArguments.pushMap(map);
+                outArguments.buildOntoStack(stack);
             }
             else
-                simSetLastError(nullptr,"not enough arguments or wrong arguments.");
-
-            CStackArray outArguments;
-            CStackMap* map=new CStackMap();
-            CStackArray* infoArray=new CStackArray();
-            if (info.size()>0)
-                infoArray->setDoubleArray(&info[0],info.size());
-            map->setArray("info",infoArray);
-            map->setString("type",type);
-            CStackArray* countArray=new CStackArray();
-            for (size_t i=0;i<3;i++)
-                countArray->pushInt(count[i]);
-            map->setArray("count",countArray);
-            outArguments.pushMap(map);
-            outArguments.buildOntoStack(stack);
+                simSetLastError(nullptr,"engine not initialized.");
         }
         else
             simSetLastError(nullptr,"current engine is not MuJoCo.");
