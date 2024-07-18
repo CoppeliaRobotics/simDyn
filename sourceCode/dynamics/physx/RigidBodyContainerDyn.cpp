@@ -261,10 +261,10 @@ std::string CRigidBodyContainerDyn::_buildPhysxWorld(double timeStep,double simT
     // In order to not bias the mass/inertia with that aux. body, we split the mass/inertia of shape2 onto all aux. bodies that might
     // be 'glued' to it. This requires 2 exploration passes, where the first pass only adjusts the mass dividers
     std::map<CXSceneObject*,int> massDividers; // shape,divider
-    int shapeListSize=_simGetObjectListSize(sim_object_shape_type);
+    int shapeListSize=_simGetObjectListSize(sim_sceneobject_shape);
     for (int i=0;i<shapeListSize;i++)
     {
-        CXSceneObject* it=(CXSceneObject*)_simGetObjectFromIndex(sim_object_shape_type,i);
+        CXSceneObject* it=(CXSceneObject*)_simGetObjectFromIndex(sim_sceneobject_shape,i);
         info.massDividers[it]=1;
     }
 
@@ -358,9 +358,9 @@ std::string CRigidBodyContainerDyn::_buildPhysxWorld(double timeStep,double simT
                     if (proxyJointId>=0)
                     {
                         proxyJoint=(CXSceneObject*)_simGetObject(proxyJointId);
-                        if (_simGetObjectType(proxyJoint)==sim_object_joint_type)
+                        if (_simGetObjectType(proxyJoint)==sim_sceneobject_joint)
                         {
-                            if ( (!isJointInDynamicMode(proxyJoint))||(_simGetJointType(proxyJoint)!=sim_joint_prismatic_subtype) )
+                            if ( (!isJointInDynamicMode(proxyJoint))||(_simGetJointType(proxyJoint)!=sim_joint_prismatic) )
                             {
                                 char* f=simGetObjectAlias(proxyJointId,5);
                                 std::string nm(f);
@@ -381,7 +381,7 @@ std::string CRigidBodyContainerDyn::_buildPhysxWorld(double timeStep,double simT
                         gjoint.dependencyJointHandle=-1;
                         gjoint.objectHandle=proxyJointId;
                         gjoint.name=_getObjectName(proxyJoint);
-                        gjoint.jointType=sim_joint_prismatic_subtype;
+                        gjoint.jointType=sim_joint_prismatic;
                         gjoint.tendonJoint=true;
                         _allJoints.push_back(gjoint);
                         _simSetDynamicSimulationIconCode(proxyJoint,sim_dynamicsimicon_objectisdynamicallysimulated);
@@ -431,7 +431,7 @@ std::string CRigidBodyContainerDyn::_buildPhysxWorld(double timeStep,double simT
                 CXSceneObject* dummy2=(CXSceneObject*)_simGetObject(dummy2Handle);
                 CXSceneObject* shape2=(CXSceneObject*)_simGetParentObject(dummy2);
                 CXSceneObject* dummy1Parent=(CXSceneObject*)_simGetParentObject(dummy1);
-                if (_simGetObjectType(dummy1Parent)==sim_object_shape_type)
+                if (_simGetObjectType(dummy1Parent)==sim_sceneobject_shape)
                 { // we have shape --> dummy -- dummy <-- shape
                     if (dummy1Handle<dummy2Handle)
                     { // make sure to not have 2 weld constraints for the same loop closure!
@@ -784,7 +784,7 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
         int objType=_simGetObjectType(object);
         bool objectWasAdded=false;
         bool ignoreChildren=false;
-        if (objType==sim_object_shape_type)
+        if (objType==sim_sceneobject_shape)
         {
             bool isStatic=((dynProp&sim_objdynprop_dynamic)==0)||(_simIsShapeDynamicallyStatic(object)!=0);
             if (isStatic)
@@ -802,7 +802,7 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
                 int parentType=-1;
                 if (parent!=nullptr)
                     parentType=_simGetObjectType(parent);
-                if (parentType==sim_object_shape_type)
+                if (parentType==sim_sceneobject_shape)
                 { // parent(shape) --> this(shape): those have to be added to "worldbody"
                     info->moreToExplore.push_back(object);
                     ignoreChildren=true;
@@ -818,12 +818,12 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
                         for (int i=0;i<childrenCount;i++)
                         {
                             CXSceneObject* child=childrenPointer[i];
-                            if (_simGetObjectType(child)==sim_object_forcesensor_type)
+                            if (_simGetObjectType(child)==sim_sceneobject_forcesensor)
                             {
                                 addIt=true;
                                 break;
                             }
-                            if ( (_simGetObjectType(child)==sim_object_joint_type)&&(isJointInDynamicMode(child)&&((_simGetTreeDynamicProperty(child)&sim_objdynprop_dynamic)!=0)) )
+                            if ( (_simGetObjectType(child)==sim_sceneobject_joint)&&(isJointInDynamicMode(child)&&((_simGetTreeDynamicProperty(child)&sim_objdynprop_dynamic)!=0)) )
                             {
                                 addIt=true;
                                 break;
@@ -839,14 +839,14 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
             }
         }
         CXSceneObject* child=nullptr;
-        if (objType==sim_object_joint_type)
+        if (objType==sim_sceneobject_joint)
         {
             int childrenCount;
             CXSceneObject** childrenPointer=(CXSceneObject**)_simGetObjectChildren(object,&childrenCount);
-            if ( (parent!=nullptr)&&((_simGetObjectType(parent)==sim_object_shape_type)||(_simGetObjectType(parent)==sim_object_joint_type))&&(childrenCount==1)&&(isJointInDynamicMode(object)||_simIsJointInHybridOperation(object))&&(dynProp&sim_objdynprop_dynamic) )
+            if ( (parent!=nullptr)&&((_simGetObjectType(parent)==sim_sceneobject_shape)||(_simGetObjectType(parent)==sim_sceneobject_joint))&&(childrenCount==1)&&(isJointInDynamicMode(object)||_simIsJointInHybridOperation(object))&&(dynProp&sim_objdynprop_dynamic) )
             { // parent is shape (or joint, consecutive joints are allowed!), joint is in correct mode, and has only one child
-                if ( ( (_simGetObjectType(childrenPointer[0])==sim_object_shape_type)&&(_simIsShapeDynamicallyStatic(childrenPointer[0])==0) ) ||
-                     ( (_simGetObjectType(childrenPointer[0])==sim_object_joint_type)&&isJointInDynamicMode(childrenPointer[0]) ) )
+                if ( ( (_simGetObjectType(childrenPointer[0])==sim_sceneobject_shape)&&(_simIsShapeDynamicallyStatic(childrenPointer[0])==0) ) ||
+                     ( (_simGetObjectType(childrenPointer[0])==sim_sceneobject_joint)&&isJointInDynamicMode(childrenPointer[0]) ) )
                 { // child is a dyn. shape (or a dyn. joint)
                     _addObjectBranch(childrenPointer[0],object,xmlDoc,info);
                     ignoreChildren=true;
@@ -855,13 +855,13 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
                     child=childrenPointer[0]; // check further down if that joint is involved in a loop closure
             }
         }
-        if (objType==sim_object_forcesensor_type)
+        if (objType==sim_sceneobject_forcesensor)
         {
             int childrenCount;
             CXSceneObject** childrenPointer=(CXSceneObject**)_simGetObjectChildren(object,&childrenCount);
-            if ( (parent!=nullptr)&&(_simGetObjectType(parent)==sim_object_shape_type)&&(childrenCount==1)&&(dynProp&sim_objdynprop_dynamic) )
+            if ( (parent!=nullptr)&&(_simGetObjectType(parent)==sim_sceneobject_shape)&&(childrenCount==1)&&(dynProp&sim_objdynprop_dynamic) )
             { // parent is shape, and force sensor has only one child
-                if ( (_simGetObjectType(childrenPointer[0])==sim_object_shape_type)&&(_simIsShapeDynamicallyStatic(childrenPointer[0])==0) )
+                if ( (_simGetObjectType(childrenPointer[0])==sim_sceneobject_shape)&&(_simIsShapeDynamicallyStatic(childrenPointer[0])==0) )
                 { // child is a dyn. shape
                     _addObjectBranch(childrenPointer[0],object,xmlDoc,info);
                     ignoreChildren=true;
@@ -870,11 +870,11 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
                     child=childrenPointer[0]; // check further down if that force sensor is involved in a loop closure
             }
         }
-        if (objType==sim_object_dummy_type)
+        if (objType==sim_sceneobject_dummy)
         {
             int childrenCount;
             _simGetObjectChildren(object,&childrenCount);
-            if ( (parent!=nullptr)&&(_simGetObjectType(parent)==sim_object_shape_type)&&(childrenCount==0)&&(dynProp&sim_objdynprop_dynamic) )
+            if ( (parent!=nullptr)&&(_simGetObjectType(parent)==sim_sceneobject_shape)&&(childrenCount==0)&&(dynProp&sim_objdynprop_dynamic) )
             { // parent is shape, and dummy has no child
                 int linkedDummyHandle=-1;
                 int linkType=_simGetDummyLinkType(object,&linkedDummyHandle);
@@ -883,7 +883,7 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
                     CXDummy* linkedDummy=(CXDummy*)_simGetObject(linkedDummyHandle);
                     CXSceneObject* linkedDummyParent=(CXSceneObject*)_simGetParentObject(linkedDummy);
                     _simGetObjectChildren(linkedDummy,&childrenCount);
-                    if ( (linkedDummyParent!=nullptr)&&(_simGetObjectType(linkedDummyParent)==sim_object_shape_type)&&(childrenCount==0) )
+                    if ( (linkedDummyParent!=nullptr)&&(_simGetObjectType(linkedDummyParent)==sim_sceneobject_shape)&&(childrenCount==0) )
                     { // linked dummy has a shape parent, and no children on its own
                         if ( _simIsShapeDynamicallyRespondable(linkedDummyParent)||(_simIsShapeDynamicallyStatic(linkedDummyParent)==0) )
                         { // the linked dummy's parent is dyn. or respondable
@@ -935,7 +935,7 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
         }
         if (child!=nullptr)
         { // joint or force sensor possibly involved in a loop closure
-            if (_simGetObjectType(child)==sim_object_dummy_type)
+            if (_simGetObjectType(child)==sim_sceneobject_dummy)
             { // child is a dummy
                 int linkedDummyHandle=-1;
                 int linkType=_simGetDummyLinkType(child,&linkedDummyHandle);
@@ -943,7 +943,7 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object,CXSceneObjec
                 { // the dummy is linked to another dummy via a dyn. overlap constr.
                     CXDummy* linkedDummy=(CXDummy*)_simGetObject(linkedDummyHandle);
                     CXSceneObject* linkedDummyParent=(CXSceneObject*)_simGetParentObject(linkedDummy);
-                    if ( (linkedDummyParent!=nullptr)&&(_simGetObjectType(linkedDummyParent)==sim_object_shape_type) )
+                    if ( (linkedDummyParent!=nullptr)&&(_simGetObjectType(linkedDummyParent)==sim_sceneobject_shape) )
                     { // the linked dummy's parent is a shape
                         if ( _simIsShapeDynamicallyRespondable(linkedDummyParent)||(_simIsShapeDynamicallyStatic(linkedDummyParent)==0) )
                         { // the linked dummy's parent is dyn. or respondable
@@ -1007,7 +1007,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
     else
         g.shapeMode=shapeModes::attachedMode;
 
-    if (_simGetObjectType(object)==sim_object_dummy_type)
+    if (_simGetObjectType(object)==sim_sceneobject_dummy)
     { // loop closure of type: shape1 --> joint/fsensor --> dummy1 -- dummy2 <-- shape2
         g.itemType=dummyShapeItem;
         if (xmlDoc==nullptr)
@@ -1070,7 +1070,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
 
     if (xmlDoc!=nullptr)
         xmlDoc->pushNewNode("body");
-    if (_simGetObjectType(object)==sim_object_dummy_type)
+    if (_simGetObjectType(object)==sim_sceneobject_dummy)
     { // loop closure of type: shape1 --> joint/fsensor --> dummy1 -- dummy2 <-- shape2
         forceNonRespondable=true;
         info->loopClosures.push_back(object);
@@ -1096,7 +1096,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
     CXSceneObject* containingShape=parent; //i.e. shape1 as in shape1 --> joint/fsensor --> shape2/dummy
     while (containingShape!=nullptr)
     {
-        if (_simGetObjectType(containingShape)==sim_object_shape_type)
+        if (_simGetObjectType(containingShape)==sim_sceneobject_shape)
             break;
         containingShape=(CXSceneObject*)_simGetParentObject(containingShape);
     }
@@ -1104,7 +1104,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
     C7Vector objectPose; // pose of current shape (can also be a dummy shape!!)
     if (xmlDoc!=nullptr)
     {
-        if (_simGetObjectType(object)==sim_object_dummy_type)
+        if (_simGetObjectType(object)==sim_sceneobject_dummy)
         { // we have dummy -- linkedDummy <- shape.
            // the dummy shape we create here is very special
             C7Vector tr;
@@ -1157,11 +1157,11 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
 
     if (xmlDoc!=nullptr)
     {
-        if (parentType==sim_object_joint_type)
+        if (parentType==sim_sceneobject_joint)
         { // dyn. shape attached to joint (and consecutive joints are allowed!)
             std::vector<CXSceneObject*> parentJoints;
             CXSceneObject* jointIterator=parent;
-            while (_simGetObjectType(jointIterator)==sim_object_joint_type)
+            while (_simGetObjectType(jointIterator)==sim_sceneobject_joint)
             {
                 parentJoints.push_back(jointIterator);
                 jointIterator=(CXSceneObject*)_simGetParentObject(jointIterator);
@@ -1212,7 +1212,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 gjoint.armature=armature;
                 gjoint.maxForceOverArmature=0.0;
 #endif
-                if (jt==sim_joint_spherical_subtype)
+                if (jt==sim_joint_spherical)
                 {
                     xmlDoc->setAttr("type","ball");
                     double p[7];
@@ -1225,9 +1225,9 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 }
                 else
                 {
-                    if (jt==sim_joint_revolute_subtype)
+                    if (jt==sim_joint_revolute)
                         xmlDoc->setAttr("type","hinge");
-                    if (jt==sim_joint_prismatic_subtype)
+                    if (jt==sim_joint_prismatic)
                         xmlDoc->setAttr("type","slide");
                     double minp,rangep;
                     bool limited=_simGetJointPositionInterval(joint,&minp,&rangep);
@@ -1276,7 +1276,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
                 _simSetDynamicObjectFlagForVisualization(joint,4);
             }
         }
-        if (parentType==sim_object_forcesensor_type)
+        if (parentType==sim_sceneobject_forcesensor)
         { // dyn. shape attached to force sensor
             CXSceneObject* forceSensor=parent;
 
@@ -1317,7 +1317,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object,CXSceneObject* pare
 
     if (xmlDoc!=nullptr)
     {
-        if (_simGetObjectType(object)==sim_object_dummy_type)
+        if (_simGetObjectType(object)==sim_sceneobject_dummy)
         { // loop closure of type: shape1 --> joint/fsensor --> dummy1 -- dummy2 <-- shape2
             // We already know that dummy2 has a shape as parent, and the link type is overlap constr.
             // Keep in mind that dummy1 and dummy2 might not (yet) be overlapping!
@@ -1787,7 +1787,7 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(double simulationTime,int
             {
                 int padr=_mjModel->jnt_qposadr[_allJoints[i].mjId];
                 int vadr=_mjModel->jnt_dofadr[_allJoints[i].mjId];
-                if (_allJoints[i].jointType==sim_joint_spherical_subtype)
+                if (_allJoints[i].jointType==sim_joint_spherical)
                 {
                     C4Vector q(_mjData->qpos[padr+0],_mjData->qpos[padr+1],_mjData->qpos[padr+2],_mjData->qpos[padr+3]);
                     q=_allJoints[i].initialBallQuat2.getInverse()*(q*_allJoints[i].initialBallQuat)*_allJoints[i].initialBallQuat2;

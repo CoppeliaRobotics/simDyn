@@ -23,12 +23,12 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
 
     C3X3Matrix m;
     m.buildYRotation(piValue);
-    if (_simGetJointType(joint)==sim_joint_prismatic_subtype)
+    if (_simGetJointType(joint)==sim_joint_prismatic)
     { // in ODE the rotation direction is the negative z-axis (not like CoppeliaSim the z-axis)
         jtr.Q=jtr.Q*m.getQuaternion();
         jtr2.Q=jtr2.Q*m.getQuaternion();
     }
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     { // in ODE the moving direction is the negative z-axis (not like CoppeliaSim the z-axis)
         C3X3Matrix jointOffsetThing;
         jointOffsetThing.setIdentity();
@@ -82,7 +82,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     // - simGetEngineBoolParameter
     double stopERP,stopCFM,bounce,fudge,normalCFM;
     _simGetJointOdeParameters(joint,&stopERP,&stopCFM,&bounce,&fudge,&normalCFM);
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     {
         _odeConstraint=dJointCreateHinge(odeWorldID,0);
         dJointSetHingeParam(_odeConstraint,dParamFudgeFactor,fudge);
@@ -121,7 +121,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         _odeJointFeedbackStructure=new dJointFeedback;
         dJointSetFeedback(_odeConstraint,_odeJointFeedbackStructure);
     }
-    if (_simGetJointType(joint)==sim_joint_prismatic_subtype)
+    if (_simGetJointType(joint)==sim_joint_prismatic)
     {
         _odeConstraint=dJointCreateSlider(odeWorldID,0);
         dJointSetSliderParam(_odeConstraint,dParamFudgeFactor,fudge);
@@ -158,7 +158,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         _odeJointFeedbackStructure=new dJointFeedback;
         dJointSetFeedback(_odeConstraint,_odeJointFeedbackStructure);
     }
-    if (_simGetJointType(joint)==sim_joint_spherical_subtype)
+    if (_simGetJointType(joint)==sim_joint_spherical)
     {
         _odeConstraint=dJointCreateBall(odeWorldID,0);
         dJointSetBallParam(_odeConstraint,dParamFudgeFactor,fudge);
@@ -215,12 +215,12 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     C3X3Matrix m;
     m.setIdentity();
     m.buildYRotation(piValue);
-    if (_simGetJointType(joint)==sim_joint_prismatic_subtype)
+    if (_simGetJointType(joint)==sim_joint_prismatic)
     { // in ODE the rotation direction is the negative z-axis (not like CoppeliaSim the z-axis)
         jtr.Q=jtr.Q*m.getQuaternion();
         jtr2.Q=jtr2.Q*m.getQuaternion();
     }
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     { // in ODE the moving direction is the negative z-axis (not like CoppeliaSim the z-axis)
         C3X3Matrix jointOffsetThing;
         jointOffsetThing.setIdentity();
@@ -275,7 +275,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     double stopERP,stopCFM,bounce,fudge,normalCFM;
     _simGetJointOdeParameters(joint,&stopERP,&stopCFM,&bounce,&fudge,&normalCFM);
 
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     {
         _odeConstraint=dJointCreateHinge(odeWorldID,0);
         dJointSetHingeParam(_odeConstraint,dParamFudgeFactor,fudge);
@@ -314,7 +314,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         _odeJointFeedbackStructure=new dJointFeedback;
         dJointSetFeedback(_odeConstraint,_odeJointFeedbackStructure);
     }
-    if (_simGetJointType(joint)==sim_joint_prismatic_subtype)
+    if (_simGetJointType(joint)==sim_joint_prismatic)
     {
         _odeConstraint=dJointCreateSlider(odeWorldID,0);
         dJointSetSliderParam(_odeConstraint,dParamFudgeFactor,fudge);
@@ -351,7 +351,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         _odeJointFeedbackStructure=new dJointFeedback;
         dJointSetFeedback(_odeConstraint,_odeJointFeedbackStructure);
     }
-    if (_simGetJointType(joint)==sim_joint_spherical_subtype)
+    if (_simGetJointType(joint)==sim_joint_spherical)
     {
         _odeConstraint=dJointCreateBall(odeWorldID,0);
         dJointSetBallParam(_odeConstraint,dParamFudgeFactor,fudge);
@@ -555,9 +555,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSenso
 void CConstraintDyn::_updateJointLimits(CXJoint* joint)
 {
     int jointType=_simGetJointType(joint);
-    if (jointType==sim_joint_spherical_subtype)
+    if (jointType==sim_joint_spherical)
         return;
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
     {
         if (_simGetJointPositionInterval(joint,nullptr,nullptr)==0)
         { // no limits
@@ -605,7 +605,7 @@ void CConstraintDyn::_updateJointLimits(CXJoint* joint)
 void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
 {
     int jointType=_simGetJointType(joint);
-    if (jointType==sim_joint_spherical_subtype)
+    if (jointType==sim_joint_spherical)
         return;
     int ctrlMode=_simGetJointDynCtrlMode(joint);
     double posScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
@@ -614,7 +614,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     double linVelocityScaling=CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn();
     double dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
     double e=0.0;
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
     {
         if (ctrlMode>=sim_jointdynctrl_position)
         {
@@ -637,7 +637,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     inputValuesInt[0]=passCnt;
     inputValuesInt[1]=totalPasses;
     double inputValuesFloat[7]={0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
         inputValuesFloat[0]=getRevoluteJointAngle()-_nonCyclicRevoluteJointPositionOffset;
     else
        inputValuesFloat[0]=getPrismaticJointPosition();
@@ -654,7 +654,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     double forceToApply=fabs(outputValues[1]);
     if ((res&2)==0)
     { // motor is not locked
-        if (jointType==sim_joint_revolute_subtype)
+        if (jointType==sim_joint_revolute)
         {
             if ((res&1)==1)
             {
@@ -678,7 +678,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     }
     else
     { // motor is locked
-        if (jointType==sim_joint_revolute_subtype)
+        if (jointType==sim_joint_revolute)
         {
             if (!_targetPositionToHoldAtZeroVelOn_velocityMode)
                 _targetPositionToHoldAtZeroVel_velocityMode=dJointGetHingeAngle(_odeConstraint);
@@ -773,7 +773,7 @@ void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime,int currentP
         // Now report forces and torques acting on the joint:
         double forceOrTorque=0.0;
 
-        if (_simGetJointType(_joint)!=sim_joint_spherical_subtype)
+        if (_simGetJointType(_joint)!=sim_joint_spherical)
         { // Spherical joints are not supported here!
             C3Vector absF(_odeJointFeedbackStructure->f2[0],_odeJointFeedbackStructure->f2[1],_odeJointFeedbackStructure->f2[2]);
             absF/=forceScaling; // ********** SCALING
@@ -790,9 +790,9 @@ void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime,int currentP
             C4Vector sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
             C3Vector forces(sensorAbsInverseQ*(absF*-1.0));
             C3Vector torques(sensorAbsInverseQ*(absT*-1.0));
-            if (_simGetJointType(_joint)==sim_joint_revolute_subtype)
+            if (_simGetJointType(_joint)==sim_joint_revolute)
                 forceOrTorque=torques(2);
-            if (_simGetJointType(_joint)==sim_joint_prismatic_subtype)
+            if (_simGetJointType(_joint)==sim_joint_prismatic)
                 forceOrTorque=forces(2);
         }
         _lastEffortOnJoint=forceOrTorque;

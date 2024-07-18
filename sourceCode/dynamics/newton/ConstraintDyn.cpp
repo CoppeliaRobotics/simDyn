@@ -333,21 +333,21 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
     dMatrix matrix (GetDMatrixFromCoppeliaSimTransformation(jtr));
     switch (_simGetJointType(joint))
     {
-        case sim_joint_spherical_subtype:
+        case sim_joint_spherical:
         {
             _newtonConstraint = new CustomBallAndSocket(matrix, childRigidBody, parentRigidBody);
             _newtonConstraint->SetUserData (this);
             break;
         }
 
-        case sim_joint_prismatic_subtype:
+        case sim_joint_prismatic:
         {
             _newtonConstraint = new csimNewtonPrismaticJoint(matrix, childRigidBody, parentRigidBody);
             _newtonConstraint->SetUserData (this);
             break;
         }
 
-        case sim_joint_revolute_subtype:
+        case sim_joint_revolute:
         {
             _newtonConstraint = new csimNewtonRevoluteJoint (matrix, childRigidBody, parentRigidBody);
             _newtonConstraint->SetUserData (this);
@@ -387,7 +387,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
     jtr.Q = jtr.Q*m.getQuaternion();
 
 
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     {
         C3X3Matrix jointOffsetThing;
         jointOffsetThing.setIdentity();
@@ -440,21 +440,21 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
 
     switch (_simGetJointType(joint))
     {
-        case sim_joint_spherical_subtype:
+        case sim_joint_spherical:
         {
             _newtonConstraint = new CustomBallAndSocket(jmatrix, childRigidBody, parentRigidBody);
             _newtonConstraint->SetUserData(this);
             break;
         }
 
-        case sim_joint_prismatic_subtype:
+        case sim_joint_prismatic:
         {
             _newtonConstraint = new csimNewtonPrismaticJoint(jmatrix, childRigidBody, parentRigidBody);
             _newtonConstraint->SetUserData(this);
             break;
         }
 
-        case sim_joint_revolute_subtype:
+        case sim_joint_revolute:
         {
             _newtonConstraint = new csimNewtonRevoluteJoint(jmatrix, childRigidBody, parentRigidBody);
             _newtonConstraint->SetUserData(this);
@@ -622,9 +622,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
 void CConstraintDyn::_updateJointLimits(CXJoint* joint)
 {
     int jointType=_simGetJointType(joint);
-    if (jointType==sim_joint_spherical_subtype)
+    if (jointType==sim_joint_spherical)
         return;
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
     {
         csimNewtonRevoluteJoint* const jointClass = (csimNewtonRevoluteJoint*)_newtonConstraint;
         if (_simGetJointPositionInterval(joint, nullptr, nullptr) == 0)
@@ -653,14 +653,14 @@ void CConstraintDyn::_updateJointLimits(CXJoint* joint)
 void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
 {
     int jointType=_simGetJointType(joint);
-    if (jointType==sim_joint_spherical_subtype)
+    if (jointType==sim_joint_spherical)
         return;
     int ctrlMode=_simGetJointDynCtrlMode(joint);
     sReal dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
     csimNewtonRevoluteJoint* revJoint;
     csimNewtonPrismaticJoint* prismJoint;
     sReal e=0.0;
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
     {
         revJoint = (csimNewtonRevoluteJoint*)_newtonConstraint;
         if (ctrlMode>=sim_jointdynctrl_position)
@@ -685,7 +685,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     inputValuesInt[0]=passCnt;
     inputValuesInt[1]=totalPasses;
     sReal inputValuesFloat[7]={0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
         inputValuesFloat[0]=getRevoluteJointAngle();
     else
        inputValuesFloat[0]=getPrismaticJointPosition();
@@ -702,7 +702,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     sReal forceToApply=fabs(outputValues[1]);
     if ((res&2)==0)
     { // motor is not locked
-        if (jointType==sim_joint_revolute_subtype)
+        if (jointType==sim_joint_revolute)
             revJoint->m_data.SetMotor((res&1)==1,velocityToApply, forceToApply);
         else
             prismJoint->m_data.SetMotor((res&1)==1,velocityToApply, forceToApply);
@@ -710,7 +710,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     }
     else
     { // motor is locked
-        if (jointType==sim_joint_revolute_subtype)
+        if (jointType==sim_joint_revolute)
         {
             if (!_targetPositionToHoldAtZeroVelOn_velocityMode)
                 _targetPositionToHoldAtZeroVel_velocityMode = ((CustomHinge*)_newtonConstraint)->GetJointAngle();
@@ -767,12 +767,12 @@ void CConstraintDyn::reportStateToCoppeliaSim(sReal simulationTime,int currentPa
         // Now report forces and torques acting on the joint:
         sReal forceOrTorque=0.0;
 
-        if (_simGetJointType(_joint)==sim_joint_revolute_subtype)
+        if (_simGetJointType(_joint)==sim_joint_revolute)
         {
             csimNewtonRevoluteJoint* const jointClass = (csimNewtonRevoluteJoint*) _newtonConstraint;
             forceOrTorque = jointClass->m_data.GetJointForce();
         }
-        else if (_simGetJointType(_joint)==sim_joint_prismatic_subtype)
+        else if (_simGetJointType(_joint)==sim_joint_prismatic)
         {
             csimNewtonPrismaticJoint* const jointClass = (csimNewtonPrismaticJoint*) _newtonConstraint;
             forceOrTorque = jointClass->m_data.GetJointForce();
@@ -854,17 +854,17 @@ void CConstraintDyn::_setNewtonParameters(CXJoint* joint)
     int dependencyJointB_ID;
     simGetJointDependency(_simGetObjectID(joint),&dependencyJointB_ID,&dependencyOffset,&dependencyFactor);
 
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
     {
         // TODO_NEWTON:
     }
 
-    if (jointType==sim_joint_prismatic_subtype)
+    if (jointType==sim_joint_prismatic)
     {
         // TODO_NEWTON:
     }
 
-    if (jointType==sim_joint_spherical_subtype)
+    if (jointType==sim_joint_spherical)
     {
         // TODO_NEWTON:
     }

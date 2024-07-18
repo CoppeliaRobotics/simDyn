@@ -24,14 +24,14 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     C3X3Matrix m;
     m.setIdentity();
     m.buildYRotation(1.5707963267);
-    if (_simGetJointType(joint)==sim_joint_prismatic_subtype)
+    if (_simGetJointType(joint)==sim_joint_prismatic)
     { // in Bullet the moving direction is the x-axis (not like CoppeliaSim the z-axis)
         jtr.Q=jtr.Q*m.getQuaternion();
         jtr2.Q=jtr2.Q*m.getQuaternion();
     }
     m.setIdentity();
     m.buildYRotation(piValue);
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     { // in Bullet the moving direction is the negative z-axis (not like CoppeliaSim the z-axis)
         C3X3Matrix jointOffsetThing;
         jointOffsetThing.setIdentity();
@@ -71,7 +71,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     double stopERP=simGetEngineFloatParam(sim_bullet_joint_stoperp,-1,joint,nullptr);
     double stopCFM=simGetEngineFloatParam(sim_bullet_joint_stopcfm,-1,joint,nullptr);
     double normalCFM=simGetEngineFloatParam(sim_bullet_joint_normalcfm,-1,joint,nullptr);
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     {
         btHingeConstraint* hinge;
         btTransform jtrA;
@@ -88,7 +88,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         hinge->setParam(BT_CONSTRAINT_STOP_CFM,stopCFM);
         hinge->setParam(BT_CONSTRAINT_CFM,normalCFM);
     }
-    if (_simGetJointType(joint)==sim_joint_prismatic_subtype)
+    if (_simGetJointType(joint)==sim_joint_prismatic)
     {
         btSliderConstraint* slider;
 
@@ -107,7 +107,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         slider->setParam(BT_CONSTRAINT_STOP_CFM,stopCFM);
         slider->setParam(BT_CONSTRAINT_CFM,normalCFM);
     }
-    if (_simGetJointType(joint)==sim_joint_spherical_subtype)
+    if (_simGetJointType(joint)==sim_joint_spherical)
     {
         btPoint2PointConstraint* ballSocket;
         ballSocket=new btPoint2PointConstraint(*parentRigidBody,*childRigidBody,btVector3(jtrRelToBodyA.X(0),jtrRelToBodyA.X(1),jtrRelToBodyA.X(2)),btVector3(jtrRelToBodyB.X(0),jtrRelToBodyB.X(1),jtrRelToBodyB.X(2)));
@@ -140,14 +140,14 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     C3X3Matrix m;
     m.setIdentity();
     m.buildYRotation(1.5707963267);
-    if (_simGetJointType(joint)==sim_joint_prismatic_subtype)
+    if (_simGetJointType(joint)==sim_joint_prismatic)
     { // in Bullet the moving direction is the x-axis (not like CoppeliaSim the z-axis)
         jtr.Q=jtr.Q*m.getQuaternion();
         jtr2.Q=jtr2.Q*m.getQuaternion();
     }
     m.setIdentity();
     m.buildYRotation(piValue);
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     { // in Bullet the moving direction is the negative z-axis (not like CoppeliaSim the z-axis)
         C3X3Matrix jointOffsetThing;
         jointOffsetThing.setIdentity();
@@ -187,7 +187,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     double stopERP=simGetEngineFloatParam(sim_bullet_joint_stoperp,-1,joint,nullptr);
     double stopCFM=simGetEngineFloatParam(sim_bullet_joint_stopcfm,-1,joint,nullptr);
     double normalCFM=simGetEngineFloatParam(sim_bullet_joint_normalcfm,-1,joint,nullptr);
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     {
         btHingeConstraint* hinge;
         btTransform jtrA;
@@ -205,7 +205,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         hinge->setParam(BT_CONSTRAINT_STOP_CFM,stopCFM);
         hinge->setParam(BT_CONSTRAINT_CFM,normalCFM);
     }
-    if (_simGetJointType(joint)==sim_joint_prismatic_subtype)
+    if (_simGetJointType(joint)==sim_joint_prismatic)
     {
         btSliderConstraint* slider;
 
@@ -224,7 +224,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         slider->setParam(BT_CONSTRAINT_STOP_CFM,stopCFM);
         slider->setParam(BT_CONSTRAINT_CFM,normalCFM);
     }
-    if (_simGetJointType(joint)==sim_joint_spherical_subtype)
+    if (_simGetJointType(joint)==sim_joint_spherical)
     {
         btPoint2PointConstraint* ballSocket;
         ballSocket=new btPoint2PointConstraint(*parentRigidBody,*childRigidBody,btVector3(jtrRelToBodyA.X(0),jtrRelToBodyA.X(1),jtrRelToBodyA.X(2)),btVector3(jtrRelToBodyB.X(0),jtrRelToBodyB.X(1),jtrRelToBodyB.X(2)));
@@ -410,9 +410,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSenso
 void CConstraintDyn::_updateJointLimits(CXJoint* joint)
 {
     int jointType=_simGetJointType(joint);
-    if (jointType==sim_joint_spherical_subtype)
+    if (jointType==sim_joint_spherical)
         return;
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
     {
         btHingeConstraint* hinge;
         hinge=(btHingeConstraint*)_constraint;
@@ -431,7 +431,7 @@ void CConstraintDyn::_updateJointLimits(CXJoint* joint)
             }
         }
     }
-    if (jointType==sim_joint_prismatic_subtype)
+    if (jointType==sim_joint_prismatic)
     {
         double linScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
         double jiMin,jiRange;
@@ -447,7 +447,7 @@ void CConstraintDyn::_updateJointLimits(CXJoint* joint)
 void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
 {
     int jointType=_simGetJointType(joint);
-    if (jointType==sim_joint_spherical_subtype)
+    if (jointType==sim_joint_spherical)
         return;
     int ctrlMode=_simGetJointDynCtrlMode(joint);
     double posScaling=CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
@@ -458,7 +458,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     btHingeConstraint* hinge;
     btSliderConstraint* slider;
     double e=0.0;
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
     {
         hinge=(btHingeConstraint*)_constraint;
         if (ctrlMode>=sim_jointdynctrl_position)
@@ -483,7 +483,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     inputValuesInt[0]=passCnt;
     inputValuesInt[1]=totalPasses;
     double inputValuesFloat[7]={0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
         inputValuesFloat[0]=getRevoluteJointAngle()-_nonCyclicRevoluteJointPositionOffset;
     else
        inputValuesFloat[0]=getPrismaticJointPosition();
@@ -500,7 +500,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     double forceToApply=fabs(outputValues[1]);
     if ((res&2)==0)
     { // motor is not locked
-        if (jointType==sim_joint_revolute_subtype)
+        if (jointType==sim_joint_revolute)
             hinge->enableAngularMotor((res&1)==1,velocityToApply,forceToApply*torqueScaling*dynStepSize);
         else
         {
@@ -512,7 +512,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     }
     else
     { // motor is locked
-        if (jointType==sim_joint_revolute_subtype)
+        if (jointType==sim_joint_revolute)
         {
             if (!_targetPositionToHoldAtZeroVelOn_velocityMode)
                 _targetPositionToHoldAtZeroVel_velocityMode=((btHingeConstraint*)_constraint)->getHingeAngle();
@@ -610,11 +610,11 @@ void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime,int currentP
         double forceOrTorque=0.0;
 
         double dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
-        if (_simGetJointType(_joint)!=sim_joint_spherical_subtype)
+        if (_simGetJointType(_joint)!=sim_joint_spherical)
         { // Spherical joints are not supported here
-            if (_simGetJointType(_joint)==sim_joint_revolute_subtype)
+            if (_simGetJointType(_joint)==sim_joint_revolute)
                 forceOrTorque=-_constraint->getAppliedImpulse()/(torqueScaling*dynStepSize);
-            if (_simGetJointType(_joint)==sim_joint_prismatic_subtype)
+            if (_simGetJointType(_joint)==sim_joint_prismatic)
             {
                 btJointFeedback* jfb=_constraint->getJointFeedback();
                 C3Vector absF(jfb->m_appliedForceBodyB.getX(),jfb->m_appliedForceBodyB.getY(),jfb->m_appliedForceBodyB.getZ());

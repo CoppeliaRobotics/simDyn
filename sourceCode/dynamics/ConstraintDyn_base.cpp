@@ -181,16 +181,16 @@ void CConstraintDyn_base::reportStateToCoppeliaSim(sReal simulationTime,int curr
         }
 
         // Report the joint's intrinsic pose (exclude the joint's intrinsic error pose):
-        if (_simGetJointType(_joint)==sim_joint_revolute_subtype)
+        if (_simGetJointType(_joint)==sim_joint_revolute)
         {
             sReal angle=getRevoluteJointAngle_forCoppeliaSim();
             if (_jointIsCyclic)
                 angle=atan2(sin(angle),cos(angle));
             _simSetDynamicMotorReflectedPositionFromDynamicEngine(_joint,angle,simulationTime);
         }
-        if (_simGetJointType(_joint)==sim_joint_prismatic_subtype)
+        if (_simGetJointType(_joint)==sim_joint_prismatic)
             _simSetDynamicMotorReflectedPositionFromDynamicEngine(_joint,getPrismaticJointPosition(),simulationTime);
-        if (_simGetJointType(_joint)==sim_joint_spherical_subtype)
+        if (_simGetJointType(_joint)==sim_joint_spherical)
         { // a bit more troublesome here!
             C7Vector parentCumul(_bodyA->getShapeFrameTransformation());
             C7Vector childCumul(_bodyB->getShapeFrameTransformation());

@@ -61,7 +61,7 @@ static bool isJointInDynamicMode(CXSceneObject* joint)
 static CXSceneObject* getJointOrFsensorChild(CXSceneObject* object, int* objType = nullptr, int* objHandle = nullptr)
 {
     CXSceneObject* retVal = nullptr;
-    bool isJoint = (_simGetObjectType(object) == sim_object_joint_type);
+    bool isJoint = (_simGetObjectType(object) == sim_sceneobject_joint);
     int rcnt = 0;
     int childrenCount = 0;
     CXSceneObject** childrenPointer=(CXSceneObject**)_simGetObjectChildren(object,&childrenCount);
@@ -70,19 +70,19 @@ static CXSceneObject* getJointOrFsensorChild(CXSceneObject* object, int* objType
         CXSceneObject* child = childrenPointer[i];
         int t = _simGetObjectType(child);
         int inc = rcnt;
-        if (t == sim_object_shape_type)
+        if (t == sim_sceneobject_shape)
         {
             if (_simIsShapeDynamicallyStatic(child) == 0)
                 rcnt++;
         }
         #ifdef INCLUDE_MUJOCO_CODE
-            else if ( (t == sim_object_joint_type) && isJoint ) // consecutive joints
+            else if ( (t == sim_sceneobject_joint) && isJoint ) // consecutive joints
             {
                 if (isJointInDynamicMode(child))
                     rcnt++;
             }
         #endif
-        else if (t == sim_object_dummy_type)
+        else if (t == sim_sceneobject_dummy)
         {
             int linkedDummyHandle=-1;
             int linkType=_simGetDummyLinkType(child, &linkedDummyHandle);

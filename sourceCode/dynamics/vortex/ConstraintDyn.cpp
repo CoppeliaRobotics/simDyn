@@ -59,7 +59,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     _simGetObjectCumulativeTransformation(joint,jtr.X.data,jtr.Q.data,true);
     _simGetObjectCumulativeTransformation(joint,jtr2.X.data,jtr2.Q.data,false);
 
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     {
         C3X3Matrix jointOffsetThing;
         jointOffsetThing.setIdentity();
@@ -100,7 +100,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
 
     C3X3Matrix jtrm(jtr.Q);
 
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     {
         _vortexConstraint= new Vx::VxHinge();
 
@@ -122,7 +122,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         cb->setPosition(C3Vector2VxVector3(cb_a.X));
         cb->setOrientationQuaternion(cb_a.Q(0), cb_a.Q(1), cb_a.Q(2), cb_a.Q(3));
     }
-    if (_simGetJointType(joint)==sim_joint_prismatic_subtype)
+    if (_simGetJointType(joint)==sim_joint_prismatic)
     {
         _vortexConstraint= new Vx::VxPrismatic();
 
@@ -144,7 +144,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         cb->setPosition(C3Vector2VxVector3(cb_a.X));
         cb->setOrientationQuaternion(cb_a.Q(0), cb_a.Q(1), cb_a.Q(2), cb_a.Q(3));
     }
-    if (_simGetJointType(joint)==sim_joint_spherical_subtype)
+    if (_simGetJointType(joint)==sim_joint_spherical)
     {
         _vortexConstraint= new Vx::VxBallAndSocket();
 
@@ -189,7 +189,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
     C7Vector jtr2(tmpTr1*_localTrA_2.getInverse());
 
 
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     {
         C3X3Matrix jointOffsetThing;
         jointOffsetThing.setIdentity();
@@ -230,7 +230,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
 
     C3X3Matrix jtrm(jtr.Q);
 
-    if (_simGetJointType(joint)==sim_joint_revolute_subtype)
+    if (_simGetJointType(joint)==sim_joint_revolute)
     {
         _vortexConstraint= new Vx::VxHinge();
 
@@ -252,7 +252,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         cb->setPosition(C3Vector2VxVector3(cb_a.X));
         cb->setOrientationQuaternion(cb_a.Q(0), cb_a.Q(1), cb_a.Q(2), cb_a.Q(3));
     }
-    if (_simGetJointType(joint)==sim_joint_prismatic_subtype)
+    if (_simGetJointType(joint)==sim_joint_prismatic)
     {
         _vortexConstraint= new Vx::VxPrismatic();
 
@@ -274,7 +274,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joi
         cb->setPosition(C3Vector2VxVector3(cb_a.X));
         cb->setOrientationQuaternion(cb_a.Q(0), cb_a.Q(1), cb_a.Q(2), cb_a.Q(3));
     }
-    if (_simGetJointType(joint)==sim_joint_spherical_subtype)
+    if (_simGetJointType(joint)==sim_joint_spherical)
     {
         _vortexConstraint= new Vx::VxBallAndSocket();
 
@@ -450,9 +450,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSenso
 void CConstraintDyn::_updateJointLimits(CXJoint* joint)
 {
     int jointType=_simGetJointType(joint);
-    if (jointType==sim_joint_spherical_subtype)
+    if (jointType==sim_joint_spherical)
         return;
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
     {
         if (_simGetJointPositionInterval(joint,nullptr,nullptr)==0)
         { // no limits
@@ -485,12 +485,12 @@ void CConstraintDyn::_updateJointLimits(CXJoint* joint)
 void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
 {
     int jointType=_simGetJointType(joint);
-    if (jointType==sim_joint_spherical_subtype)
+    if (jointType==sim_joint_spherical)
         return;
     int ctrlMode=_simGetJointDynCtrlMode(joint);
     double dynStepSize=CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
     double e=0.0;
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
     {
         if (ctrlMode>=sim_jointdynctrl_position)
         {
@@ -513,7 +513,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     inputValuesInt[0]=passCnt;
     inputValuesInt[1]=totalPasses;
     double inputValuesFloat[7]={0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
         inputValuesFloat[0]=getRevoluteJointAngle()-_nonCyclicRevoluteJointPositionOffset;
     else
        inputValuesFloat[0]=getPrismaticJointPosition();
@@ -530,7 +530,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     double forceToApply=fabs(outputValues[1]);
     if ((res&2)==0)
     { // motor is not locked
-        if (jointType==sim_joint_revolute_subtype)
+        if (jointType==sim_joint_revolute)
         {
             if ((res&1)==1)
             {
@@ -588,7 +588,7 @@ void CConstraintDyn::_handleJoint(CXJoint* joint,int passCnt,int totalPasses)
     }
     else
     { // motor is locked
-        if (jointType==sim_joint_revolute_subtype)
+        if (jointType==sim_joint_revolute)
         {
             if (!_targetPositionToHoldAtZeroVelOn_velocityMode)
                 _targetPositionToHoldAtZeroVel_velocityMode=(double)_vortexConstraint->recalculateCoordinateCurrentPosition(VortexPrismCoordinate);
@@ -700,7 +700,7 @@ void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime,int currentP
         double forceOrTorque=0.0;
 
         // measure the force/torque in a revolute/prismatic joint:
-        if (_simGetJointType(_joint)!=sim_joint_spherical_subtype)
+        if (_simGetJointType(_joint)!=sim_joint_spherical)
         { // Spherical joints are not supported here!
 
             // CoppeliaSim supposes that the force and torque are measured at the constraint location, in ABSOLUTE coordinates!
@@ -859,7 +859,7 @@ void CConstraintDyn::_setVortexParameters(CXJoint* joint)
     // vortex_X --> CoppeliaSim_Z, vortex_Y --> CoppeliaSim_X, vortex_Z --> CoppeliaSim_Y
 
     int coord=-1;
-    if (jointType==sim_joint_revolute_subtype)
+    if (jointType==sim_joint_revolute)
     {
         coord=VortexHingeCoordinate;
 
@@ -917,7 +917,7 @@ void CConstraintDyn::_setVortexParameters(CXJoint* joint)
         frA2->setLoss(A0_friction_loss);
     }
 
-    if (jointType==sim_joint_prismatic_subtype)
+    if (jointType==sim_joint_prismatic)
     {
         coord=VortexPrismCoordinate;
 
@@ -971,7 +971,7 @@ void CConstraintDyn::_setVortexParameters(CXJoint* joint)
         frA2->setLoss(A1_friction_loss);
     }
 
-    if (jointType==sim_joint_spherical_subtype)
+    if (jointType==sim_joint_spherical)
     {
 
         // Following line in order to have relaxations relative to the joint base, and not relative to the absolute frame:
