@@ -383,23 +383,6 @@ MUJOCO_ENGINE {
         sourceCode/dynamics/mujoco/xmlser.cpp
 }
 
-MUJOCO_3_2_4_ENGINE {
-    HEADERS +=sourceCode/dynamics/mujoco_3_2_4/CollShapeDyn.h \
-        sourceCode/dynamics/mujoco_3_2_4/RigidBodyDyn.h \
-        sourceCode/dynamics/mujoco_3_2_4/ConstraintDyn.h \
-        sourceCode/dynamics/mujoco_3_2_4/RigidBodyContainerDyn.h \
-        sourceCode/dynamics/mujoco_3_2_4/ParticleDyn.h \
-        sourceCode/dynamics/mujoco_3_2_4/tinyxml2.h \
-        sourceCode/dynamics/mujoco_3_2_4/xmlser.h
-    SOURCES +=sourceCode/dynamics/mujoco_3_2_4/CollShapeDyn.cpp \
-        sourceCode/dynamics/mujoco_3_2_4/RigidBodyDyn.cpp \
-        sourceCode/dynamics/mujoco_3_2_4/ConstraintDyn.cpp \
-        sourceCode/dynamics/mujoco_3_2_4/RigidBodyContainerDyn.cpp \
-        sourceCode/dynamics/mujoco_3_2_4/ParticleDyn.cpp \
-        sourceCode/dynamics/mujoco_3_2_4/tinyxml2.cpp \
-        sourceCode/dynamics/mujoco_3_2_4/xmlser.cpp
-}
-
 PHYSX_ENGINE {
     HEADERS +=sourceCode/dynamics/physx/CollShapeDyn.h \
         sourceCode/dynamics/physx/RigidBodyDyn.h \
