@@ -71,7 +71,7 @@ BULLET_2_78_ENGINE {
     DEFINES += BT_USE_DOUBLE_PRECISION
     DEFINES += INCLUDE_BULLET_2_78_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=23
-    DEFINES += LIBRARY_NAME=\\\"Bullet-2-78\\\"
+    DEFINES += LIBRARY_NAME=\\\"simBullet-2-78\\\"
     DEFINES += ENGINE_NAME=\\\"Bullet\\\"
 
     INCLUDEPATH += "sourceCode/dynamics/bullet_2_78"
@@ -85,7 +85,7 @@ BULLET_2_83_ENGINE {
     DEFINES += BT_USE_DOUBLE_PRECISION
     DEFINES += INCLUDE_BULLET_2_83_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=23
-    DEFINES += LIBRARY_NAME=\\\"Bullet-2-83\\\"
+    DEFINES += LIBRARY_NAME=\\\"simBullet-2-83\\\"
     DEFINES += ENGINE_NAME=\\\"Bullet\\\"
     *-msvc* {
         QMAKE_CFLAGS_RELEASE += -MT
@@ -114,7 +114,7 @@ ODE_ENGINE {
     DEFINES += CCD_DOUBLE
     DEFINES += INCLUDE_ODE_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=23
-    DEFINES += LIBRARY_NAME=\\\"ODE\\\"
+    DEFINES += LIBRARY_NAME=\\\"simODE\\\"
     DEFINES += ENGINE_NAME=\\\"ODE\\\"
     DEFINES += dNODEBUG
     DEFINES += dLIBCCD_ENABLED
@@ -144,7 +144,7 @@ NEWTON_ENGINE {
     #DEFINES += DG_USE_THREAD_EMULATION # not recomended. Use only if you need to handle Newton contacts in a contact callback script
     DEFINES += INCLUDE_NEWTON_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=23
-    DEFINES += LIBRARY_NAME=\\\"Newton\\\"
+    DEFINES += LIBRARY_NAME=\\\"simNewton\\\"
     DEFINES += ENGINE_NAME=\\\"Newton\\\"
     DEFINES += _CUSTOM_JOINTS_STATIC_LIB
     DEFINES += _NEWTON_STATIC_LIB
@@ -179,7 +179,7 @@ VORTEX_ENGINE {
     DEFINES += INCLUDE_VORTEX_CODE
     DEFINES += VX_DLL
     DEFINES += DYNAMICS_PLUGIN_VERSION=23
-    DEFINES += LIBRARY_NAME=\\\"Vortex\\\"
+    DEFINES += LIBRARY_NAME=\\\"simVortex\\\"
     DEFINES += ENGINE_NAME=\\\"Vortex\\\"
     win32 {
         LIBS += "$${VORTEX_LIBPATH}/VxCore.lib"
@@ -203,12 +203,12 @@ MUJOCO_ENGINE {
     DEFINES += sReal=double
     DEFINES += INCLUDE_MUJOCO_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=23
-    DEFINES += LIBRARY_NAME=\\\"Mujoco\\\"
+    DEFINES += LIBRARY_NAME=\\\"simMujoco\\\"
     DEFINES += ENGINE_NAME=\\\"Mujoco\\\"
     *-msvc* {
         QMAKE_CFLAGS_RELEASE += -MT
         QMAKE_CXXFLAGS_RELEASE += -MT
-        LIBS += $${MUJOCO_LIBPATH}/mujoco.lib
+        LIBS += $${MUJOCO_LIBFILE}
     }
     unix {
         LIBS += $${MUJOCO_LIBPATH}/libmujoco.so
@@ -224,7 +224,7 @@ PHYSX_ENGINE {
     DEFINES += sReal=double
     DEFINES += INCLUDE_PHYSX_CODE
     DEFINES += DYNAMICS_PLUGIN_VERSION=23
-    DEFINES += LIBRARY_NAME=\\\"Physx\\\"
+    DEFINES += LIBRARY_NAME=\\\"simPhysx\\\"
     DEFINES += ENGINE_NAME=\\\"Physx\\\"
     *-msvc* {
         QMAKE_CFLAGS_RELEASE += -MT
@@ -257,7 +257,7 @@ HEADERS += ../include/simLib/simLib.h \
     ../include/simMath/4X4Matrix.h \
     ../include/simMath/mXnMatrix.h \
     ../include/simMath/mathFuncs.h \
-    
+
 SOURCES += ../include/simLib/simLib.cpp \
     ../include/simMath/3Vector.cpp \
     ../include/simMath/4Vector.cpp \
@@ -383,12 +383,29 @@ MUJOCO_ENGINE {
         sourceCode/dynamics/mujoco/xmlser.cpp
 }
 
+MUJOCO_3_2_4_ENGINE {
+    HEADERS +=sourceCode/dynamics/mujoco_3_2_4/CollShapeDyn.h \
+        sourceCode/dynamics/mujoco_3_2_4/RigidBodyDyn.h \
+        sourceCode/dynamics/mujoco_3_2_4/ConstraintDyn.h \
+        sourceCode/dynamics/mujoco_3_2_4/RigidBodyContainerDyn.h \
+        sourceCode/dynamics/mujoco_3_2_4/ParticleDyn.h \
+        sourceCode/dynamics/mujoco_3_2_4/tinyxml2.h \
+        sourceCode/dynamics/mujoco_3_2_4/xmlser.h
+    SOURCES +=sourceCode/dynamics/mujoco_3_2_4/CollShapeDyn.cpp \
+        sourceCode/dynamics/mujoco_3_2_4/RigidBodyDyn.cpp \
+        sourceCode/dynamics/mujoco_3_2_4/ConstraintDyn.cpp \
+        sourceCode/dynamics/mujoco_3_2_4/RigidBodyContainerDyn.cpp \
+        sourceCode/dynamics/mujoco_3_2_4/ParticleDyn.cpp \
+        sourceCode/dynamics/mujoco_3_2_4/tinyxml2.cpp \
+        sourceCode/dynamics/mujoco_3_2_4/xmlser.cpp
+}
+
 PHYSX_ENGINE {
     HEADERS +=sourceCode/dynamics/physx/CollShapeDyn.h \
         sourceCode/dynamics/physx/RigidBodyDyn.h \
         sourceCode/dynamics/physx/ConstraintDyn.h \
         sourceCode/dynamics/physx/RigidBodyContainerDyn.h \
-        sourceCode/dynamics/physx/ParticleDyn.h 
+        sourceCode/dynamics/physx/ParticleDyn.h
     SOURCES +=sourceCode/dynamics/physx/CollShapeDyn.cpp \
         sourceCode/dynamics/physx/RigidBodyDyn.cpp \
         sourceCode/dynamics/physx/ConstraintDyn.cpp \
@@ -1080,7 +1097,7 @@ ODE_ENGINE {
     sourceCode/dynamics/ode/ode/libccd/src/support.c \
     sourceCode/dynamics/ode/ode/libccd/src/vec3.c \
 }
-    
+
 NEWTON_ENGINE {
     SOURCES +=sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/newton/Newton.cpp \
         sourceCode/dynamics/newton/newton-dynamics-newton-3.14/coreLibrary_300/source/newton/NewtonClass.cpp \

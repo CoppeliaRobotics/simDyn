@@ -9,7 +9,7 @@
 static LIBRARY simLib;
 
 #ifdef INCLUDE_MUJOCO_CODE
-void LUA_MUJOCOREMOVEXML_CALLBACK(SScriptCallBack* p)
+void LUA_MUJOCOREMOVEINJECTION_CALLBACK(SScriptCallBack* p)
 {
     if (simGetSimulationState()!=sim_simulation_stopped)
     {
@@ -17,7 +17,7 @@ void LUA_MUJOCOREMOVEXML_CALLBACK(SScriptCallBack* p)
         simGetInt32Param(sim_intparam_dynamic_engine,&eng);
         if (eng==sim_physics_mujoco)
         {
-            if (CRigidBodyContainerDyn::getDynWorld() != nullptr)
+            if ( (CRigidBodyContainerDyn::getDynWorld() != nullptr) && (!CRigidBodyContainerDyn::getDynWorld()->hasSimulationHalted()) )
             {
                 int stack=p->stackID;
                 CStackArray inArguments;
@@ -44,7 +44,7 @@ void LUA_MUJOCOREMOVEXML_CALLBACK(SScriptCallBack* p)
         simSetLastError(nullptr,"simulation is not yet running.");
 }
 
-void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
+void LUA_MUJOCOADDINJECTION_CALLBACK(SScriptCallBack* p)
 {
     if (simGetSimulationState()!=sim_simulation_stopped)
     {
@@ -52,14 +52,23 @@ void LUA_MUJOCOINJECTXML_CALLBACK(SScriptCallBack* p)
         simGetInt32Param(sim_intparam_dynamic_engine,&eng);
         if (eng==sim_physics_mujoco)
         {
-            if (CRigidBodyContainerDyn::getDynWorld() != nullptr)
+            if ( (CRigidBodyContainerDyn::getDynWorld() != nullptr) && (!CRigidBodyContainerDyn::getDynWorld()->hasSimulationHalted()) )
             {
-                int injectionId=-1;
-                int stack=p->stackID;
+                int injectionId = -1;
+                int stack = p->stackID;
                 CStackArray inArguments;
                 inArguments.buildFromStack(stack);
-                if ( (inArguments.getSize()>=2)&&inArguments.isString(0)&&(inArguments.isString(1)||inArguments.isNumber(1)) )
-                { // we expect 2 arguments: an xml string and an element name or objectHandle
+
+                if ( (inArguments.getSize() >= 1) && inArguments.isMap(0) )
+                { // we expect 1 argument: an info map
+
+                    std::string errString;
+                    injectionId = CRigidBodyContainerDyn::addOrUpdateGeneralInjection(&inArguments, -1, &errString, p->scriptID);
+                    if (injectionId != -1)
+                        simSetLastError(nullptr, errString.c_str());
+                }
+                else if ( (inArguments.getSize()>=2) && inArguments.isString(0) && (inArguments.isString(1) || inArguments.isNumber(1)) )
+                { // Old way: we expect 2 arguments: an xml string and an element name or objectHandle
                     std::string xml(inArguments.getString(0));
                     std::string element;
                     int handle=-1;
@@ -117,7 +126,7 @@ void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
                 {
                     if ( (map->isString("prefix"))&&(map->isArray("count"))&&(map->isString("type")) )
                     {
-                        if (CRigidBodyContainerDyn::getDynWorld() != nullptr)
+                        if ( (CRigidBodyContainerDyn::getDynWorld() != nullptr) && (!CRigidBodyContainerDyn::getDynWorld()->hasSimulationHalted()) )
                         {
                             int shapeHandle=map->getInt("shapeHandle");
                             std::string element(map->getString("element"));
@@ -137,14 +146,19 @@ void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
                                 CStackArray* arr=map->getArray("count");
                                 for (size_t i=0;i<std::min<size_t>(3,arr->getSize());i++)
                                     c[i]=size_t(arr->getInt(i));
-                                // We do not support particles via composites, since they can't be named, thus, they can't be identified later on as particles
-                                if ( /*(type=="particle")||*/(type=="grid")||(type=="rope")||(type=="loop")||(type=="cloth")||(type=="box")||(type=="cylinder")||(type=="ellipsoid") )
+                                // as of Mujoco V3.2.5, only cables (and grids/loops) are still properly supported AFAIK
+                                if ( (type=="cable")||(type=="grid")||(type=="rope")||(type=="loop")||(type=="cloth")||(type=="box")||(type=="cylinder")||(type=="ellipsoid") )
                                 {
-                                    std::string cbFunc;
-                                    if (map->isString("cbFunc"))
-                                        cbFunc=map->getString("cbFunc");
-                                    int cbScript=p->scriptID;
-                                    injectionId=CRigidBodyContainerDyn::injectCompositeXml(xml.c_str(),shapeHandle,element.c_str(),prefix.c_str(),c,type.c_str(),respondableMask,grow,cbFunc.c_str(),cbScript);
+                                    if (type!="rope")
+                                    {
+                                        std::string cbFunc;
+                                        if (map->isString("cbFunc"))
+                                            cbFunc = map->getString("cbFunc");
+                                        int cbScript = p->scriptID;
+                                        injectionId=CRigidBodyContainerDyn::injectCompositeXml(xml.c_str(), shapeHandle, element.c_str(), prefix.c_str(), c, type.c_str(), respondableMask, grow, cbFunc.c_str(), cbScript);
+                                    }
+                                    else
+                                        simSetLastError(nullptr,"composite type 'rope' is not supported anymore. Use 'cable' type instead.");
                                 }
                                 else
                                     simSetLastError(nullptr,"invalid composite type.");
@@ -183,7 +197,7 @@ void LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK(SScriptCallBack* p)
         simGetInt32Param(sim_intparam_dynamic_engine,&eng);
         if (eng==sim_physics_mujoco)
         {
-            if (CRigidBodyContainerDyn::getDynWorld() != nullptr)
+            if ( (CRigidBodyContainerDyn::getDynWorld() != nullptr) && (!CRigidBodyContainerDyn::getDynWorld()->hasSimulationHalted()) )
             {
                 int stack=p->stackID;
                 std::vector<double> info;
@@ -191,18 +205,18 @@ void LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK(SScriptCallBack* p)
                 int count[3]={0,0,0};
                 CStackArray inArguments;
                 inArguments.buildFromStack(stack);
-                if ( (inArguments.getSize()>=2)&&(inArguments.isNumber(0)||inArguments.isString(0))&&inArguments.isNumber(1) )
-                { // we expect 2 argument: a prefix string and an int
-                    CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
-                    if (dynWorld!=nullptr)
+                if ( (inArguments.getSize() >= 2) && (inArguments.isNumber(0) || inArguments.isString(0)) && inArguments.isNumber(1) )
+                { // we expect 2 argument: an injectionID (or a prefix string, for backw. compat.) and an int
+                    CRigidBodyContainerDyn* dynWorld = CRigidBodyContainerDyn::getDynWorld();
+                    if (dynWorld != nullptr)
                     {
-                        int compIndex=-1;
+                        int compIndex = -1;
                         if (inArguments.isNumber(0))
-                            compIndex=dynWorld->getCompositeIndexFromInjectionId(inArguments.getInt(0));
+                            compIndex = dynWorld->getCompositeIndexFromInjectionId(inArguments.getInt(0));
                         else
-                            compIndex=dynWorld->getCompositeIndexFromPrefix(inArguments.getString(0).c_str()); // for backward compatibility
-                        int what=inArguments.getInt(1);
-                        type=dynWorld->getCompositeInfo(compIndex,what,info,count);
+                            compIndex = dynWorld->getCompositeIndexFromPrefix(inArguments.getString(0).c_str()); // for backward compatibility
+                        int what = inArguments.getInt(1);
+                        type = dynWorld->getCompositeInfo(compIndex, what, info, count);
                     }
                 }
                 else
@@ -231,6 +245,132 @@ void LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK(SScriptCallBack* p)
     else
         simSetLastError(nullptr,"simulation is not yet running.");
 }
+
+void LUA_MUJOCOADDFLEXCOMP_CALLBACK(SScriptCallBack* p)
+{
+    if (simGetSimulationState()!=sim_simulation_stopped)
+    {
+        int eng;
+        simGetInt32Param(sim_intparam_dynamic_engine, &eng);
+        if (eng == sim_physics_mujoco)
+        {
+            int injectionId = -1;
+            int stack = p->stackID;
+            CStackArray inArguments;
+            inArguments.buildFromStack(stack);
+
+            if ( (CRigidBodyContainerDyn::getDynWorld() != nullptr) && (!CRigidBodyContainerDyn::getDynWorld()->hasSimulationHalted()) )
+            {
+                std::string errString;
+                injectionId = CRigidBodyContainerDyn::addOrUpdateFlexcompInjection(&inArguments, -1, &errString, p->scriptID);
+                if (injectionId != -1)
+                    simSetLastError(nullptr, errString.c_str());
+            }
+            else
+                simSetLastError(nullptr, "engine not initialized.");
+
+            CStackArray outArguments;
+            outArguments.pushInt(injectionId);
+            outArguments.buildOntoStack(stack);
+        }
+        else
+            simSetLastError(nullptr, "current engine is not MuJoCo.");
+    }
+    else
+        simSetLastError(nullptr, "simulation is not yet running.");
+}
+
+void LUA_MUJOCOGETFLEXCOMPINFO_CALLBACK(SScriptCallBack* p)
+{
+    if (simGetSimulationState()!=sim_simulation_stopped)
+    {
+        int eng;
+        simGetInt32Param(sim_intparam_dynamic_engine,&eng);
+        if (eng==sim_physics_mujoco)
+        {
+            if ( (CRigidBodyContainerDyn::getDynWorld() != nullptr) && (!CRigidBodyContainerDyn::getDynWorld()->hasSimulationHalted()) )
+            {
+                int stack=p->stackID;
+                std::vector<double> info;
+                std::string type;
+                int count[3]={0,0,0};
+                CStackArray inArguments;
+                inArguments.buildFromStack(stack);
+                if ( (inArguments.getSize()>=2)&&(inArguments.isNumber(0)||inArguments.isString(0))&&inArguments.isNumber(1) )
+                { // we expect 2 argument: a prefix string and an int
+                    CRigidBodyContainerDyn* dynWorld=CRigidBodyContainerDyn::getDynWorld();
+                    if (dynWorld!=nullptr)
+                    {
+                        int compIndex=-1;
+                        compIndex=dynWorld->getFlexcompIndexFromInjectionId(inArguments.getInt(0));
+                        int what=inArguments.getInt(1);
+                        type=dynWorld->getFlexcompInfo(compIndex,what,info,count);
+                    }
+                }
+                else
+                    simSetLastError(nullptr,"not enough arguments or wrong arguments.");
+
+                CStackArray outArguments;
+                CStackMap* map=new CStackMap();
+                CStackArray* infoArray=new CStackArray();
+                if (info.size()>0)
+                    infoArray->setDoubleArray(&info[0],info.size());
+                map->setArray("info",infoArray);
+                map->setString("type",type);
+                CStackArray* countArray=new CStackArray();
+                for (size_t i=0;i<3;i++)
+                    countArray->pushInt(count[i]);
+                map->setArray("count",countArray);
+                outArguments.pushMap(map);
+                outArguments.buildOntoStack(stack);
+            }
+            else
+                simSetLastError(nullptr,"engine not initialized.");
+        }
+        else
+            simSetLastError(nullptr,"current engine is not MuJoCo.");
+    }
+    else
+        simSetLastError(nullptr,"simulation is not yet running.");
+}
+
+void LUA_MUJOCOGETINFO_CALLBACK(SScriptCallBack* p)
+{
+    if (simGetSimulationState() != sim_simulation_stopped)
+    {
+        int eng;
+        simGetInt32Param(sim_intparam_dynamic_engine, &eng);
+        if (eng==sim_physics_mujoco)
+        {
+            if ( (CRigidBodyContainerDyn::getDynWorld() != nullptr) && (!CRigidBodyContainerDyn::getDynWorld()->hasSimulationHalted()) )
+            {
+                int stack = p->stackID;
+                CStackArray inArguments;
+                inArguments.buildFromStack(stack);
+                CStackArray outArguments;
+
+                if ( (inArguments.getSize() >= 1) && inArguments.isString(0) )
+                { // we expect 1 argument: a query string
+                    std::string queryString(inArguments.getString(0));
+                    CRigidBodyContainerDyn* dynWorld = CRigidBodyContainerDyn::getDynWorld();
+                    if (dynWorld!=nullptr)
+                        outArguments.pushString(dynWorld->getInfo(queryString.c_str()));
+                }
+                else
+                    simSetLastError(nullptr,"not enough arguments or wrong arguments.");
+
+                outArguments.buildOntoStack(stack);
+            }
+            else
+                simSetLastError(nullptr,"engine not initialized.");
+        }
+        else
+            simSetLastError(nullptr,"current engine is not MuJoCo.");
+    }
+    else
+        simSetLastError(nullptr,"simulation is not yet running.");
+}
+
 #endif
 
 
@@ -250,10 +390,13 @@ SIM_DLLEXPORT int simInit(SSimInit* info)
     }
 
 #ifdef INCLUDE_MUJOCO_CODE
-    simRegisterScriptCallbackFunction("removeXML",nullptr,LUA_MUJOCOREMOVEXML_CALLBACK);
-    simRegisterScriptCallbackFunction("_injectXML",nullptr,LUA_MUJOCOINJECTXML_CALLBACK);
-    simRegisterScriptCallbackFunction("_composite",nullptr,LUA_MUJOCOCOMPOSITE_CALLBACK);
-    simRegisterScriptCallbackFunction("getCompositeInfo",nullptr,LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK);
+    simRegisterScriptCallbackFunction("_addInjection", nullptr, LUA_MUJOCOADDINJECTION_CALLBACK);
+    simRegisterScriptCallbackFunction("_removeInjection", nullptr, LUA_MUJOCOREMOVEINJECTION_CALLBACK);
+    simRegisterScriptCallbackFunction("_addFlexcomp", nullptr, LUA_MUJOCOADDFLEXCOMP_CALLBACK);
+    simRegisterScriptCallbackFunction("_getFlexcompInfo", nullptr, LUA_MUJOCOGETFLEXCOMPINFO_CALLBACK);
+    simRegisterScriptCallbackFunction("_getInfo", nullptr, LUA_MUJOCOGETINFO_CALLBACK);
+    simRegisterScriptCallbackFunction("_composite", nullptr, LUA_MUJOCOCOMPOSITE_CALLBACK);
+    simRegisterScriptCallbackFunction("_getCompositeInfo", nullptr, LUA_MUJOCOGETCOMPOSITEINFO_CALLBACK);
 #endif
 
     return(DYNAMICS_PLUGIN_VERSION);

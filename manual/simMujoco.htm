@@ -28,6 +28,7 @@ td.section { margin: 0; padding: 0; }
 <tr><td id="alphabetical" class="section"><pre class="apiList">
 <a href="?#simMujoco.composite">simMujoco.composite</a>
 <a href="?#simMujoco.getCompositeInfo">simMujoco.getCompositeInfo</a>
+<a href="?#simMujoco.geInfo">simMujoco.getInfo</a>
 <a href="?#simMujoco.injectXML">simMujoco.injectXML</a>
 <a href="?#simMujoco.removeXML">simMujoco.removeXML</a>
 </pre></td></tr>
@@ -107,6 +108,41 @@ td.section { margin: 0; padding: 0; }
 </tr>
 </table>
 <br>
+
+
+
+<p class="subsectionBar">
+<a name="simMujoco.getInfo" id="simMujoco.getInfo"></a>simMujoco.getInfo</p>
+<table class="apiTable">
+<tr class="apiTableTr">
+<td class="apiTableLeftDescr">Description</td>
+<td class="apiTableRightDescr">Retrieves general information</td>
+</tr>
+<tr class="apiTableTr">
+<td class="apiTableLeftLSyn">Lua synopsis</td>
+<td class="apiTableRightLSyn">string info=simMujoco.getInfo(string what)</td>
+</tr>
+<tr class="apiTableTr">
+<td class="apiTableLeftLParam">Lua arguments</td>
+<td class="apiTableRightLParam">
+<div><strong>what</strong>: the information type. Currently only 'nameAndIds' is supported</div>
+</td>
+</tr>
+<tr class="apiTableTr">
+<td class="apiTableLeftLRet">Lua return values</td>
+<td class="apiTableRightLRet">
+<div><strong>info</strong>: the requested information</div>
+</td>
+</tr>
+
+<tr class="apiTableTr">
+<td class="apiTableLeftPSyn">Python synopsis</td>
+<td class="apiTableRightPSyn">string info=simMujoco.getInfo(string what)</td>
+</tr>
+</table>
+<br>
+
+
 
 <p class="subsectionBar">
 <a name="simMujoco.injectXML" id="simMujoco.injectXML"></a>simMujoco.injectXML</p>

@@ -3,12 +3,12 @@
 #include <RigidBodyContainerDyn_base.h>
 #include <xmlser.h>
 #include <mujoco/mujoco.h>
-
-//#define testingArmature
+#include <simStack/stackArray.h>
+#include <simStack/stackMap.h>
 
 enum shapeModes{staticMode=0,kinematicMode=1,freeMode=2,attachedMode=3};
 
-enum itemTypes{shapeItem=0,particleItem=1,compositeItem=2,dummyShapeItem=3};
+enum itemTypes{shapeItem=0,particleItem=1,compositeItem=2,dummyShapeItem=3,flexcompItem=4};
 
 struct SMjShape
 { // only the shapes that have a counterpart in CoppeliaSim.
@@ -19,10 +19,12 @@ struct SMjShape
     int mjId; // body
     int mjIdStatic; // body (static counterpart, if applies)
     int mjIdJoint; // freejoint (if shape in free mode)
+    int mjIdAdhesion; // adhesion actuator (if enabled)
     shapeModes shapeMode;
     C7Vector staticShapeStart;
     C7Vector staticShapeGoal;
     itemTypes itemType;
+    bool adhesion;
     std::vector<int> geomIndices; // pointing into _allGeoms
 };
 
@@ -55,11 +57,6 @@ struct SMjJoint
     C4Vector initialBallQuat2;
     int dependencyJointHandle;
     double polycoef[5];
-#ifdef testingArmature
-    std::vector<double> lastForces;
-    double armature;
-    double maxForceOverArmature;
-#endif
 };
 
 struct SMjFreejoint
@@ -104,7 +101,7 @@ struct SInfo
 };
 
 struct SInject
-{
+{ // old
     int injectionId; // used to be able to remove an injection
     std::string cbFunc;
     int cbScript;
@@ -132,6 +129,44 @@ struct SCompositeInject
     std::vector<int> mjIds;
 };
 
+struct SFlexcompInject
+{
+    int injectionId;
+    int updateCnt;
+    std::string cbFunc;
+    int cbScript;
+    std::string xml;
+    std::string flexcompExtraXml;
+    std::string extraXml;
+    int shapeHandle;
+    std::string element;
+    std::string type;
+    C7Vector pose; // relative to parent (i.e. shapeHandle)
+    std::string prefix;
+    std::string xmlDummyString;
+    size_t count[3];
+    double spacing[3];
+    double radius;
+    double mass;
+    int parentMjId;
+    std::vector<int> pinned;
+    std::vector<int> bodyIds;
+    std::vector<std::string> bodyNames;
+    std::vector<C3Vector> initialPositions;
+};
+
+struct SGeneralInject
+{
+    int injectionId;
+    int updateCnt;
+    std::string cbFunc;
+    int cbScript;
+    std::string xml;
+    int shapeHandle;
+    std::string element;
+    std::string xmlDummyString;
+};
+
 class CRigidBodyContainerDyn : public CRigidBodyContainerDyn_base
 {
 public:
@@ -142,30 +177,44 @@ public:
     void handleDynamics(double dt,double simulationTime);
 
     std::string getEngineInfo() const;
-    bool isDynamicContentAvailable();
+    bool isDynamicContentAvailable() const;
+    bool hasSimulationHalted() const;
 
-    std::string getCompositeInfo(int compIndex,int what,std::vector<double>& info,int count[3]) const;
+    std::string getInfo(const char* queryString) const;
+    std::string getCompositeInfo(int compIndex, int what, std::vector<double>& info, int count[3]) const;
+    std::string getFlexcompInfo(int flexcompIndex, int what, std::vector<double>& info, int count[3]) const;
     void particlesAdded();
     static double computePMI(const double* vertices,int verticesSize,const int* indices,int indicesSize,C7Vector& tr,C3Vector& diagI);
     static double computeInertia(int shapeHandle,C7Vector& tr,C3Vector& diagI,bool addRobustness=false);
-    static int injectXml(const char* xml,const char* element,int objectHandle,const char* cbFunc,int cbScript,const char* cbId);
+    static int injectXml(const char* xml,const char* element,int objectHandle,const char* cbFunc,int cbScript,const char* cbId); // old
     static int injectCompositeXml(const char* xml,int shapeHandle,const char* element,const char* prefix,const size_t* count,const char* type,int respondableMask,double grow,const char* cbFunc,int cbScript);
     static bool removeInjection(int injectionId);
-    static int getCompositeIndexFromPrefix(const char* prefix);
     static int getCompositeIndexFromInjectionId(int id);
+    static int getFlexcompIndexFromInjectionId(int id);
+    static int getGeneralInjectionIndexFromInjectionId(int id);
 
+    static int getCompositeIndexFromPrefix(const char* prefix);
+    static int getFlexcompIndexFromPrefix(const char* prefix);
+
+    static int addOrUpdateFlexcompInjection(CStackArray* inArguments, int flexcompIdToUpdate = -1, std::string* errString = nullptr, int scriptId = -1);
+    static int addOrUpdateGeneralInjection(CStackArray* inArguments, int injectionIdToUpdate = -1, std::string* errString = nullptr, int scriptId = -1);
 
 protected:
     static void _displayWarningAboutCPUCompatibility();
     static std::string _getObjectName(CXSceneObject* object);
     static bool _addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SInfo* info,std::vector<SMjGeom>* geoms,bool shapeIsStatic);
     int _hasContentChanged();
-    void _addInjections(CXmlSer* xmlDoc,int objectHandle,const char* currentElement);
+    void _addInjections(CXmlSer* xmlDoc,int objectHandle,const char* currentElement); // old
     void _addComposites(CXmlSer* xmlDoc,int shapeHandle,const char* currentElement);
+    void _addFlexcomps(CXmlSer* xmlDoc,int shapeHandle,const char* currentElement);
+    void _addGeneralInjections(CXmlSer* xmlDoc, int shapeHandle);
+
     std::string _buildMujocoWorld(double timeStep,double simTime,bool rebuild);
     bool _addObjectBranch(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
     void _addShape(CXSceneObject* object,CXSceneObject* parent,CXmlSer* xmlDoc,SInfo* info);
     void _addInertiaElement(CXmlSer* xmlDoc,double mass,const C7Vector& tr,const C3Vector diagI);
+    void _appendSitesToFlexcompBodies(std::string& data) const;
+    void _appendGeneralInjections(std::string& data) const;
 
     int _handleContact(const mjModel* m,mjData* d,int geom1,int geom2);
     void _handleControl(const mjModel* m,mjData* d);
@@ -184,8 +233,10 @@ protected:
     void _handleKinematicBodies_step(double t,double cumulatedTimeStep);
 
     static bool _simulationHalted;
-    static std::vector<SInject> _xmlInjections;
+    static std::vector<SInject> _xmlInjections; // old
     static std::vector<SCompositeInject> _xmlCompositeInjections;
+    static std::vector<SFlexcompInject> _xmlFlexcompInjections;
+    static std::vector<SGeneralInject> _xmlGeneralInjections;
 
     mjModel* _mjModel;
     mjData* _mjData;
