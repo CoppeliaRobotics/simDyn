@@ -4,25 +4,24 @@
 #include <RigidBodyDyn.h>
 #include <simMath/7Vector.h>
 
-class CConstraintDyn_base  
+class CConstraintDyn_base
 {
-public:
+  public:
     CConstraintDyn_base();
     virtual ~CConstraintDyn_base();
 
     // ShapeA -> joint -> shapeB
-    virtual void init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joint);
+    virtual void init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* joint);
     // ShapeA -> joint -> dummyA - dummyB <- shapeB
-    virtual void init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXJoint* joint,CXDummy* dummyA,CXDummy* dummyB);
+    virtual void init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* joint, CXDummy* dummyA, CXDummy* dummyB);
     // ShapeA -> dummyA - dummyB <- shapeB
-    virtual void init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXDummy* dummyA,CXDummy* dummyB);
+    virtual void init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXDummy* dummyA, CXDummy* dummyB);
     // ShapeA -> force sensor -> shapeB
-    virtual void init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSensor* forceSensor);
+    virtual void init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSensor* forceSensor);
     // ShapeA -> force sensor -> dummyA - dummyB <- shapeB
-    virtual void init(CRigidBodyDyn* bodyA,CRigidBodyDyn* bodyB,CXForceSensor* forceSensor,CXDummy* dummyA,CXDummy* dummyB);
+    virtual void init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSensor* forceSensor, CXDummy* dummyA, CXDummy* dummyB);
 
-
-    virtual void reportStateToCoppeliaSim(sReal simulationTime,int currentPass,int totalPasses);
+    virtual void reportStateToCoppeliaSim(sReal simulationTime, int currentPass, int totalPasses);
     virtual sReal getPrismaticJointPosition() const; // important! The slider pos is not initialized when added (Bullet)!
     virtual sReal getRevoluteJointAngle();
     virtual sReal getRevoluteJointAngle_forCoppeliaSim(); // we are using an offset between CoppeliaSim joint position and Bullet/ODE joint position to avoid problems with limits (revolute joints only)
@@ -45,13 +44,13 @@ public:
     CXShape* getShapeB() const;
 
     bool announceBodyWillBeDestroyed(int shapeHandle) const;
-    void handleMotorControl(CXJoint* joint,int passCnt,int totalPasses);
+    void handleMotorControl(CXJoint* joint, int passCnt, int totalPasses);
 
-protected:
+  protected:
     virtual void _updateJointLimits(CXJoint* joint);
-    virtual void _handleJoint(CXJoint* joint,int passCnt,int totalPasses);
+    virtual void _handleJoint(CXJoint* joint, int passCnt, int totalPasses);
 
-    static sReal getAngleMinusAlpha(sReal angle,sReal alpha);
+    static sReal getAngleMinusAlpha(sReal angle, sReal alpha);
 
     int _shapeAHandle;
     int _shapeBHandle;
@@ -70,20 +69,19 @@ protected:
     CRigidBodyDyn* _bodyA;
     CRigidBodyDyn* _bodyB;
 
-    C7Vector _localTrA;     // between ShapeA and its child
-    C7Vector _localTrA_2;   // between joint/fSensor and dummyA
-    C7Vector _localTrB;     // between ShapeB and its child, or inv(between parent of shapeB and shape B)
+    C7Vector _localTrA;   // between ShapeA and its child
+    C7Vector _localTrA_2; // between joint/fSensor and dummyA
+    C7Vector _localTrB;   // between ShapeB and its child, or inv(between parent of shapeB and shape B)
 
-    sReal _nonCyclicRevoluteJointPositionOffset;    // Since 18/11/2012: Needed to avoid problems with Bullet (or was it ODE?) with joint limits below/above -180/+180 degrees
-                                                    // The offset allows to model Bullet and ODE joints that have symmetrical limits (i.e. +- xx degrees)
-                                                    // So: CoppeliaSim Joint + _nonCyclicRevoluteJointPositionOffset = physics engine joint
-    sReal _nonCyclicRevoluteJointPositionMinimum;    // those are a copy of CoppeliaSim's values. But we make sure that they don't change during simulation!
+    sReal _nonCyclicRevoluteJointPositionOffset;  // Since 18/11/2012: Needed to avoid problems with Bullet (or was it ODE?) with joint limits below/above -180/+180 degrees
+                                                  // The offset allows to model Bullet and ODE joints that have symmetrical limits (i.e. +- xx degrees)
+                                                  // So: CoppeliaSim Joint + _nonCyclicRevoluteJointPositionOffset = physics engine joint
+    sReal _nonCyclicRevoluteJointPositionMinimum; // those are a copy of CoppeliaSim's values. But we make sure that they don't change during simulation!
     sReal _nonCyclicRevoluteJointPositionRange;
 
-
     sReal _lastEffortOnJoint;
-    sReal _lastJointPos; // used with Bullet and ODE in order to keep track of number of turns
-    sReal _jointPosAlt; // used with Bullet and ODE in order to keep track of number of turns
+    sReal _lastJointPos;   // used with Bullet and ODE in order to keep track of number of turns
+    sReal _jointPosAlt;    // used with Bullet and ODE in order to keep track of number of turns
     bool _lastJointPosSet; // used with Bullet and ODE in order to keep track of number of turns
     int _dynPassCount;
     bool _jointIsCyclic;

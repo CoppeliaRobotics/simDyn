@@ -5,15 +5,15 @@
 
 class CCollShapeDyn : public CCollShapeDyn_base
 {
-public:
+  public:
     CCollShapeDyn();
     virtual ~CCollShapeDyn();
 
-    void init(CXShape* shape,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled);
+    void init(CXShape* shape, bool willBeStatic, const C7Vector& inverseLocalInertiaFrame_scaled);
 
     btCollisionShape* getBtCollisionShape();
 
-protected:    
+  protected:
     btTriangleIndexVertexArray* _indexVertexArrays; // for meshes
     std::vector<btCollisionShape*> _compoundChildShapes;
     btCollisionShape* _collisionShape;

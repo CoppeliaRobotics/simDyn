@@ -9,17 +9,17 @@
 
 CRigidBodyContainerDyn::CRigidBodyContainerDyn()
 {
-    _engine=sim_physics_physx;
-    _engineVersion=0;
-    gFoundation=nullptr;
-    gPhysics=nullptr;
-    gDispatcher=nullptr;
-    gScene=nullptr;
-    gPvd=nullptr;
+    _engine = sim_physics_physx;
+    _engineVersion = 0;
+    gFoundation = nullptr;
+    gPhysics = nullptr;
+    gDispatcher = nullptr;
+    gScene = nullptr;
+    gPvd = nullptr;
 
-    _objectCreationCounter=-1;
-    _objectDestructionCounter=-1;
-    _hierarchyChangeCounter=-1;
+    _objectCreationCounter = -1;
+    _objectDestructionCounter = -1;
+    _hierarchyChangeCounter = -1;
 
     /*
     _restartCount=0;
@@ -40,13 +40,13 @@ CRigidBodyContainerDyn::CRigidBodyContainerDyn()
 
 CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
 {
-    if (gScene!=nullptr)
+    if (gScene != nullptr)
     {
         PX_RELEASE(gScene);
         PX_RELEASE(gDispatcher);
         PxCloseExtensions();
         PX_RELEASE(gPhysics);
-        if (gPvd!=nullptr)
+        if (gPvd != nullptr)
         {
             PxPvdTransport* transport = gPvd->getTransport();
             gPvd->release();
@@ -73,51 +73,51 @@ CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
     */
 }
 
-std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int intParams[20])
+std::string CRigidBodyContainerDyn::init(const double floatParams[20], const int intParams[20])
 {
-    CRigidBodyContainerDyn_base::init(floatParams,intParams);
-    return("");
+    CRigidBodyContainerDyn_base::init(floatParams, intParams);
+    return ("");
 }
 
-std::string CRigidBodyContainerDyn::_buildPhysxWorld(double timeStep,double simTime,bool rebuild)
+std::string CRigidBodyContainerDyn::_buildPhysxWorld(double timeStep, double simTime, bool rebuild)
 {
     gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
-    //*
-    #define PVD_HOST "127.0.0.1"
+//*
+#define PVD_HOST "127.0.0.1"
     gPvd = PxCreatePvd(*gFoundation);
     PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate(PVD_HOST, 5425, 10);
-    gPvd->connect(*transport,PxPvdInstrumentationFlag::eALL);
+    gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
     //*/
-    gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(),true, gPvd);
+    gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true, gPvd);
     PxInitExtensions(*gPhysics, gPvd);
 
     PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
-    sceneDesc.gravity = PxVec3(0.0f, 0.0f,-9.81f);
+    sceneDesc.gravity = PxVec3(0.0f, 0.0f, -9.81f);
     gDispatcher = PxDefaultCpuDispatcherCreate(2);
-    sceneDesc.cpuDispatcher	= gDispatcher;
-    sceneDesc.filterShader	= PxDefaultSimulationFilterShader;
+    sceneDesc.cpuDispatcher = gDispatcher;
+    sceneDesc.filterShader = PxDefaultSimulationFilterShader;
     gScene = gPhysics->createScene(sceneDesc);
 
     gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
-    PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0,0,1,0), *gMaterial);
+    PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 0, 1, 0), *gMaterial);
     gScene->addActor(*groundPlane);
 
-//	PxRigidStatic* baseBody = PxCreateStatic(*gPhysics, PxTransform(PxVec3(0.0f, 2.0f, 0.0f)), PxBoxGeometry(1.0f, 2.0f, 3.0f), *gMaterial);
+    //	PxRigidStatic* baseBody = PxCreateStatic(*gPhysics, PxTransform(PxVec3(0.0f, 2.0f, 0.0f)), PxBoxGeometry(1.0f, 2.0f, 3.0f), *gMaterial);
     float radius = 1.0f;
     PxRigidDynamic* sphereBody = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(0.0f, 0.0f, 5.0f)), PxSphereGeometry(radius), *gMaterial, 1.0f);
     float halfHeight = 2.0f;
-    PxRigidDynamic* capsuleBody = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(1.0f, 0.0f, 5.0f)), PxCapsuleGeometry(radius,halfHeight), *gMaterial,1.0f);
-    PxRigidDynamic* boxBody = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(3.0f, 0.0f, 5.0f)), PxBoxGeometry(1.0,2.0,3.0), *gMaterial, 1.0f);
+    PxRigidDynamic* capsuleBody = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(1.0f, 0.0f, 5.0f)), PxCapsuleGeometry(radius, halfHeight), *gMaterial, 1.0f);
+    PxRigidDynamic* boxBody = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(3.0f, 0.0f, 5.0f)), PxBoxGeometry(1.0, 2.0, 3.0), *gMaterial, 1.0f);
     gScene->addActor(*sphereBody);
-//    gScene->addActor(*capsuleBody);
-//    gScene->addActor(*boxBody);
+    //    gScene->addActor(*capsuleBody);
+    //    gScene->addActor(*boxBody);
 
-    for (size_t i=0;i<1000;i++)
+    for (size_t i = 0; i < 1000; i++)
     {
         gScene->simulate(0.05);
-        PxVec3 vel=sphereBody->getLinearVelocity();
-        printf("Vel: %f, %f, %f\n",vel[0],vel[1],vel[2]);
+        PxVec3 vel = sphereBody->getLinearVelocity();
+        printf("Vel: %f, %f, %f\n", vel[0], vel[1], vel[2]);
         gScene->fetchResults(true);
     }
     /*
@@ -757,21 +757,21 @@ std::string CRigidBodyContainerDyn::_buildPhysxWorld(double timeStep,double simT
     }
     return(retVal);
     */
-    return("");
+    return ("");
 }
 
 void CRigidBodyContainerDyn::particlesAdded()
 {
-  //  _particleChanged=true;
+    //  _particleChanged=true;
 }
 
 std::string CRigidBodyContainerDyn::_getObjectName(CXSceneObject* object)
 {
-    int objectHandle=_simGetObjectID(object);
-    char* f=simGetObjectAlias(objectHandle,4);
+    int objectHandle = _simGetObjectID(object);
+    char* f = simGetObjectAlias(objectHandle, 4);
     std::string retVal(f);
     simReleaseBuffer(f);
-    return(retVal);
+    return (retVal);
 }
 
 /*
@@ -1607,13 +1607,13 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object,CXmlSer* xmlDoc,SI
 
 int CRigidBodyContainerDyn::_hasContentChanged()
 {
-    int occ,odc,hcc;
-    simGetInt32Param(sim_intparam_objectcreationcounter,&occ);
-    simGetInt32Param(sim_intparam_objectdestructioncounter,&odc);
-    simGetInt32Param(sim_intparam_hierarchychangecounter,&hcc);
-    int retVal=0;
-    if (_objectCreationCounter==-1)
-        retVal=1; // there is no content yet
+    int occ, odc, hcc;
+    simGetInt32Param(sim_intparam_objectcreationcounter, &occ);
+    simGetInt32Param(sim_intparam_objectdestructioncounter, &odc);
+    simGetInt32Param(sim_intparam_hierarchychangecounter, &hcc);
+    int retVal = 0;
+    if (_objectCreationCounter == -1)
+        retVal = 1; // there is no content yet
     else
     { // in here we could eventually look a bit closer to see if the change is really involving pyhsics-simulated objects...
         /*
@@ -1644,27 +1644,27 @@ int CRigidBodyContainerDyn::_hasContentChanged()
         }
         */
     }
-    _objectCreationCounter=occ;
-    _objectDestructionCounter=odc;
-    _hierarchyChangeCounter=hcc;
-    return(retVal);
+    _objectCreationCounter = occ;
+    _objectDestructionCounter = odc;
+    _hierarchyChangeCounter = hcc;
+    return (retVal);
 }
 
-void CRigidBodyContainerDyn::handleDynamics(double dt,double simulationTime)
+void CRigidBodyContainerDyn::handleDynamics(double dt, double simulationTime)
 {
     double maxDynStep;
-    simGetFloatParam(sim_floatparam_physicstimestep,&maxDynStep);
+    simGetFloatParam(sim_floatparam_physicstimestep, &maxDynStep);
 
-    _dynamicsCalculationPasses=int((dt/maxDynStep)+0.5);
-    if (_dynamicsCalculationPasses<1)
-        _dynamicsCalculationPasses=1;
-    _dynamicsInternalStepSize=dt/double(_dynamicsCalculationPasses);
-    int contentChanged=_hasContentChanged();
-    if (contentChanged>0)
+    _dynamicsCalculationPasses = int((dt / maxDynStep) + 0.5);
+    if (_dynamicsCalculationPasses < 1)
+        _dynamicsCalculationPasses = 1;
+    _dynamicsInternalStepSize = dt / double(_dynamicsCalculationPasses);
+    int contentChanged = _hasContentChanged();
+    if (contentChanged > 0)
     {
-        std::string err=_buildPhysxWorld(_dynamicsInternalStepSize,simulationTime,contentChanged>1);
-        if (err.size()>0)
-            simAddLog(LIBRARY_NAME,sim_verbosity_errors,err.c_str());
+        std::string err = _buildPhysxWorld(_dynamicsInternalStepSize, simulationTime, contentChanged > 1);
+        if (err.size() > 0)
+            simAddLog(LIBRARY_NAME, sim_verbosity_errors, err.c_str());
     }
     /*
     if (_mjModel!=nullptr)
@@ -1696,10 +1696,10 @@ void CRigidBodyContainerDyn::handleDynamics(double dt,double simulationTime)
     */
 }
 
-double CRigidBodyContainerDyn::_getAngleMinusAlpha(double angle,double alpha)
-{    // Returns angle-alpha. Angle and alpha are cyclic angles!!
-    double sinAngle0 = sinf (angle);
-    double sinAngle1 = sinf (alpha);
+double CRigidBodyContainerDyn::_getAngleMinusAlpha(double angle, double alpha)
+{ // Returns angle-alpha. Angle and alpha are cyclic angles!!
+    double sinAngle0 = sinf(angle);
+    double sinAngle1 = sinf(alpha);
     double cosAngle0 = cosf(angle);
     double cosAngle1 = cosf(alpha);
     double sin_da = sinAngle0 * cosAngle1 - cosAngle0 * sinAngle1;
@@ -1708,12 +1708,11 @@ double CRigidBodyContainerDyn::_getAngleMinusAlpha(double angle,double alpha)
     return angle_da;
 }
 
-
 std::string CRigidBodyContainerDyn::getEngineInfo() const
 {
     std::string v("PhysX v");
-    v+=std::to_string(PX_PHYSICS_VERSION_MAJOR)+"."+std::to_string(PX_PHYSICS_VERSION_MINOR);
-    return(v);
+    v += std::to_string(PX_PHYSICS_VERSION_MAJOR) + "." + std::to_string(PX_PHYSICS_VERSION_MINOR);
+    return (v);
 }
 
 bool CRigidBodyContainerDyn::_updateWorldFromCoppeliaSim()
@@ -1738,10 +1737,10 @@ bool CRigidBodyContainerDyn::_updateWorldFromCoppeliaSim()
         }
     }
 */
-    return(true);
+    return (true);
 }
 
-void CRigidBodyContainerDyn::_handleKinematicBodies_step(double t,double cumulatedTimeStep)
+void CRigidBodyContainerDyn::_handleKinematicBodies_step(double t, double cumulatedTimeStep)
 {
     /*
     for (size_t i=0;i<_allShapes.size();i++)
@@ -1770,9 +1769,9 @@ void CRigidBodyContainerDyn::_handleKinematicBodies_step(double t,double cumulat
     */
 }
 
-void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(double simulationTime,int currentPass,int totalPasses)
+void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(double simulationTime, int currentPass, int totalPasses)
 {
-/*
+    /*
     // First joints:
     for (size_t i=0;i<_allJoints.size();i++)
     {
@@ -1890,11 +1889,10 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(double simulationTime,int
 
 bool CRigidBodyContainerDyn::isDynamicContentAvailable()
 {
-    return(false);
+    return (false);
 }
 
-void CRigidBodyContainerDyn::_stepDynamics(double dt,int pass)
+void CRigidBodyContainerDyn::_stepDynamics(double dt, int pass)
 {
-//    mj_step(_mjModel,_mjData);
+    //    mj_step(_mjModel,_mjData);
 }
-

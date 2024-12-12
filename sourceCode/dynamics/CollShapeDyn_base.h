@@ -6,9 +6,9 @@
 
 class CCollShapeDyn_base
 {
-public:
+  public:
     CCollShapeDyn_base();
     virtual ~CCollShapeDyn_base();
 
-    virtual void init(CXShape* shape,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled);
+    virtual void init(CXShape* shape, bool willBeStatic, const C7Vector& inverseLocalInertiaFrame_scaled);
 };

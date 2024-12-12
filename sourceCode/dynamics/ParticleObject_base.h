@@ -5,12 +5,12 @@
 
 class CParticleObject_base
 {
-public:
-    CParticleObject_base(int theObjectType,sReal size,sReal massVolumic,const void* params,sReal lifeTime,int maxItemCount);
+  public:
+    CParticleObject_base(int theObjectType, sReal size, sReal massVolumic, const void* params, sReal lifeTime, int maxItemCount);
     virtual ~CParticleObject_base();
 
     void setObjectId(int newID);
-    void addParticle(sReal simulationTime,const sReal* itemData);
+    void addParticle(sReal simulationTime, const sReal* itemData);
     int getOtherFloatsPerItem();
 
     bool isParticleRespondable();
@@ -28,12 +28,12 @@ public:
 
     void handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity);
 
-    void** getParticles(int* particlesCount,int* objectType,float** col);
+    void** getParticles(int* particlesCount, int* objectType, float** col);
 
     float color[12];
     sReal parameters[18];
 
-protected:
+  protected:
     int _objectId;
     int _nextUniqueIDForParticle;
 

@@ -11,20 +11,20 @@ CRigidBodyDyn::~CRigidBodyDyn()
 {
 }
 
-void CRigidBodyDyn::init(CXShape* shape,bool forceStatic,bool forceNonRespondable)
+void CRigidBodyDyn::init(CXShape* shape, bool forceStatic, bool forceNonRespondable)
 {
 }
 
 C7Vector CRigidBodyDyn::getInertiaFrameTransformation()
 {
     C7Vector tr;
-    return(tr);
+    return (tr);
 }
 
 C7Vector CRigidBodyDyn::getShapeFrameTransformation()
 {
     C7Vector tr;
-    return(tr);
+    return (tr);
 }
 
 void CRigidBodyDyn::reportVelocityToShape(double simulationTime)
@@ -35,11 +35,10 @@ void CRigidBodyDyn::handleAdditionalForcesAndTorques()
 {
 }
 
-void CRigidBodyDyn::handleKinematicBody_step(double t,double cumulatedTimeStep)
+void CRigidBodyDyn::handleKinematicBody_step(double t, double cumulatedTimeStep)
 {
 }
 
 void CRigidBodyDyn::handleKinematicBody_end()
 {
 }
-

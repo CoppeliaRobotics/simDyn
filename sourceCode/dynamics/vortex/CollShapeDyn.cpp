@@ -27,7 +27,7 @@
 #include <boost/lexical_cast.hpp>
 
 // when adding the triangles, we want to make sure we can merge vertices shared by more than one triangle.
-static const Vx::VxReal MergeEpsilon = 0.0;//0.001; see email from Martin on 29/1/2014
+static const Vx::VxReal MergeEpsilon = 0.0; //0.001; see email from Martin on 29/1/2014
 
 CCollShapeDyn::CCollShapeDyn()
 {
@@ -35,7 +35,7 @@ CCollShapeDyn::CCollShapeDyn()
 
 CCollShapeDyn::~CCollShapeDyn()
 {
-    for (size_t i=0;i<_vortexGeoms.size();i++)
+    for (size_t i = 0; i < _vortexGeoms.size(); i++)
     {
         if (_vortexGeoms[i]->getPart() != nullptr)
         {
@@ -46,20 +46,20 @@ CCollShapeDyn::~CCollShapeDyn()
 
     _vortexGeoms.clear();
 
-    for (size_t i=0;i<_vortexMmeshVertices_scaled.size();i++)
+    for (size_t i = 0; i < _vortexMmeshVertices_scaled.size(); i++)
         delete _vortexMmeshVertices_scaled[i];
-    for (size_t i=0;i<_vortexMconvexPlanes_scaled.size();i++)
+    for (size_t i = 0; i < _vortexMconvexPlanes_scaled.size(); i++)
         delete _vortexMconvexPlanes_scaled[i];
-    for (size_t i=0;i<_vortexMconvexPolygons.size();i++)
+    for (size_t i = 0; i < _vortexMconvexPolygons.size(); i++)
         delete _vortexMconvexPolygons[i];
 }
 
-void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled)
+void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inverseLocalInertiaFrame_scaled)
 { // This is the init of a collision shape wrapper. The wrapper can contain several collision objects grouped in a compound
-    CCollShapeDyn_base::init(shape,willBeStatic,inverseLocalInertiaFrame_scaled);
-    CXGeomWrap* geomInfo=(CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
+    CCollShapeDyn_base::init(shape, willBeStatic, inverseLocalInertiaFrame_scaled);
+    CXGeomWrap* geomInfo = (CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
 
-    Vx::VxUniverse* universe=CRigidBodyContainerDyn::getDynWorld()->getWorld();
+    Vx::VxUniverse* universe = CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
     // Following parameter retrieval is OLD. Use instead following functions:
     // - simGetEngineFloatParameter
@@ -67,133 +67,132 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
     // - simGetEngineBoolParameter
     double floatParams[36];
     int intParams[8];
-    _simGetVortexParameters(shape,3,floatParams,intParams);
+    _simGetVortexParameters(shape, 3, floatParams, intParams);
 
-//    const double frictionCoeff_primary_linearAxis=getVortexUnsignedDouble(floatParams[0]);
-//    const double frictionCoeff_secondary_linearAxis=getVortexUnsignedDouble(floatParams[1]);
-//    const double frictionCoeff_primary_angularAxis=getVortexUnsignedDouble(floatParams[2]);
-//    const double frictionCoeff_secondary_angularAxis=getVortexUnsignedDouble(floatParams[3]);
-//    const double frictionCoeff_normal_angularAxis=getVortexUnsignedDouble(floatParams[4]);
-//    const double staticFrictionScale_primary_linearAxis=getVortexUnsignedDouble(floatParams[5]);
-//    const double staticFrictionScale_secondary_linearAxis=getVortexUnsignedDouble(floatParams[6]);
-//    const double staticFrictionScale_primary_angularAxis=getVortexUnsignedDouble(floatParams[7]);
-//    const double staticFrictionScale_secondary_angularAxis=getVortexUnsignedDouble(floatParams[8]);
-//    const double staticFrictionScale_normal_angularAxis=getVortexUnsignedDouble(floatParams[9]);
-//    const double compliance=getVortexUnsignedDouble(floatParams[10]);
-//    const double damping=getVortexUnsignedDouble(floatParams[11]);
-//    const double restitution=getVortexUnsignedDouble(floatParams[12]);
-//    const double restitutionThreshold=getVortexUnsignedDouble(floatParams[13]);
-//    const double adhesiveForce=getVortexUnsignedDouble(floatParams[14]);
-//    const double linearVelocityDamping=getVortexUnsignedDouble(floatParams[15]);
-//    const double angularVelocityDamping=getVortexUnsignedDouble(floatParams[16]);
-//    const double slide_primary_linearAxis=getVortexUnsignedDouble(floatParams[17]);
-//    const double slide_secondary_linearAxis=getVortexUnsignedDouble(floatParams[18]);
-//    const double slide_primary_angularAxis=getVortexUnsignedDouble(floatParams[19]);
-//    const double slide_secondary_angularAxis=getVortexUnsignedDouble(floatParams[20]);
-//    const double slide_normal_angularAxis=getVortexUnsignedDouble(floatParams[21]);
-//    const double slip_primary_linearAxis=getVortexUnsignedDouble(floatParams[22]);
-//    const double slip_secondary_linearAxis=getVortexUnsignedDouble(floatParams[23]);
-//    const double slip_primary_angularAxis=getVortexUnsignedDouble(floatParams[24]);
-//    const double slip_secondary_angularAxis=getVortexUnsignedDouble(floatParams[25]);
-//    const double slip_normal_angularAxis=getVortexUnsignedDouble(floatParams[26]);
-//    const double autoSleep_linear_speed_threshold=getVortexUnsignedDouble(floatParams[27]);
-//    const double autoSleep_linear_accel_threshold=getVortexUnsignedDouble(floatParams[28]);
-//    const double autoSleep_angular_speed_threshold=getVortexUnsignedDouble(floatParams[29]);
-//    const double autoSleep_angular_accel_threshold=getVortexUnsignedDouble(floatParams[30]);
-//    const double skinThickness=getVortexUnsignedDouble(floatParams[31]);
-//    const double autoAngularDampingTensionRatio=getVortexUnsignedDouble(floatParams[32]);
-//    const double primaryLinearAxisVectorX=floatParams[33];
-//    const double primaryLinearAxisVectorY=floatParams[34];
-//    const double primaryLinearAxisVectorZ=floatParams[35];
+    //    const double frictionCoeff_primary_linearAxis=getVortexUnsignedDouble(floatParams[0]);
+    //    const double frictionCoeff_secondary_linearAxis=getVortexUnsignedDouble(floatParams[1]);
+    //    const double frictionCoeff_primary_angularAxis=getVortexUnsignedDouble(floatParams[2]);
+    //    const double frictionCoeff_secondary_angularAxis=getVortexUnsignedDouble(floatParams[3]);
+    //    const double frictionCoeff_normal_angularAxis=getVortexUnsignedDouble(floatParams[4]);
+    //    const double staticFrictionScale_primary_linearAxis=getVortexUnsignedDouble(floatParams[5]);
+    //    const double staticFrictionScale_secondary_linearAxis=getVortexUnsignedDouble(floatParams[6]);
+    //    const double staticFrictionScale_primary_angularAxis=getVortexUnsignedDouble(floatParams[7]);
+    //    const double staticFrictionScale_secondary_angularAxis=getVortexUnsignedDouble(floatParams[8]);
+    //    const double staticFrictionScale_normal_angularAxis=getVortexUnsignedDouble(floatParams[9]);
+    //    const double compliance=getVortexUnsignedDouble(floatParams[10]);
+    //    const double damping=getVortexUnsignedDouble(floatParams[11]);
+    //    const double restitution=getVortexUnsignedDouble(floatParams[12]);
+    //    const double restitutionThreshold=getVortexUnsignedDouble(floatParams[13]);
+    //    const double adhesiveForce=getVortexUnsignedDouble(floatParams[14]);
+    //    const double linearVelocityDamping=getVortexUnsignedDouble(floatParams[15]);
+    //    const double angularVelocityDamping=getVortexUnsignedDouble(floatParams[16]);
+    //    const double slide_primary_linearAxis=getVortexUnsignedDouble(floatParams[17]);
+    //    const double slide_secondary_linearAxis=getVortexUnsignedDouble(floatParams[18]);
+    //    const double slide_primary_angularAxis=getVortexUnsignedDouble(floatParams[19]);
+    //    const double slide_secondary_angularAxis=getVortexUnsignedDouble(floatParams[20]);
+    //    const double slide_normal_angularAxis=getVortexUnsignedDouble(floatParams[21]);
+    //    const double slip_primary_linearAxis=getVortexUnsignedDouble(floatParams[22]);
+    //    const double slip_secondary_linearAxis=getVortexUnsignedDouble(floatParams[23]);
+    //    const double slip_primary_angularAxis=getVortexUnsignedDouble(floatParams[24]);
+    //    const double slip_secondary_angularAxis=getVortexUnsignedDouble(floatParams[25]);
+    //    const double slip_normal_angularAxis=getVortexUnsignedDouble(floatParams[26]);
+    //    const double autoSleep_linear_speed_threshold=getVortexUnsignedDouble(floatParams[27]);
+    //    const double autoSleep_linear_accel_threshold=getVortexUnsignedDouble(floatParams[28]);
+    //    const double autoSleep_angular_speed_threshold=getVortexUnsignedDouble(floatParams[29]);
+    //    const double autoSleep_angular_accel_threshold=getVortexUnsignedDouble(floatParams[30]);
+    //    const double skinThickness=getVortexUnsignedDouble(floatParams[31]);
+    //    const double autoAngularDampingTensionRatio=getVortexUnsignedDouble(floatParams[32]);
+    //    const double primaryLinearAxisVectorX=floatParams[33];
+    //    const double primaryLinearAxisVectorY=floatParams[34];
+    //    const double primaryLinearAxisVectorZ=floatParams[35];
 
-//    Vx::VxMaterial::FrictionModel frictModels[5];
-//    for (int i=0;i<5;i++)
-//    {
-//        switch (intParams[i])
-//        {
-//            case 0:
-//                frictModels[i]=Vx::VxMaterial::kFrictionModelBox;
-//                break;
-//            case 1:
-//                frictModels[i]=Vx::VxMaterial::kFrictionModelScaledBox;
-//                break;
-//            case 2:
-//                frictModels[i]=Vx::VxMaterial::kFrictionModelBoxProportionalLow;
-//                break;
-//            case 3:
-//                frictModels[i]=Vx::VxMaterial::kFrictionModelBoxProportionalHigh;
-//                break;
-//            case 4:
-//                frictModels[i]=Vx::VxMaterial::kFrictionModelScaledBoxFast;
-//                break;
-//            case 5:
-//                frictModels[i]=Vx::VxMaterial::kFrictionModelNeutral;
-//                break;
-//            default:
-//                frictModels[i]=Vx::VxMaterial::kFrictionModelNone;
-//                break;
-//        }
-//    }
-    const bool treatPureShapesAsConvexShapes=((intParams[5]&1)!=0);
-    const bool treatConvexShapesAsRandomShapes=((intParams[5]&2)!=0);
-    const bool treatRandomShapesAsTerrain=((intParams[5]&4)!=0);
-//    const bool fastMoving=((intParams[5]&8)!=0);
-//    const bool autoSlip=((intParams[5]&16)!=0);
-//    const bool autoAngularDamping=((intParams[5]&256)!=0);
+    //    Vx::VxMaterial::FrictionModel frictModels[5];
+    //    for (int i=0;i<5;i++)
+    //    {
+    //        switch (intParams[i])
+    //        {
+    //            case 0:
+    //                frictModels[i]=Vx::VxMaterial::kFrictionModelBox;
+    //                break;
+    //            case 1:
+    //                frictModels[i]=Vx::VxMaterial::kFrictionModelScaledBox;
+    //                break;
+    //            case 2:
+    //                frictModels[i]=Vx::VxMaterial::kFrictionModelBoxProportionalLow;
+    //                break;
+    //            case 3:
+    //                frictModels[i]=Vx::VxMaterial::kFrictionModelBoxProportionalHigh;
+    //                break;
+    //            case 4:
+    //                frictModels[i]=Vx::VxMaterial::kFrictionModelScaledBoxFast;
+    //                break;
+    //            case 5:
+    //                frictModels[i]=Vx::VxMaterial::kFrictionModelNeutral;
+    //                break;
+    //            default:
+    //                frictModels[i]=Vx::VxMaterial::kFrictionModelNone;
+    //                break;
+    //        }
+    //    }
+    const bool treatPureShapesAsConvexShapes = ((intParams[5] & 1) != 0);
+    const bool treatConvexShapesAsRandomShapes = ((intParams[5] & 2) != 0);
+    const bool treatRandomShapesAsTerrain = ((intParams[5] & 4) != 0);
+    //    const bool fastMoving=((intParams[5]&8)!=0);
+    //    const bool autoSlip=((intParams[5]&16)!=0);
+    //    const bool autoAngularDamping=((intParams[5]&256)!=0);
 
-//    const int autoSleepStepLiveThreshold=intParams[6];
-//    const int materialUniqueId=intParams[7];
-
+    //    const int autoSleepStepLiveThreshold=intParams[6];
+    //    const int materialUniqueId=intParams[7];
 
     //    const double autoAngularDampingTensionRatio=getVortexUnsignedDouble(floatParams[32]);
 
     // Do we have a pure primitive?
-    int primType=_simGetPurePrimitiveType(geomInfo);
-    bool isPrimitive=(primType!=sim_primitiveshape_none);
-    bool isActuallyPrimitive=isPrimitive;
-    if (treatPureShapesAsConvexShapes&&(primType!=sim_primitiveshape_heightfield))
-        isPrimitive=false;
+    int primType = _simGetPurePrimitiveType(geomInfo);
+    bool isPrimitive = (primType != sim_primitiveshape_none);
+    bool isActuallyPrimitive = isPrimitive;
+    if (treatPureShapesAsConvexShapes && (primType != sim_primitiveshape_heightfield))
+        isPrimitive = false;
     if (isPrimitive)
     { // We have a pure primitive here. It is either a simple collision objects, or a compound of simple collision objects.
         // A simple collision object can be: sphere, cuboid, cylinder (previous 3 also with hollow parts (negative collision object), or heightfield
         if (!_simIsGeomWrapGeometric(geomInfo))
         { // We a have a pure MULTISHAPE!! Here we have a compound of simple collision objects
-            int componentListSize=_simGetGeometricCount(geomInfo);
-            CXGeometric** componentList=new CXGeometric*[componentListSize];
-            _simGetAllGeometrics(geomInfo,(void**)componentList);
+            int componentListSize = _simGetGeometricCount(geomInfo);
+            CXGeometric** componentList = new CXGeometric*[componentListSize];
+            _simGetAllGeometrics(geomInfo, (void**)componentList);
 
             Vx::VxCompositeCollisionGeometry* vortexCompositeCollisionGeom = new Vx::VxCompositeCollisionGeometry();
 
-            for (int i=0;i<componentListSize;i++)
+            for (int i = 0; i < componentListSize; i++)
             { // we go through all individual collision object components and add them to a compound collision object:
-                CXGeometric* sc=componentList[i];
-                int pType=_simGetPurePrimitiveType(sc);
-                double hollowScaling=_simGetPureHollowScaling(sc); // this represents a value between 0.0 and 0.9999. When multiplying the shape dimensions with that value, we obtain the negative shape dimensions (if 0.0, there is no negative shape).
+                CXGeometric* sc = componentList[i];
+                int pType = _simGetPurePrimitiveType(sc);
+                double hollowScaling = _simGetPureHollowScaling(sc); // this represents a value between 0.0 and 0.9999. When multiplying the shape dimensions with that value, we obtain the negative shape dimensions (if 0.0, there is no negative shape).
                 C3Vector s;
-                _simGetPurePrimitiveSizes(sc,s.data);
+                _simGetPurePrimitiveSizes(sc, s.data);
 
-                int loopCnt=1;
+                int loopCnt = 1;
 
-                if (hollowScaling!=0.0)
-                    loopCnt=2;
+                if (hollowScaling != 0.0)
+                    loopCnt = 2;
 
-                for (int j=0;j<loopCnt;j++)
+                for (int j = 0; j < loopCnt; j++)
                 {
-                    if (j>0)
-                        hollowScaling=0.0;
+                    if (j > 0)
+                        hollowScaling = 0.0;
 
-                    Vx::VxGeometry* vortexGeom = _createVortexSimpleGeometry(pType, s,hollowScaling, nullptr, 1.0);
+                    Vx::VxGeometry* vortexGeom = _createVortexSimpleGeometry(pType, s, hollowScaling, nullptr, 1.0);
 
                     C7Vector aax;
-                    _simGetVerticesLocalFrame(shape,sc,aax.X.data,aax.Q.data); // for pure shapes, the vertice frame also indicates the pure shape origin
-                    C7Vector xxx(inverseLocalInertiaFrame_scaled*aax);
+                    _simGetVerticesLocalFrame(shape, sc, aax.X.data, aax.Q.data); // for pure shapes, the vertice frame also indicates the pure shape origin
+                    C7Vector xxx(inverseLocalInertiaFrame_scaled * aax);
 
                     Vx::VxTransform tm;
                     Vx::VxQuaternion quat(xxx.Q(0), xxx.Q(1), xxx.Q(2), xxx.Q(3));
                     tm.makeRotation(quat);
                     tm.setTranslation(C3Vector2VxVector3(xxx.X));
 
-                    Vx::VxCollisionGeometry* vortexCollisionGeom=_createVortexCollisionGeometry(universe,geomInfo,vortexGeom,tm,floatParams,intParams);
+                    Vx::VxCollisionGeometry* vortexCollisionGeom = _createVortexCollisionGeometry(universe, geomInfo, vortexGeom, tm, floatParams, intParams);
                     vortexCompositeCollisionGeom->addCollisionGeometry(vortexCollisionGeom);
                 }
             }
@@ -203,42 +202,42 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
         else
         { // we have a SIMPLE pure shape. This is a single simple collision object (e.g. sphere, cuboid, cylinder or heightfield)
             C3Vector s;
-            _simGetPurePrimitiveSizes(geomInfo,s.data);
-            Vx::VxCompositeCollisionGeometry* vortexCompositeCollisionGeom=nullptr;
+            _simGetPurePrimitiveSizes(geomInfo, s.data);
+            Vx::VxCompositeCollisionGeometry* vortexCompositeCollisionGeom = nullptr;
 
-            double hollowScaling=_simGetPureHollowScaling((CXGeometric*)geomInfo); // this represents a value between 0.0 and 0.9999. When multiplying the shape dimensions with that value, we obtain the negative shape dimensions (if 0.0, there is no negative shape).
-            int loopCnt=1;
-            if (hollowScaling!=0.0)
+            double hollowScaling = _simGetPureHollowScaling((CXGeometric*)geomInfo); // this represents a value between 0.0 and 0.9999. When multiplying the shape dimensions with that value, we obtain the negative shape dimensions (if 0.0, there is no negative shape).
+            int loopCnt = 1;
+            if (hollowScaling != 0.0)
             {
-                loopCnt=2;
-                vortexCompositeCollisionGeom=new Vx::VxCompositeCollisionGeometry();
+                loopCnt = 2;
+                vortexCompositeCollisionGeom = new Vx::VxCompositeCollisionGeometry();
             }
 
-            for (int j=0;j<loopCnt;j++)
+            for (int j = 0; j < loopCnt; j++)
             {
-                if (j>0)
-                    hollowScaling=0.0;
-                Vx::VxGeometry* vortexGeom=_createVortexSimpleGeometry(primType, s, hollowScaling, geomInfo, 1.0);
+                if (j > 0)
+                    hollowScaling = 0.0;
+                Vx::VxGeometry* vortexGeom = _createVortexSimpleGeometry(primType, s, hollowScaling, geomInfo, 1.0);
 
                 C7Vector aax;
                 aax.setIdentity();
-                if (primType!=sim_primitiveshape_heightfield) // that condition was forgotten and corrected on 16/1/2013
-                    _simGetVerticesLocalFrame(shape,geomInfo,aax.X.data,aax.Q.data);  // for pure shapes (except for heightfields!!), the vertice frame also indicates the pure shape origin.
-                C7Vector xxx(inverseLocalInertiaFrame_scaled*aax);
+                if (primType != sim_primitiveshape_heightfield)                         // that condition was forgotten and corrected on 16/1/2013
+                    _simGetVerticesLocalFrame(shape, geomInfo, aax.X.data, aax.Q.data); // for pure shapes (except for heightfields!!), the vertice frame also indicates the pure shape origin.
+                C7Vector xxx(inverseLocalInertiaFrame_scaled * aax);
 
                 Vx::VxTransform tm;
                 Vx::VxQuaternion quat(xxx.Q(0), xxx.Q(1), xxx.Q(2), xxx.Q(3));
                 tm.makeRotation(quat);
                 tm.setTranslation(C3Vector2VxVector3(xxx.X));
 
-                Vx::VxCollisionGeometry* vortexCollisionGeom=_createVortexCollisionGeometry(universe,geomInfo,vortexGeom,tm,floatParams,intParams);
+                Vx::VxCollisionGeometry* vortexCollisionGeom = _createVortexCollisionGeometry(universe, geomInfo, vortexGeom, tm, floatParams, intParams);
 
-                if (loopCnt==2)
+                if (loopCnt == 2)
                     vortexCompositeCollisionGeom->addCollisionGeometry(vortexCollisionGeom);
                 else
                     _vortexGeoms.push_back(vortexCollisionGeom);
             }
-            if (loopCnt==2)
+            if (loopCnt == 2)
                 _vortexGeoms.push_back(vortexCompositeCollisionGeom);
         }
     }
@@ -247,41 +246,41 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
         // 1. a random shape/multishape (i.e. a simple random mesh)
         // 2. a convex shape (i.e. a simple convex mesh)
         // 3. a convex multishape (i.e. a compound of simple convex meshes)
-        if (_simIsGeomWrapConvex(geomInfo)==0)
-        {     // We have a general-type geom object (trimesh)
+        if (_simIsGeomWrapConvex(geomInfo) == 0)
+        { // We have a general-type geom object (trimesh)
             if (!_simIsGeomWrapGeometric(geomInfo))
             { // We a have a grouping of random meshes.
-                int componentListSize=_simGetGeometricCount(geomInfo);
-                CXGeometric** componentList=new CXGeometric*[componentListSize];
-                _simGetAllGeometrics(geomInfo,(void**)componentList);
-                for (int comp=0;comp<componentListSize;comp++)
+                int componentListSize = _simGetGeometricCount(geomInfo);
+                CXGeometric** componentList = new CXGeometric*[componentListSize];
+                _simGetAllGeometrics(geomInfo, (void**)componentList);
+                for (int comp = 0; comp < componentListSize; comp++)
                 {
-                    CXGeometric* sc=componentList[comp];
+                    CXGeometric* sc = componentList[comp];
 
                     double* allVertices;
                     int allVerticesSize;
                     int* allIndices;
                     int allIndicesSize;
-                    _simGetCumulativeMeshes(shape,sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                    _simGetCumulativeMeshes(shape, sc, &allVertices, &allVerticesSize, &allIndices, &allIndicesSize);
                     Vx::VxGeometry* vortexGeometry = nullptr;
 
                     if (!treatRandomShapesAsTerrain)
                     { // we want a random mesh here!
 
-                        Vx::VxReal3* vortexVertices_scaled = new Vx::VxReal3[allVerticesSize/3];
+                        Vx::VxReal3* vortexVertices_scaled = new Vx::VxReal3[allVerticesSize / 3];
 
-                        for (int i=0;i<allVerticesSize/3;i++)
+                        for (int i = 0; i < allVerticesSize / 3; i++)
                         { // We need to scale the vertices
-                            C3Vector v(allVertices+3*i+0);
-                            vortexVertices_scaled[i][0]=v(0);
-                            vortexVertices_scaled[i][1]=v(1);
-                            vortexVertices_scaled[i][2]=v(2);
+                            C3Vector v(allVertices + 3 * i + 0);
+                            vortexVertices_scaled[i][0] = v(0);
+                            vortexVertices_scaled[i][1] = v(1);
+                            vortexVertices_scaled[i][2] = v(2);
                         }
                         simReleaseBuffer((char*)allVertices);
 
-                        Vx::VxTriangleMeshBVTree* bvTreeMesh = new Vx::VxTriangleMeshBVTree(allIndicesSize/3);
-                        for (int i=0;i<allIndicesSize/3;i++)
-                            bvTreeMesh->addMergedTriangleByVertexCopy(vortexVertices_scaled[allIndices[3*i+0]],vortexVertices_scaled[allIndices[3*i+1]],vortexVertices_scaled[allIndices[3*i+2]],MergeEpsilon);
+                        Vx::VxTriangleMeshBVTree* bvTreeMesh = new Vx::VxTriangleMeshBVTree(allIndicesSize / 3);
+                        for (int i = 0; i < allIndicesSize / 3; i++)
+                            bvTreeMesh->addMergedTriangleByVertexCopy(vortexVertices_scaled[allIndices[3 * i + 0]], vortexVertices_scaled[allIndices[3 * i + 1]], vortexVertices_scaled[allIndices[3 * i + 2]], MergeEpsilon);
                         vortexGeometry = bvTreeMesh;
 
                         delete[] vortexVertices_scaled;
@@ -289,7 +288,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                     }
                     else
                     { // we want a terrain here!
-                        vortexGeometry = _createVortexUVGridMesh(allVertices,allVerticesSize,allIndices,allIndicesSize,1.0);
+                        vortexGeometry = _createVortexUVGridMesh(allVertices, allVerticesSize, allIndices, allIndicesSize, 1.0);
                         //vortexGeometry = _createVortexBVTreeMesh(allVertices,allVerticesSize,allIndices,allIndicesSize,linScaling);
                         simReleaseBuffer((char*)allIndices);
                         simReleaseBuffer((char*)allVertices);
@@ -300,35 +299,35 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                     tm.makeRotation(quat);
                     tm.setTranslation(C3Vector2VxVector3(inverseLocalInertiaFrame_scaled.X));
 
-                    Vx::VxCollisionGeometry* vortexCollisionGeom=_createVortexCollisionGeometry(universe,geomInfo,vortexGeometry,tm,floatParams,intParams);
+                    Vx::VxCollisionGeometry* vortexCollisionGeom = _createVortexCollisionGeometry(universe, geomInfo, vortexGeometry, tm, floatParams, intParams);
 
                     _vortexGeoms.push_back(vortexCollisionGeom);
                 }
                 delete[] componentList;
             }
             else
-            {    // Single random mesh
+            { // Single random mesh
                 double* allVertices;
                 int allVerticesSize;
                 int* allIndices;
                 int allIndicesSize;
-                _simGetCumulativeMeshes(shape,geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                _simGetCumulativeMeshes(shape, geomInfo, &allVertices, &allVerticesSize, &allIndices, &allIndicesSize);
                 Vx::VxGeometry* vortexGeometry = nullptr;
 
                 if (!treatRandomShapesAsTerrain)
                 { // we want a random mesh here
-                    Vx::VxTriangleMeshBVTree* bvTreeMesh = new Vx::VxTriangleMeshBVTree(allIndicesSize/3);
-                    vortexGeometry=bvTreeMesh;
-                    for (int i=0;i<allIndicesSize/3;i++)
+                    Vx::VxTriangleMeshBVTree* bvTreeMesh = new Vx::VxTriangleMeshBVTree(allIndicesSize / 3);
+                    vortexGeometry = bvTreeMesh;
+                    for (int i = 0; i < allIndicesSize / 3; i++)
                     {
-                        int ind[3]={allIndices[3*i+0],allIndices[3*i+1],allIndices[3*i+2]};
-                        C3Vector v0(allVertices+3*ind[0]);
-                        C3Vector v1(allVertices+3*ind[1]);
-                        C3Vector v2(allVertices+3*ind[2]);
-                        bvTreeMesh->addMergedTriangleByVertexCopy(  C3Vector2VxVector3(v0),
-                                                                C3Vector2VxVector3(v1),
-                                                                C3Vector2VxVector3(v2),
-                                                                MergeEpsilon);
+                        int ind[3] = {allIndices[3 * i + 0], allIndices[3 * i + 1], allIndices[3 * i + 2]};
+                        C3Vector v0(allVertices + 3 * ind[0]);
+                        C3Vector v1(allVertices + 3 * ind[1]);
+                        C3Vector v2(allVertices + 3 * ind[2]);
+                        bvTreeMesh->addMergedTriangleByVertexCopy(C3Vector2VxVector3(v0),
+                                                                  C3Vector2VxVector3(v1),
+                                                                  C3Vector2VxVector3(v2),
+                                                                  MergeEpsilon);
                         /* Vx::VxInfo(0, "Btri%d %g %g %g, %g %g %g, %g %g %g\n", i,
                             C3Vector2VxVector3(v0)[0],
                             C3Vector2VxVector3(v0)[1],
@@ -345,7 +344,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                 }
                 else
                 { // we want a terrain here!
-                    vortexGeometry = _createVortexUVGridMesh(allVertices,allVerticesSize,allIndices,allIndicesSize,1.0);
+                    vortexGeometry = _createVortexUVGridMesh(allVertices, allVerticesSize, allIndices, allIndicesSize, 1.0);
                     //vortexGeometry = _createVortexBVTreeMesh(allVertices,allVerticesSize,allIndices,allIndicesSize,linScaling);
                     simReleaseBuffer((char*)allIndices);
                     simReleaseBuffer((char*)allVertices);
@@ -356,7 +355,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                 tm.makeRotation(quat);
                 tm.setTranslation(C3Vector2VxVector3(inverseLocalInertiaFrame_scaled.X));
 
-                Vx::VxCollisionGeometry* vortexCollisionGeom=_createVortexCollisionGeometry(universe,geomInfo,vortexGeometry,tm,floatParams,intParams);
+                Vx::VxCollisionGeometry* vortexCollisionGeom = _createVortexCollisionGeometry(universe, geomInfo, vortexGeometry, tm, floatParams, intParams);
 
                 _vortexGeoms.push_back(vortexCollisionGeom);
             }
@@ -365,43 +364,43 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
         { // We have a convex shape or multishape:
             if (!_simIsGeomWrapGeometric(geomInfo))
             { // We a have a convex MULTISHAPE!! This is a compound of convex meshes
-                int componentListSize=_simGetGeometricCount(geomInfo);
-                CXGeometric** componentList=new CXGeometric*[componentListSize];
-                _simGetAllGeometrics(geomInfo,(void**)componentList);
-                for (int comp=0;comp<componentListSize;comp++)
+                int componentListSize = _simGetGeometricCount(geomInfo);
+                CXGeometric** componentList = new CXGeometric*[componentListSize];
+                _simGetAllGeometrics(geomInfo, (void**)componentList);
+                for (int comp = 0; comp < componentListSize; comp++)
                 {
-                    CXGeometric* sc=componentList[comp];
+                    CXGeometric* sc = componentList[comp];
 
                     double* allVertices;
                     int allVerticesSize;
                     int* allIndices;
                     int allIndicesSize;
-                    _simGetCumulativeMeshes(shape,sc,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                    _simGetCumulativeMeshes(shape, sc, &allVertices, &allVerticesSize, &allIndices, &allIndicesSize);
 
-                    Vx::VxReal3* vortexVertices_scaled = new Vx::VxReal3[allVerticesSize/3];
+                    Vx::VxReal3* vortexVertices_scaled = new Vx::VxReal3[allVerticesSize / 3];
 
-                    for (int i=0;i<allVerticesSize/3;i++)
+                    for (int i = 0; i < allVerticesSize / 3; i++)
                     { // We need to scale the vertices
-                        C3Vector v(allVertices+3*i+0);
-                        vortexVertices_scaled[i][0]=v(0);
-                        vortexVertices_scaled[i][1]=v(1);
-                        vortexVertices_scaled[i][2]=v(2);
+                        C3Vector v(allVertices + 3 * i + 0);
+                        vortexVertices_scaled[i][0] = v(0);
+                        vortexVertices_scaled[i][1] = v(1);
+                        vortexVertices_scaled[i][2] = v(2);
                     }
                     simReleaseBuffer((char*)allVertices);
 
                     Vx::VxGeometry* vortexGeometry = nullptr;
 
-                    if ((!treatConvexShapesAsRandomShapes)||isActuallyPrimitive)
-                        vortexGeometry = new Vx::VxConvexMesh(vortexVertices_scaled,allVerticesSize/3);
+                    if ((!treatConvexShapesAsRandomShapes) || isActuallyPrimitive)
+                        vortexGeometry = new Vx::VxConvexMesh(vortexVertices_scaled, allVerticesSize / 3);
                     else // USE VxTriangleMeshBVTree
                     {
-                        Vx::VxTriangleMeshBVTree* bvTreeMesh = new Vx::VxTriangleMeshBVTree(allIndicesSize/3);
-                        for (unsigned int i=0;i<allIndicesSize/3;i++)
+                        Vx::VxTriangleMeshBVTree* bvTreeMesh = new Vx::VxTriangleMeshBVTree(allIndicesSize / 3);
+                        for (unsigned int i = 0; i < allIndicesSize / 3; i++)
                         {
-                            bvTreeMesh->addMergedTriangleByVertexCopy(  vortexVertices_scaled[allIndices[3*i+0]],
-                                                                        vortexVertices_scaled[allIndices[3*i+1]],
-                                                                        vortexVertices_scaled[allIndices[3*i+2]],
-                                                                        MergeEpsilon);
+                            bvTreeMesh->addMergedTriangleByVertexCopy(vortexVertices_scaled[allIndices[3 * i + 0]],
+                                                                      vortexVertices_scaled[allIndices[3 * i + 1]],
+                                                                      vortexVertices_scaled[allIndices[3 * i + 2]],
+                                                                      MergeEpsilon);
                             /* Vx::VxInfo(0, "Ctri%d %g %g %g, %g %g %g, %g %g %g\n", i,
                                     vortexVertices_scaled[allIndices[3*i+0]][0],
                                     vortexVertices_scaled[allIndices[3*i+0]][1],
@@ -424,10 +423,9 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                     tm.makeRotation(quat);
                     tm.setTranslation(C3Vector2VxVector3(inverseLocalInertiaFrame_scaled.X));
 
-                    Vx::VxCollisionGeometry* vortexCollisionGeom=_createVortexCollisionGeometry(universe,geomInfo,vortexGeometry,tm,floatParams,intParams);
+                    Vx::VxCollisionGeometry* vortexCollisionGeom = _createVortexCollisionGeometry(universe, geomInfo, vortexGeometry, tm, floatParams, intParams);
 
                     _vortexGeoms.push_back(vortexCollisionGeom);
-
                 }
                 delete[] componentList;
             }
@@ -437,32 +435,32 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                 int allVerticesSize;
                 int* allIndices;
                 int allIndicesSize;
-                _simGetCumulativeMeshes(shape,geomInfo,&allVertices,&allVerticesSize,&allIndices,&allIndicesSize);
+                _simGetCumulativeMeshes(shape, geomInfo, &allVertices, &allVerticesSize, &allIndices, &allIndicesSize);
 
-                Vx::VxReal3* vortexVertices_scaled = new Vx::VxReal3[allVerticesSize/3];
+                Vx::VxReal3* vortexVertices_scaled = new Vx::VxReal3[allVerticesSize / 3];
 
-                for (int i=0;i<allVerticesSize/3;i++)
+                for (int i = 0; i < allVerticesSize / 3; i++)
                 { // We need to scale the vertices
-                    C3Vector v(allVertices+3*i+0);
-                    vortexVertices_scaled[i][0]=v(0);
-                    vortexVertices_scaled[i][1]=v(1);
-                    vortexVertices_scaled[i][2]=v(2);
+                    C3Vector v(allVertices + 3 * i + 0);
+                    vortexVertices_scaled[i][0] = v(0);
+                    vortexVertices_scaled[i][1] = v(1);
+                    vortexVertices_scaled[i][2] = v(2);
                 }
                 simReleaseBuffer((char*)allVertices);
 
                 Vx::VxGeometry* vortexGeometry = nullptr;
 
-                if ((!treatConvexShapesAsRandomShapes)||isActuallyPrimitive)
-                    vortexGeometry = new Vx::VxConvexMesh(vortexVertices_scaled, allVerticesSize/3);
+                if ((!treatConvexShapesAsRandomShapes) || isActuallyPrimitive)
+                    vortexGeometry = new Vx::VxConvexMesh(vortexVertices_scaled, allVerticesSize / 3);
                 else // USE VxTriangleMeshBVTree
                 {
-                    Vx::VxTriangleMeshBVTree* bvTreeMesh = new Vx::VxTriangleMeshBVTree(allIndicesSize/3);
-                    for (unsigned int i=0;i<allIndicesSize/3;i++)
+                    Vx::VxTriangleMeshBVTree* bvTreeMesh = new Vx::VxTriangleMeshBVTree(allIndicesSize / 3);
+                    for (unsigned int i = 0; i < allIndicesSize / 3; i++)
                     {
-                        bvTreeMesh->addMergedTriangleByVertexCopy(  vortexVertices_scaled[allIndices[3*i+0]],
-                                                                    vortexVertices_scaled[allIndices[3*i+1]],
-                                                                    vortexVertices_scaled[allIndices[3*i+2]],
-                                                                    MergeEpsilon);
+                        bvTreeMesh->addMergedTriangleByVertexCopy(vortexVertices_scaled[allIndices[3 * i + 0]],
+                                                                  vortexVertices_scaled[allIndices[3 * i + 1]],
+                                                                  vortexVertices_scaled[allIndices[3 * i + 2]],
+                                                                  MergeEpsilon);
                         /*Vx::VxInfo(0, "Dtri%d %g %g %g, %g %g %g, %g %g %g\n", i,
                                 vortexVertices_scaled[allIndices[3*i+0]][0],
                                 vortexVertices_scaled[allIndices[3*i+0]][1],
@@ -485,7 +483,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
                 tm.makeRotation(quat);
                 tm.setTranslation(C3Vector2VxVector3(inverseLocalInertiaFrame_scaled.X));
 
-                Vx::VxCollisionGeometry* vortexCollisionGeom=_createVortexCollisionGeometry(universe,geomInfo,vortexGeometry,tm,floatParams,intParams);
+                Vx::VxCollisionGeometry* vortexCollisionGeom = _createVortexCollisionGeometry(universe, geomInfo, vortexGeometry, tm, floatParams, intParams);
 
                 _vortexGeoms.push_back(vortexCollisionGeom);
             }
@@ -493,7 +491,7 @@ void CCollShapeDyn::init(CXShape* shape,bool willBeStatic,const C7Vector& invers
     }
 }
 
-Vx::VxGeometry* CCollShapeDyn::_createVortexSimpleGeometry(int pType, const C3Vector& ins,double hollowScaling, CXGeomWrap* geomInfo, double linScaling)
+Vx::VxGeometry* CCollShapeDyn::_createVortexSimpleGeometry(int pType, const C3Vector& ins, double hollowScaling, CXGeomWrap* geomInfo, double linScaling)
 {
     Vx::VxGeometry* vortexGeom = nullptr;
 
@@ -503,62 +501,60 @@ Vx::VxGeometry* CCollShapeDyn::_createVortexSimpleGeometry(int pType, const C3Ve
     {
     case sim_primitiveshape_plane:
     case sim_primitiveshape_cuboid:
-        if (s(2)<0.0001)
-            s(2)=0.0001;
-        if (hollowScaling==0.0)
+        if (s(2) < 0.0001)
+            s(2) = 0.0001;
+        if (hollowScaling == 0.0)
             vortexGeom = new Vx::VxBox(C3Vector2VxVector3(s));
         else
-            vortexGeom = new Vx::VxBoxHole(C3Vector2VxVector3(s*hollowScaling));
+            vortexGeom = new Vx::VxBoxHole(C3Vector2VxVector3(s * hollowScaling));
         break;
     case sim_primitiveshape_cone:
         _simMakeDynamicAnnouncement(sim_announce_pureconenotsupported);
     case sim_primitiveshape_disc:
     case sim_primitiveshape_cylinder:
-        if (s(2)<0.0001)
-            s(2)=0.0001;
-        if (hollowScaling==0.0)
-            vortexGeom = new Vx::VxCylinder((Vx::VxReal)(s(0)*0.5),(Vx::VxReal)s(2));
+        if (s(2) < 0.0001)
+            s(2) = 0.0001;
+        if (hollowScaling == 0.0)
+            vortexGeom = new Vx::VxCylinder((Vx::VxReal)(s(0) * 0.5), (Vx::VxReal)s(2));
         else
         {
-            vortexGeom = new Vx::VxCylinderHole((Vx::VxReal)(s(0)*0.5*hollowScaling),(Vx::VxReal)s(2));
-            ((Vx::VxCylinderHole*)vortexGeom)->setFaceRemoved(true,true);
+            vortexGeom = new Vx::VxCylinderHole((Vx::VxReal)(s(0) * 0.5 * hollowScaling), (Vx::VxReal)s(2));
+            ((Vx::VxCylinderHole*)vortexGeom)->setFaceRemoved(true, true);
         }
         break;
     case sim_primitiveshape_spheroid:
         // Here we have a spheroid (or sphere)
-        if ( ( ((s(0)-s(1))/s(0))>0.01 )||( ((s(0)-s(2))/s(0))>0.01 ) ) // Pure spheroids are not (yet) supported by Vortex
+        if ((((s(0) - s(1)) / s(0)) > 0.01) || (((s(0) - s(2)) / s(0)) > 0.01)) // Pure spheroids are not (yet) supported by Vortex
             _simMakeDynamicAnnouncement(sim_announce_purespheroidnotsupported);
-        if (hollowScaling==0.0)
-            vortexGeom = new Vx::VxSphere((s(0)+s(1)+s(2))/6.0);
+        if (hollowScaling == 0.0)
+            vortexGeom = new Vx::VxSphere((s(0) + s(1) + s(2)) / 6.0);
         else
-            vortexGeom = new Vx::VxSphereHole((s(0)+s(1)+s(2))*hollowScaling/6.0);
+            vortexGeom = new Vx::VxSphereHole((s(0) + s(1) + s(2)) * hollowScaling / 6.0);
         break;
-    case sim_primitiveshape_capsule:
+    case sim_primitiveshape_capsule: {
+        double r = (s(0) + s(1)) / 4.0;
+        vortexGeom = new Vx::VxCapsule((Vx::VxReal)r, (Vx::VxReal)(s(2) - r * 2.0));
+    }
+    break;
+    case sim_primitiveshape_heightfield: {
+        int xCnt, yCnt;
+        double minH, maxH;
+        const double* hData = _simGetHeightfieldData(geomInfo, &xCnt, &yCnt, &minH, &maxH);
+        Vx::VxArray<Vx::VxReal> _vortexHeightfieldData_scaled;
+        double vShift = -(minH + maxH) / 2.0;
+        for (int i = 0; i < yCnt; i++)
         {
-            double r=(s(0)+s(1))/4.0;
-            vortexGeom = new Vx::VxCapsule((Vx::VxReal)r,(Vx::VxReal)(s(2)-r*2.0));
+            for (int j = 0; j < xCnt; j++)
+                _vortexHeightfieldData_scaled.push_back((Vx::VxReal)(hData[i * xCnt + j] + vShift) * linScaling); // ********** SCALING
         }
-        break;
-    case sim_primitiveshape_heightfield:
-        {
-            int xCnt,yCnt;
-            double minH,maxH;
-            const double* hData=_simGetHeightfieldData(geomInfo,&xCnt,&yCnt,&minH,&maxH);
-            Vx::VxArray<Vx::VxReal> _vortexHeightfieldData_scaled;
-            double vShift=-(minH+maxH)/2.0;
-            for (int i=0;i<yCnt;i++)
-            {
-                for (int j=0;j<xCnt;j++)
-                    _vortexHeightfieldData_scaled.push_back((Vx::VxReal)(hData[i*xCnt+j]+vShift)*linScaling); // ********** SCALING
-            }
 
-            const Vx::VxReal sizeCellX = s(0)/(xCnt-1), sizeCellY = s(1)/(yCnt-1), originX = -s(0)/2.0, originY = -s(1)/2.0;
-            vortexGeom = new Vx::VxHeightField(xCnt-1, yCnt-1, sizeCellX, sizeCellY, originX, originY, _vortexHeightfieldData_scaled);
-            static_cast<Vx::VxHeightField*>(vortexGeom)->setUpdateAdjacentTriangles(true);
-        }
-        break;
-        default:
-            //_simMakeDynamicAnnouncement(ANNOUNCE_GEOMETRY_TYPE_NOT_SUPPORTED);
+        const Vx::VxReal sizeCellX = s(0) / (xCnt - 1), sizeCellY = s(1) / (yCnt - 1), originX = -s(0) / 2.0, originY = -s(1) / 2.0;
+        vortexGeom = new Vx::VxHeightField(xCnt - 1, yCnt - 1, sizeCellX, sizeCellY, originX, originY, _vortexHeightfieldData_scaled);
+        static_cast<Vx::VxHeightField*>(vortexGeom)->setUpdateAdjacentTriangles(true);
+    }
+    break;
+    default:
+        //_simMakeDynamicAnnouncement(ANNOUNCE_GEOMETRY_TYPE_NOT_SUPPORTED);
         break;
     }
 
@@ -569,7 +565,7 @@ Vx::VxTriangleMeshUVGrid* CCollShapeDyn::_createVortexUVGridMesh(double* allVert
 {
     Vx::VxTriangleMeshUVGrid* uvGridMesh = new Vx::VxTriangleMeshUVGrid();
 
-    Vx::VxReal3* vortexVertices_scaled = new Vx::VxReal3[allVerticesSize/3];
+    Vx::VxReal3* vortexVertices_scaled = new Vx::VxReal3[allVerticesSize / 3];
     Vx::VxReal3Ptr* verticesPtr = new Vx::VxReal3Ptr[allIndicesSize];
 
     /*
@@ -577,39 +573,38 @@ Vx::VxTriangleMeshUVGrid* CCollShapeDyn::_createVortexUVGridMesh(double* allVert
     *  This UV plane are usually fit to the largest extension of the mesh for best efficiency. A Bounding box will be used for this
     *  Then the number of sell subdivision should be done so that there are not too many tringle in a cell.
     */
-    C3Vector minS(REAL_MAX,REAL_MAX,REAL_MAX);
-    C3Vector maxS(-REAL_MAX,-REAL_MAX,-REAL_MAX);
+    C3Vector minS(REAL_MAX, REAL_MAX, REAL_MAX);
+    C3Vector maxS(-REAL_MAX, -REAL_MAX, -REAL_MAX);
 
-    for (int i=0;i<allVerticesSize/3;i++)
+    for (int i = 0; i < allVerticesSize / 3; i++)
     { // We need to scale the vertices
-        C3Vector v(allVertices+3*i);
-        v*=linScaling; // ********** SCALING
-        vortexVertices_scaled[i][0]=v(0);
-        vortexVertices_scaled[i][1]=v(1);
-        vortexVertices_scaled[i][2]=v(2);
+        C3Vector v(allVertices + 3 * i);
+        v *= linScaling; // ********** SCALING
+        vortexVertices_scaled[i][0] = v(0);
+        vortexVertices_scaled[i][1] = v(1);
+        vortexVertices_scaled[i][2] = v(2);
         minS.keepMin(v);
         maxS.keepMax(v);
     }
     // note that here we would be better fitting an OBB instead, this will do for now:
-    Vx::VxBoundingBox bbox((double)minS(0),(double)minS(1),(double)minS(2),(double)maxS(0),(double)maxS(1),(double)maxS(2));
+    Vx::VxBoundingBox bbox((double)minS(0), (double)minS(1), (double)minS(2), (double)maxS(0), (double)maxS(1), (double)maxS(2));
 
-
-    for (unsigned int i=0;i<allIndicesSize;i++)
+    for (unsigned int i = 0; i < allIndicesSize; i++)
     {
         verticesPtr[i] = vortexVertices_scaled[allIndices[i]];
     }
 
-    int triCount = allIndicesSize/3;
+    int triCount = allIndicesSize / 3;
     uvGridMesh->setExternalVertices(vortexVertices_scaled, verticesPtr, allVerticesSize, triCount);
     uvGridMesh->takeVertexOwnership(); // so that we don't have to delete the vortexVertices_scaled, verticesPtr.
 
     Vx::VxVector3 s = bbox.getBBSize();
 
-    int minsize = s[0]>s[1] ? (s[0]>s[2] ? 0 : 2) : (s[1]>s[2] ? 1 : 2);
-    int u = (minsize+1)%3;
-    int v = (minsize+2)%3;
+    int minsize = s[0] > s[1] ? (s[0] > s[2] ? 0 : 2) : (s[1] > s[2] ? 1 : 2);
+    int u = (minsize + 1) % 3;
+    int v = (minsize + 2) % 3;
 
-    int nu=1, nv=1;
+    int nu = 1, nv = 1;
     int tripercell = 4;
     do
     {
@@ -618,7 +613,7 @@ Vx::VxTriangleMeshUVGrid* CCollShapeDyn::_createVortexUVGridMesh(double* allVert
         // s is the bbox size. we want square cell as much as possible: (2) s[u]/nu = s[v]/nv = a
         // we then have by substitution nv = sqrt(T sv / su) etc.
         nv = int(VxSqrt(Vx::VxReal(triCount) / Vx::VxReal(tripercell) * s[v] / s[u]));
-        nu = int(s[u]/s[v] * Vx::VxReal(nv));
+        nu = int(s[u] / s[v] * Vx::VxReal(nv));
 
         if (nu > 1 && nv > 1)
         {
@@ -630,8 +625,7 @@ Vx::VxTriangleMeshUVGrid* CCollShapeDyn::_createVortexUVGridMesh(double* allVert
             tripercell /= 2;
             nu = nv = 1;
         }
-    }
-    while (tripercell > 1);
+    } while (tripercell > 1);
     // stop at tripercell == 1. The dbase is not realy justified: not enough triangles in there.
     // Could return nullptr and do a BVTree instead.
 
@@ -645,21 +639,20 @@ Vx::VxTriangleMeshUVGrid* CCollShapeDyn::_createVortexUVGridMesh(double* allVert
 
 Vx::VxTriangleMeshBVTree* CCollShapeDyn::_createVortexBVTreeMesh(double* allVertices, int allVerticesSize, int* allIndices, int allIndicesSize, double linScaling)
 {
-    Vx::VxTriangleMeshBVTree* bvTreeMesh = new Vx::VxTriangleMeshBVTree(allIndicesSize/3);
+    Vx::VxTriangleMeshBVTree* bvTreeMesh = new Vx::VxTriangleMeshBVTree(allIndicesSize / 3);
 
-    Vx::VxReal3* vortexVertices_scaled = new Vx::VxReal3[allVerticesSize/3];
+    Vx::VxReal3* vortexVertices_scaled = new Vx::VxReal3[allVerticesSize / 3];
 
-    for (int i=0;i<allVerticesSize/3;i++)
+    for (int i = 0; i < allVerticesSize / 3; i++)
     { // We need to scale the vertices
-        C3Vector v(allVertices+3*i);
-        v*=linScaling; // ********** SCALING
-        vortexVertices_scaled[i][0]=v(0);
-        vortexVertices_scaled[i][1]=v(1);
-        vortexVertices_scaled[i][2]=v(2);
+        C3Vector v(allVertices + 3 * i);
+        v *= linScaling; // ********** SCALING
+        vortexVertices_scaled[i][0] = v(0);
+        vortexVertices_scaled[i][1] = v(1);
+        vortexVertices_scaled[i][2] = v(2);
     }
 
-
-    for (unsigned int i=0;i<allIndicesSize/3;i++)
+    for (unsigned int i = 0; i < allIndicesSize / 3; i++)
     {
         /*Vx::VxInfo(0, "Atri%d %g %g %g, %g %g %g, %g %g %g\n", i,
                 vortexVertices_scaled[allIndices[3*i+0]][0],
@@ -671,113 +664,113 @@ Vx::VxTriangleMeshBVTree* CCollShapeDyn::_createVortexBVTreeMesh(double* allVert
                 vortexVertices_scaled[allIndices[3*i+2]][0],
                 vortexVertices_scaled[allIndices[3*i+2]][1],
                 vortexVertices_scaled[allIndices[3*i+2]][2]);*/
-        bvTreeMesh->addMergedTriangleByVertexCopy(  vortexVertices_scaled[allIndices[3*i+0]],
-                                                    vortexVertices_scaled[allIndices[3*i+1]],
-                                                    vortexVertices_scaled[allIndices[3*i+2]],
-                                                    MergeEpsilon);
+        bvTreeMesh->addMergedTriangleByVertexCopy(vortexVertices_scaled[allIndices[3 * i + 0]],
+                                                  vortexVertices_scaled[allIndices[3 * i + 1]],
+                                                  vortexVertices_scaled[allIndices[3 * i + 2]],
+                                                  MergeEpsilon);
     }
     delete[] vortexVertices_scaled;
 
     return bvTreeMesh;
 }
 
-Vx::VxCollisionGeometry* CCollShapeDyn::_createVortexCollisionGeometry(Vx::VxUniverse* universe,CXGeomWrap* geomInfo,Vx::VxGeometry* vxGeometry,const Vx::VxTransform& vxTransform,const double* floatParams,const int* intParams)
+Vx::VxCollisionGeometry* CCollShapeDyn::_createVortexCollisionGeometry(Vx::VxUniverse* universe, CXGeomWrap* geomInfo, Vx::VxGeometry* vxGeometry, const Vx::VxTransform& vxTransform, const double* floatParams, const int* intParams)
 {
-    const double frictionCoeff_primary_linearAxis=getVortexUnsignedDouble(floatParams[0]);
-    const double frictionCoeff_secondary_linearAxis=getVortexUnsignedDouble(floatParams[1]);
-    const double frictionCoeff_primary_angularAxis=getVortexUnsignedDouble(floatParams[2]);
-    const double frictionCoeff_secondary_angularAxis=getVortexUnsignedDouble(floatParams[3]);
-    const double frictionCoeff_normal_angularAxis=getVortexUnsignedDouble(floatParams[4]);
-    const double staticFrictionScale_primary_linearAxis=getVortexUnsignedDouble(floatParams[5]);
-    const double staticFrictionScale_secondary_linearAxis=getVortexUnsignedDouble(floatParams[6]);
-    const double staticFrictionScale_primary_angularAxis=getVortexUnsignedDouble(floatParams[7]);
-    const double staticFrictionScale_secondary_angularAxis=getVortexUnsignedDouble(floatParams[8]);
-    const double staticFrictionScale_normal_angularAxis=getVortexUnsignedDouble(floatParams[9]);
-    const double compliance=getVortexUnsignedDouble(floatParams[10]);
-    const double damping=getVortexUnsignedDouble(floatParams[11]);
-    const double restitution=getVortexUnsignedDouble(floatParams[12]);
-    const double restitutionThreshold=getVortexUnsignedDouble(floatParams[13]);
-    const double adhesiveForce=getVortexUnsignedDouble(floatParams[14]);
-//    const double linearVelocityDamping=getVortexUnsignedDouble(floatParams[15]);
-//    const double angularVelocityDamping=getVortexUnsignedDouble(floatParams[16]);
-    const double slide_primary_linearAxis=getVortexUnsignedDouble(floatParams[17]);
-    const double slide_secondary_linearAxis=getVortexUnsignedDouble(floatParams[18]);
-    const double slide_primary_angularAxis=getVortexUnsignedDouble(floatParams[19]);
-    const double slide_secondary_angularAxis=getVortexUnsignedDouble(floatParams[20]);
-    const double slide_normal_angularAxis=getVortexUnsignedDouble(floatParams[21]);
-    const double slip_primary_linearAxis=getVortexUnsignedDouble(floatParams[22]);
-    const double slip_secondary_linearAxis=getVortexUnsignedDouble(floatParams[23]);
-    const double slip_primary_angularAxis=getVortexUnsignedDouble(floatParams[24]);
-    const double slip_secondary_angularAxis=getVortexUnsignedDouble(floatParams[25]);
-    const double slip_normal_angularAxis=getVortexUnsignedDouble(floatParams[26]);
-//    const double autoSleep_linear_speed_threshold=getVortexUnsignedDouble(floatParams[27]);
-//    const double autoSleep_linear_accel_threshold=getVortexUnsignedDouble(floatParams[28]);
-//    const double autoSleep_angular_speed_threshold=getVortexUnsignedDouble(floatParams[29]);
-//    const double autoSleep_angular_accel_threshold=getVortexUnsignedDouble(floatParams[30]);
-//    const double skinThickness=getVortexUnsignedDouble(floatParams[31]);
-//    const double autoAngularDampingTensionRatio=getVortexUnsignedDouble(floatParams[32]);
+    const double frictionCoeff_primary_linearAxis = getVortexUnsignedDouble(floatParams[0]);
+    const double frictionCoeff_secondary_linearAxis = getVortexUnsignedDouble(floatParams[1]);
+    const double frictionCoeff_primary_angularAxis = getVortexUnsignedDouble(floatParams[2]);
+    const double frictionCoeff_secondary_angularAxis = getVortexUnsignedDouble(floatParams[3]);
+    const double frictionCoeff_normal_angularAxis = getVortexUnsignedDouble(floatParams[4]);
+    const double staticFrictionScale_primary_linearAxis = getVortexUnsignedDouble(floatParams[5]);
+    const double staticFrictionScale_secondary_linearAxis = getVortexUnsignedDouble(floatParams[6]);
+    const double staticFrictionScale_primary_angularAxis = getVortexUnsignedDouble(floatParams[7]);
+    const double staticFrictionScale_secondary_angularAxis = getVortexUnsignedDouble(floatParams[8]);
+    const double staticFrictionScale_normal_angularAxis = getVortexUnsignedDouble(floatParams[9]);
+    const double compliance = getVortexUnsignedDouble(floatParams[10]);
+    const double damping = getVortexUnsignedDouble(floatParams[11]);
+    const double restitution = getVortexUnsignedDouble(floatParams[12]);
+    const double restitutionThreshold = getVortexUnsignedDouble(floatParams[13]);
+    const double adhesiveForce = getVortexUnsignedDouble(floatParams[14]);
+    //    const double linearVelocityDamping=getVortexUnsignedDouble(floatParams[15]);
+    //    const double angularVelocityDamping=getVortexUnsignedDouble(floatParams[16]);
+    const double slide_primary_linearAxis = getVortexUnsignedDouble(floatParams[17]);
+    const double slide_secondary_linearAxis = getVortexUnsignedDouble(floatParams[18]);
+    const double slide_primary_angularAxis = getVortexUnsignedDouble(floatParams[19]);
+    const double slide_secondary_angularAxis = getVortexUnsignedDouble(floatParams[20]);
+    const double slide_normal_angularAxis = getVortexUnsignedDouble(floatParams[21]);
+    const double slip_primary_linearAxis = getVortexUnsignedDouble(floatParams[22]);
+    const double slip_secondary_linearAxis = getVortexUnsignedDouble(floatParams[23]);
+    const double slip_primary_angularAxis = getVortexUnsignedDouble(floatParams[24]);
+    const double slip_secondary_angularAxis = getVortexUnsignedDouble(floatParams[25]);
+    const double slip_normal_angularAxis = getVortexUnsignedDouble(floatParams[26]);
+    //    const double autoSleep_linear_speed_threshold=getVortexUnsignedDouble(floatParams[27]);
+    //    const double autoSleep_linear_accel_threshold=getVortexUnsignedDouble(floatParams[28]);
+    //    const double autoSleep_angular_speed_threshold=getVortexUnsignedDouble(floatParams[29]);
+    //    const double autoSleep_angular_accel_threshold=getVortexUnsignedDouble(floatParams[30]);
+    //    const double skinThickness=getVortexUnsignedDouble(floatParams[31]);
+    //    const double autoAngularDampingTensionRatio=getVortexUnsignedDouble(floatParams[32]);
 
     Vx::VxMaterial::FrictionModel frictModels[5];
-    for (int i=0;i<5;i++)
+    for (int i = 0; i < 5; i++)
     {
         switch (intParams[i])
         {
-            case 0:
-                frictModels[i]=Vx::VxMaterial::kFrictionModelBox;
-                break;
-            case 1:
-                frictModels[i]=Vx::VxMaterial::kFrictionModelScaledBox;
-                break;
-            case 2:
-                frictModels[i]=Vx::VxMaterial::kFrictionModelBoxProportionalLow;
-                break;
-            case 3:
-                frictModels[i]=Vx::VxMaterial::kFrictionModelBoxProportionalHigh;
-                break;
-            case 4:
-                frictModels[i]=Vx::VxMaterial::kFrictionModelScaledBoxFast;
-                break;
-            case 5:
-                frictModels[i]=Vx::VxMaterial::kFrictionModelNeutral;
-                break;
-            default:
-                frictModels[i]=Vx::VxMaterial::kFrictionModelNone;
-                break;
+        case 0:
+            frictModels[i] = Vx::VxMaterial::kFrictionModelBox;
+            break;
+        case 1:
+            frictModels[i] = Vx::VxMaterial::kFrictionModelScaledBox;
+            break;
+        case 2:
+            frictModels[i] = Vx::VxMaterial::kFrictionModelBoxProportionalLow;
+            break;
+        case 3:
+            frictModels[i] = Vx::VxMaterial::kFrictionModelBoxProportionalHigh;
+            break;
+        case 4:
+            frictModels[i] = Vx::VxMaterial::kFrictionModelScaledBoxFast;
+            break;
+        case 5:
+            frictModels[i] = Vx::VxMaterial::kFrictionModelNeutral;
+            break;
+        default:
+            frictModels[i] = Vx::VxMaterial::kFrictionModelNone;
+            break;
         }
     }
-//    const bool treatPureShapesAsConvexShapes=((intParams[5]&1)!=0);
-//    const bool treatConvexShapesAsRandomShapes=((intParams[5]&2)!=0);
-//    const bool treatRandomShapesAsTerrain=((intParams[5]&4)!=0);
-//    const bool fastMoving=((intParams[5]&8)!=0);
-//    const bool autoSlip=((intParams[5]&16)!=0);
-//    const bool autoAngularDamping=((intParams[5]&256)!=0);
-//    const int autoSleepStepLiveThreshold=intParams[6];
-    const int materialUniqueId=intParams[7];
-//*
+    //    const bool treatPureShapesAsConvexShapes=((intParams[5]&1)!=0);
+    //    const bool treatConvexShapesAsRandomShapes=((intParams[5]&2)!=0);
+    //    const bool treatRandomShapesAsTerrain=((intParams[5]&4)!=0);
+    //    const bool fastMoving=((intParams[5]&8)!=0);
+    //    const bool autoSlip=((intParams[5]&16)!=0);
+    //    const bool autoAngularDamping=((intParams[5]&256)!=0);
+    //    const int autoSleepStepLiveThreshold=intParams[6];
+    const int materialUniqueId = intParams[7];
+    //*
     std::string materialString("CSIM");
-    materialString+=boost::lexical_cast<std::string>(materialUniqueId);
-    Vx::VxSmartPtr<Vx::VxRigidBodyResponseModel> responseModel=universe->getRigidBodyResponseModel();
+    materialString += boost::lexical_cast<std::string>(materialUniqueId);
+    Vx::VxSmartPtr<Vx::VxRigidBodyResponseModel> responseModel = universe->getRigidBodyResponseModel();
 
-    Vx::VxMaterial* material=responseModel->getMaterialTable()->getMaterial(materialString.c_str());
+    Vx::VxMaterial* material = responseModel->getMaterialTable()->getMaterial(materialString.c_str());
 
-    if (material==nullptr)
+    if (material == nullptr)
     {
         material = responseModel->getMaterialTable()->registerMaterial(materialString.c_str());
 
-        material->setFrictionModel(Vx::VxMaterial::kFrictionAxisLinearPrimary,frictModels[0]);
-        material->setFrictionModel(Vx::VxMaterial::kFrictionAxisLinearSecondary,frictModels[1]);
-        material->setFrictionModel(Vx::VxMaterial::kFrictionAxisAngularPrimary,frictModels[2]);
-        material->setFrictionModel(Vx::VxMaterial::kFrictionAxisAngularSecondary,frictModels[3]);
-        material->setFrictionModel(Vx::VxMaterial::kFrictionAxisAngularNormal,frictModels[4]);
+        material->setFrictionModel(Vx::VxMaterial::kFrictionAxisLinearPrimary, frictModels[0]);
+        material->setFrictionModel(Vx::VxMaterial::kFrictionAxisLinearSecondary, frictModels[1]);
+        material->setFrictionModel(Vx::VxMaterial::kFrictionAxisAngularPrimary, frictModels[2]);
+        material->setFrictionModel(Vx::VxMaterial::kFrictionAxisAngularSecondary, frictModels[3]);
+        material->setFrictionModel(Vx::VxMaterial::kFrictionAxisAngularNormal, frictModels[4]);
         // Friction scale. Vortex default: 1.0
         // When 2.0: Barrett hand sometimes can't close
         // When 1.5: Same as above, but less important. Boxes sometimes slightly slide on floor.
         // When 1.0: Boxes sometimes slightly slide on floor.
-        material->setStaticFrictionScale(Vx::VxMaterial::kFrictionAxisLinearPrimary,staticFrictionScale_primary_linearAxis);
-        material->setStaticFrictionScale(Vx::VxMaterial::kFrictionAxisLinearSecondary,staticFrictionScale_secondary_linearAxis);
-        material->setStaticFrictionScale(Vx::VxMaterial::kFrictionAxisAngularPrimary,staticFrictionScale_primary_angularAxis);
-        material->setStaticFrictionScale(Vx::VxMaterial::kFrictionAxisAngularSecondary,staticFrictionScale_secondary_angularAxis);
-        material->setStaticFrictionScale(Vx::VxMaterial::kFrictionAxisAngularNormal,staticFrictionScale_normal_angularAxis);
+        material->setStaticFrictionScale(Vx::VxMaterial::kFrictionAxisLinearPrimary, staticFrictionScale_primary_linearAxis);
+        material->setStaticFrictionScale(Vx::VxMaterial::kFrictionAxisLinearSecondary, staticFrictionScale_secondary_linearAxis);
+        material->setStaticFrictionScale(Vx::VxMaterial::kFrictionAxisAngularPrimary, staticFrictionScale_primary_angularAxis);
+        material->setStaticFrictionScale(Vx::VxMaterial::kFrictionAxisAngularSecondary, staticFrictionScale_secondary_angularAxis);
+        material->setStaticFrictionScale(Vx::VxMaterial::kFrictionAxisAngularNormal, staticFrictionScale_normal_angularAxis);
 
         // Adhesive force. Vortex default: 0.0
         material->setAdhesiveForce(adhesiveForce);
@@ -802,32 +795,32 @@ Vx::VxCollisionGeometry* CCollShapeDyn::_createVortexCollisionGeometry(Vx::VxUni
         material->setRestitutionThreshold(restitutionThreshold);
 
         // Slide. Vortex default: 0.0
-        material->setSlide(Vx::VxMaterial::kFrictionAxisLinearPrimary,slide_primary_linearAxis);
-        material->setSlide(Vx::VxMaterial::kFrictionAxisLinearSecondary,slide_secondary_linearAxis);
-        material->setSlide(Vx::VxMaterial::kFrictionAxisAngularPrimary,slide_primary_angularAxis);
-        material->setSlide(Vx::VxMaterial::kFrictionAxisAngularSecondary,slide_secondary_angularAxis);
-        material->setSlide(Vx::VxMaterial::kFrictionAxisAngularNormal,slide_normal_angularAxis);
+        material->setSlide(Vx::VxMaterial::kFrictionAxisLinearPrimary, slide_primary_linearAxis);
+        material->setSlide(Vx::VxMaterial::kFrictionAxisLinearSecondary, slide_secondary_linearAxis);
+        material->setSlide(Vx::VxMaterial::kFrictionAxisAngularPrimary, slide_primary_angularAxis);
+        material->setSlide(Vx::VxMaterial::kFrictionAxisAngularSecondary, slide_secondary_angularAxis);
+        material->setSlide(Vx::VxMaterial::kFrictionAxisAngularNormal, slide_normal_angularAxis);
 
         // friction coeff. Vortex default: 0.0
-        material->setFrictionCoefficient(Vx::VxMaterial::kFrictionAxisLinearPrimary,frictionCoeff_primary_linearAxis);
-        material->setFrictionCoefficient(Vx::VxMaterial::kFrictionAxisLinearSecondary,frictionCoeff_secondary_linearAxis);
-        material->setFrictionCoefficient(Vx::VxMaterial::kFrictionAxisAngularPrimary,frictionCoeff_primary_angularAxis);
-        material->setFrictionCoefficient(Vx::VxMaterial::kFrictionAxisAngularSecondary,frictionCoeff_secondary_angularAxis);
-        material->setFrictionCoefficient(Vx::VxMaterial::kFrictionAxisAngularNormal,frictionCoeff_normal_angularAxis);
+        material->setFrictionCoefficient(Vx::VxMaterial::kFrictionAxisLinearPrimary, frictionCoeff_primary_linearAxis);
+        material->setFrictionCoefficient(Vx::VxMaterial::kFrictionAxisLinearSecondary, frictionCoeff_secondary_linearAxis);
+        material->setFrictionCoefficient(Vx::VxMaterial::kFrictionAxisAngularPrimary, frictionCoeff_primary_angularAxis);
+        material->setFrictionCoefficient(Vx::VxMaterial::kFrictionAxisAngularSecondary, frictionCoeff_secondary_angularAxis);
+        material->setFrictionCoefficient(Vx::VxMaterial::kFrictionAxisAngularNormal, frictionCoeff_normal_angularAxis);
 
         // Slip. Vortex default: 0.0
         // When 0.0: hexapod jumps
         // When 0.0001: hexapod doesn't jump (in combination with "compliance")
-        material->setSlip(Vx::VxMaterial::kFrictionAxisLinearPrimary,slip_primary_linearAxis);
-        material->setSlip(Vx::VxMaterial::kFrictionAxisLinearSecondary,slip_secondary_linearAxis);
-        material->setSlip(Vx::VxMaterial::kFrictionAxisAngularPrimary,slip_primary_angularAxis);
-        material->setSlip(Vx::VxMaterial::kFrictionAxisAngularSecondary,slip_secondary_angularAxis);
-        material->setSlip(Vx::VxMaterial::kFrictionAxisAngularNormal,slip_normal_angularAxis);
+        material->setSlip(Vx::VxMaterial::kFrictionAxisLinearPrimary, slip_primary_linearAxis);
+        material->setSlip(Vx::VxMaterial::kFrictionAxisLinearSecondary, slip_secondary_linearAxis);
+        material->setSlip(Vx::VxMaterial::kFrictionAxisAngularPrimary, slip_primary_angularAxis);
+        material->setSlip(Vx::VxMaterial::kFrictionAxisAngularSecondary, slip_secondary_angularAxis);
+        material->setSlip(Vx::VxMaterial::kFrictionAxisAngularNormal, slip_normal_angularAxis);
 
         material->setIntegratedSlipDisplacement(Vx::VxMaterial::kIntegratedSlipDisplacementActivated);
 
-//*/
-/*
+        //*/
+        /*
         Vx::VxMaterial* material = universe->getMaterial("default");
         material->setFrictionModel(Vx::VxMaterial::kFrictionAxisLinear,Vx::VxMaterial::kFrictionModelScaledBoxFast);//Fast);
 
@@ -871,12 +864,12 @@ Vx::VxCollisionGeometry* CCollShapeDyn::_createVortexCollisionGeometry(Vx::VxUni
         material->setSlip(Vx::VxMaterial::kFrictionAxisLinear,0.0001);
 */
     }
-    return(new Vx::VxCollisionGeometry(vxGeometry, material, vxTransform));
+    return (new Vx::VxCollisionGeometry(vxGeometry, material, vxTransform));
 }
 
 Vx::VxCollisionGeometry* CCollShapeDyn::getVortexGeoms(int index)
 { // return the individual items of a collision compound
-    if (index>=int(_vortexGeoms.size()))
-        return(nullptr);
-    return(_vortexGeoms[index]);
+    if (index >= int(_vortexGeoms.size()))
+        return (nullptr);
+    return (_vortexGeoms[index]);
 }

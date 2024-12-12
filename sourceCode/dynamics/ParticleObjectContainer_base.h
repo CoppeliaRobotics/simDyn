@@ -5,15 +5,15 @@
 
 class CParticleObjectContainer_base
 {
-public:
+  public:
     CParticleObjectContainer_base();
     virtual ~CParticleObjectContainer_base();
 
     int addObject(CParticleObject_base* it);
-    CParticleObject_base* getObject(int objectId,bool getAlsoTheOnesFlaggedForDestruction);
+    CParticleObject_base* getObject(int objectId, bool getAlsoTheOnesFlaggedForDestruction);
     void removeAllObjects();
     void removeObject(int objectId);
-    void** getParticles(int index,int* particlesCount,int* objectType,float** cols);
+    void** getParticles(int index, int* particlesCount, int* objectType, float** cols);
 
     bool addParticlesIfNeeded();
     void removeKilledParticles();
@@ -22,7 +22,7 @@ public:
 
     void handleAntiGravityForces_andFluidFrictionForces(const C3Vector& gravity);
 
-private:
+  private:
     int nextParticleObjectId;
-    std::map<int,CParticleObject_base*> _allParticleObjects;
+    std::map<int, CParticleObject_base*> _allParticleObjects;
 };

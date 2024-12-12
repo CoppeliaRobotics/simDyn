@@ -12,15 +12,15 @@
 
 class CCollShapeDyn : public CCollShapeDyn_base
 {
-public:
+  public:
     CCollShapeDyn();
     virtual ~CCollShapeDyn();
 
-    void init(CXShape* shape,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled);
+    void init(CXShape* shape, bool willBeStatic, const C7Vector& inverseLocalInertiaFrame_scaled);
 
     NewtonCollision* getNewtonCollision();
 
-protected:    
+  protected:
     void _setNewtonParameters(CXShape* shape);
     NewtonCollision* _shape;
     std::vector<sReal> _newtonHeightfieldData;

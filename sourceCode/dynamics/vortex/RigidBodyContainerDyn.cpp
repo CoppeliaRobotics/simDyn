@@ -34,8 +34,8 @@ bool VxFrameReleased = true; // debug to use universe print content
 bool gPrintContact = false;
 bool gPrintConstraintDebug = false;
 unsigned int vortexStartTimeTag;
-bool CRigidBodyContainerDyn::_checkingLicense=false;
-double CRigidBodyContainerDyn::gravityVectorLength=0.0;
+bool CRigidBodyContainerDyn::_checkingLicense = false;
+double CRigidBodyContainerDyn::gravityVectorLength = 0.0;
 
 /* Those globals values are used to self parameterize Vortex so that it is stable without having to
  * tweak values.
@@ -48,21 +48,20 @@ const Vx::VxReal spScaleA = 1; // scales default angular solver parameters
 
 class VortexIntersectFilter : public Vx::VxIntersectFilter
 {
-public:
+  public:
     bool isPairEnabled(Vx::VxCollisionGeometry* cg0, Vx::VxCollisionGeometry* cg1)
     {
         bool canCollide = true;
         CRigidBodyContainerDyn::_vortexCollisionCallbackStatic((void*)&canCollide, cg0, cg1);
         return canCollide;
     }
-
 };
-static int VortexResponsePart = 0;// Vx::VxUniverse::kResponsePart; TODO: why the compiler doesn't find this
+static int VortexResponsePart = 0; // Vx::VxUniverse::kResponsePart; TODO: why the compiler doesn't find this
 
 class VortexIntersectSubscriber : public Vx::VxUniverse::IntersectSubscriber
 {
-public:
-    virtual void notifyDisjoint(Vx::VxUniverse::eIntersectEventType , Vx::VxIntersectResult* )
+  public:
+    virtual void notifyDisjoint(Vx::VxUniverse::eIntersectEventType, Vx::VxIntersectResult*)
     {
         // don't need
     }
@@ -71,22 +70,22 @@ public:
         if (CRigidBodyContainerDyn::_checkingLicense)
             return;
         Vx::VxCollisionGeometry* cg[2];
-        ires->getCollisionGeometryPair(cg, cg+1);
+        ires->getCollisionGeometryPair(cg, cg + 1);
         Vx::VxPart* part[2];
-        ires->getPartPair(part, part+1);
+        ires->getPartPair(part, part + 1);
 
-        CRigidBodyDyn* body1=(CRigidBodyDyn*)part[0]->userData().getData("csim1").getPointerVoid();
-        CRigidBodyDyn* body2=(CRigidBodyDyn*)part[1]->userData().getData("csim1").getPointerVoid();
-        double skin1=0.0;
-        if (body1!=nullptr)
-            skin1=((CRigidBodyDyn*)body1)->vortex_skinThickness;
-        double skin2=0.0;
-        if (body2!=nullptr)
-            skin2=((CRigidBodyDyn*)body2)->vortex_skinThickness;
-        bool autoSlip=(((body1!=nullptr)&&((CRigidBodyDyn*)body1)->vortex_autoSlip)||((body2!=nullptr)&&((CRigidBodyDyn*)body2)->vortex_autoSlip));
-        double skinThickness=skin1;
-        if (skin2>skinThickness)
-            skinThickness=skin2;
+        CRigidBodyDyn* body1 = (CRigidBodyDyn*)part[0]->userData().getData("csim1").getPointerVoid();
+        CRigidBodyDyn* body2 = (CRigidBodyDyn*)part[1]->userData().getData("csim1").getPointerVoid();
+        double skin1 = 0.0;
+        if (body1 != nullptr)
+            skin1 = ((CRigidBodyDyn*)body1)->vortex_skinThickness;
+        double skin2 = 0.0;
+        if (body2 != nullptr)
+            skin2 = ((CRigidBodyDyn*)body2)->vortex_skinThickness;
+        bool autoSlip = (((body1 != nullptr) && ((CRigidBodyDyn*)body1)->vortex_autoSlip) || ((body2 != nullptr) && ((CRigidBodyDyn*)body2)->vortex_autoSlip));
+        double skinThickness = skin1;
+        if (skin2 > skinThickness)
+            skinThickness = skin2;
         /*  If penetration < sSkinThickness, the contact stiffness will be proportional to the penetration.
          *  The goal is to help the solver to find the appropriate point of equilibrium during grasping.
          */
@@ -102,10 +101,9 @@ public:
                 if (p <= skinThickness && p > 0)
                 {
                     Vx::VxContactMaterial* m = (*it)->getContactMaterial();
-                    const Vx::VxReal s = 1.0/m->getCompliance() * p;
-                    m->setCompliance(1.0/s);
-                    m->setDamping(s/10.0);
-
+                    const Vx::VxReal s = 1.0 / m->getCompliance() * p;
+                    m->setCompliance(1.0 / s);
+                    m->setDamping(s / 10.0);
                 }
                 ++it;
             }
@@ -158,14 +156,14 @@ public:
                     Vx::VxVector3 n, f;
                     (*it)->getNormal(n);
                     (*it)->getForce(index, f);
-                    const Vx::VxReal lambda = f.dot(n)*scale;
+                    const Vx::VxReal lambda = f.dot(n) * scale;
                     // compute apparent mass using lambda / gravity
-                    Vx::VxReal apparentMass = lambda/sGravity;
+                    Vx::VxReal apparentMass = lambda / sGravity;
 
                     {
                         // limit apparentMass vs the smallest mass in the pair of colliding parts.
                         apparentMass = std::max<double>(mass, apparentMass);
-                        apparentMass = std::min<double>(sMaxMassScale*mass, apparentMass);
+                        apparentMass = std::min<double>(sMaxMassScale * mass, apparentMass);
                         if (lambda > Vx::VX_MEDIUM_EPSILON)
                         {
                             const Vx::VxReal loss = sScale * dt / apparentMass;
@@ -183,35 +181,34 @@ public:
                 ++it;
             }
         }
-
     }
 };
 
-void vortexInfoHandler(const int level, const char *const format,va_list ap)
+void vortexInfoHandler(const int level, const char* const format, va_list ap)
 {
     char buff[2000];
     std::string tmp("msg from Vortex: ");
-    tmp+=format;
-    vsnprintf(buff,sizeof(buff),tmp.c_str(),ap);
-    simAddLog(LIBRARY_NAME,sim_verbosity_infos,buff);
+    tmp += format;
+    vsnprintf(buff, sizeof(buff), tmp.c_str(), ap);
+    simAddLog(LIBRARY_NAME, sim_verbosity_infos, buff);
 }
 
-void vortexWarningHandler(const int level, const char *const format,va_list ap)
+void vortexWarningHandler(const int level, const char* const format, va_list ap)
 {
     char buff[2000];
     std::string tmp("msg from Vortex: ");
-    tmp+=format;
-    vsnprintf(buff,sizeof(buff),tmp.c_str(),ap);
-    simAddLog(LIBRARY_NAME,sim_verbosity_warnings,buff);
+    tmp += format;
+    vsnprintf(buff, sizeof(buff), tmp.c_str(), ap);
+    simAddLog(LIBRARY_NAME, sim_verbosity_warnings, buff);
 }
 
-void vortexErrorHandler(const int level, const char *const format,va_list ap)
+void vortexErrorHandler(const int level, const char* const format, va_list ap)
 {
     char buff[2000];
     std::string tmp("msg from Vortex: ");
-    tmp+=format;
-    vsnprintf(buff,sizeof(buff),tmp.c_str(),ap);
-    simAddLog(LIBRARY_NAME,sim_verbosity_errors,buff);
+    tmp += format;
+    vsnprintf(buff, sizeof(buff), tmp.c_str(), ap);
+    simAddLog(LIBRARY_NAME, sim_verbosity_errors, buff);
 }
 
 Vx::VxPart* getCollisionGeometryPart(Vx::VxCollisionGeometry* cg)
@@ -226,27 +223,27 @@ Vx::VxPart* getCollisionGeometryPart(Vx::VxCollisionGeometry* cg)
 std::string CRigidBodyContainerDyn::getEngineInfo() const
 {
     std::string v("Vortex v");
-    v+=Vx::VxGetVersion();
-    return(v);
+    v += Vx::VxGetVersion();
+    return (v);
 }
 
 CRigidBodyContainerDyn::CRigidBodyContainerDyn()
 {
-    _engine=sim_physics_vortex;
-    _engineVersion=0;
+    _engine = sim_physics_vortex;
+    _engineVersion = 0;
 }
 
 CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
 {
     std::vector<CRigidBodyDyn*> allBodies;
     _getAllRigidBodies(allBodies);
-    for (size_t i=0;i<allBodies.size();i++)
+    for (size_t i = 0; i < allBodies.size(); i++)
         _removeRigidBody(allBodies[i]->getShapeHandle());
 
-    for (int i=0;i<_simGetObjectListSize(sim_handle_all);i++)
+    for (int i = 0; i < _simGetObjectListSize(sim_handle_all); i++)
     {
-        CXSceneObject* it=(CXSceneObject*)_simGetObjectFromIndex(sim_handle_all,i);
-        _simSetDynamicSimulationIconCode(it,sim_dynamicsimicon_none);
+        CXSceneObject* it = (CXSceneObject*)_simGetObjectFromIndex(sim_handle_all, i);
+        _simSetDynamicSimulationIconCode(it, sim_dynamicsimicon_none);
     }
 
     _particleCont->removeAllParticles();
@@ -265,31 +262,31 @@ CRigidBodyContainerDyn::~CRigidBodyContainerDyn()
     _particleCont->removeAllObjects();
 }
 
-std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int intParams[20])
+std::string CRigidBodyContainerDyn::init(const double floatParams[20], const int intParams[20])
 {
-    CRigidBodyContainerDyn_base::init(floatParams,intParams);
+    CRigidBodyContainerDyn_base::init(floatParams, intParams);
 
     int plugin_verbosity = sim_verbosity_default;
-    simGetModuleInfo(LIBRARY_NAME,sim_moduleinfo_verbosity,nullptr,&plugin_verbosity);
-    if (plugin_verbosity==sim_verbosity_none)
+    simGetModuleInfo(LIBRARY_NAME, sim_moduleinfo_verbosity, nullptr, &plugin_verbosity);
+    if (plugin_verbosity == sim_verbosity_none)
         Vx::LogSetLevel(Vx::kOff);
-    if (plugin_verbosity>=sim_verbosity_errors)
+    if (plugin_verbosity >= sim_verbosity_errors)
         Vx::LogSetLevel(Vx::kError);
-    if (plugin_verbosity>=sim_verbosity_warnings)
+    if (plugin_verbosity >= sim_verbosity_warnings)
         Vx::LogSetLevel(Vx::kWarn);
-    if (plugin_verbosity>=sim_verbosity_infos)
+    if (plugin_verbosity >= sim_verbosity_infos)
         Vx::LogSetLevel(Vx::kInfo);
-    if (plugin_verbosity>=sim_verbosity_debug)
+    if (plugin_verbosity >= sim_verbosity_debug)
         Vx::LogSetLevel(Vx::kAll);
 
-    vortexStartTimeTag=int(simGetSystemTime()*1000.0);
+    vortexStartTimeTag = int(simGetSystemTime() * 1000.0);
     Vx::VxFrame* frame = Vx::VxFrame::instance();
     _dynamicsWorld = new Vx::VxUniverse();
     frame->addUniverse(_dynamicsWorld);
     // adjust contact matching epsilon
-    for (int i=0; i<Vx::VxCollisionPairRequest::kDefaultRequestCount; ++i)
+    for (int i = 0; i < Vx::VxCollisionPairRequest::kDefaultRequestCount; ++i)
     {
-        for (int j=0; j<=i; ++j)
+        for (int j = 0; j <= i; ++j)
         {
             Vx::VxCollisionPairRequest* req = _dynamicsWorld->getPartPartCollisionPairRequest(i, j);
             req->setContactMatchingEpsilon(0.01);
@@ -306,24 +303,23 @@ std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int 
     // - simGetEngineBoolParameter
     double fParams[10];
     int iParams[1];
-    _simGetVortexParameters(nullptr,3,fParams,iParams);
+    _simGetVortexParameters(nullptr, 3, fParams, iParams);
 
-//        const double stepSize=getVortexUnsignedDouble(fParams[0]);
-//        const double internalScalingFactor=getVortexUnsignedDouble(fParams[1]);
-    const double contactTolerance=getVortexUnsignedDouble(fParams[2]);
-    const double constraint_linear_compliance=getVortexUnsignedDouble(fParams[3]);
-    const double constraint_linear_damping=getVortexUnsignedDouble(fParams[4]);
-    const double constraint_linear_kineticLoss=getVortexUnsignedDouble(fParams[5]);
-    const double constraint_angular_compliance=getVortexUnsignedDouble(fParams[6]);
-    const double constraint_angular_damping=getVortexUnsignedDouble(fParams[7]);
-    const double constraint_angular_kineticLoss=getVortexUnsignedDouble(fParams[8]);
+    //        const double stepSize=getVortexUnsignedDouble(fParams[0]);
+    //        const double internalScalingFactor=getVortexUnsignedDouble(fParams[1]);
+    const double contactTolerance = getVortexUnsignedDouble(fParams[2]);
+    const double constraint_linear_compliance = getVortexUnsignedDouble(fParams[3]);
+    const double constraint_linear_damping = getVortexUnsignedDouble(fParams[4]);
+    const double constraint_linear_kineticLoss = getVortexUnsignedDouble(fParams[5]);
+    const double constraint_angular_compliance = getVortexUnsignedDouble(fParams[6]);
+    const double constraint_angular_damping = getVortexUnsignedDouble(fParams[7]);
+    const double constraint_angular_kineticLoss = getVortexUnsignedDouble(fParams[8]);
     // fParams[9] is RESERVED!! (used to be the auto angular damping tension ratio)
 
-    const bool autoSleep=((iParams[0]&1)!=0);
-    const bool multiThreading=((iParams[0]&2)!=0);
+    const bool autoSleep = ((iParams[0] & 1) != 0);
+    const bool multiThreading = ((iParams[0] & 2) != 0);
     // (iParams[0]&4) is for full internal scaling
     // iParams[0]&8 is RESERVED!! (used to be the auto angular damping)
-
 
     // In ODE and Bullet we disable the auto-sleep functionality, because with those engines,
     // if you remove the floor under disabled boxes, they will not automatically wake.
@@ -332,15 +328,15 @@ std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int 
     _dynamicsWorld->setAutoSleep(autoSleep);
 
     // Constraint solver parameters:
-    Vx::VxSolverParameters* sp=_dynamicsWorld->getSolverParameters();
-    sp->setConstraintLinearCompliance(constraint_linear_compliance); // Vortex default: 1.0e-10
-    sp->setConstraintLinearDamping(constraint_linear_damping); // Vortex default: 8.33e+8
-    sp->setConstraintLinearKineticLoss(constraint_linear_kineticLoss); // Vortex default: 6.0e-9
-    sp->setConstraintAngularCompliance(constraint_angular_compliance); // Vortex default: 1.0e-10
-    sp->setConstraintAngularDamping(constraint_angular_damping); // Vortex default: 8.33e+8
+    Vx::VxSolverParameters* sp = _dynamicsWorld->getSolverParameters();
+    sp->setConstraintLinearCompliance(constraint_linear_compliance);     // Vortex default: 1.0e-10
+    sp->setConstraintLinearDamping(constraint_linear_damping);           // Vortex default: 8.33e+8
+    sp->setConstraintLinearKineticLoss(constraint_linear_kineticLoss);   // Vortex default: 6.0e-9
+    sp->setConstraintAngularCompliance(constraint_angular_compliance);   // Vortex default: 1.0e-10
+    sp->setConstraintAngularDamping(constraint_angular_damping);         // Vortex default: 8.33e+8
     sp->setConstraintAngularKineticLoss(constraint_angular_kineticLoss); // Vortex default: 6.0e-9
 
-/*
+    /*
     sp->setConstraintLinearCompliance(1.0e-10*spScaleL); // Vortex default: 1.0e-10
     sp->setConstraintLinearDamping(8.33e+8/spScaleL); // Vortex default: 8.33e+8
     sp->setConstraintLinearKineticLoss(6.0e-9*spScaleL); // Vortex default: 6.0e-9
@@ -348,13 +344,13 @@ std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int 
     sp->setConstraintAngularDamping(8.33e+8/spScaleA); // Vortex default: 8.33e+8
     sp->setConstraintAngularKineticLoss(6.0e-9*spScaleA); // Vortex default: 6.0e-9
 */
-/*
+    /*
     just before IROS/IREX. TODO for after:
     - Scale all vortex params (forgotten)
     - Add a box max force parameter (see email from Martin on 15/10/2013)
 */
     // Contact tolerance. Vortex default: 0.001
-//    frame->setContactTolerance(contactTolerance*linScaling);
+    //    frame->setContactTolerance(contactTolerance*linScaling);
     _dynamicsWorld->setDefaultContactTolerance(contactTolerance);
 
     frame->setAutomaticTimeStep(false);
@@ -367,155 +363,153 @@ std::string CRigidBodyContainerDyn::init(const double floatParams[20],const int 
     vortexIntersectFilter = new VortexIntersectFilter;
     CRigidBodyDyn::setVortexFilter(vortexIntersectFilter);
     _licenseCheck();
-    return("");
+    return ("");
 }
 
 void CRigidBodyContainerDyn::_licenseCheck()
 {
-    static bool done=false;
-    static bool licensePresent=false;
+    static bool done = false;
+    static bool licensePresent = false;
 
     if (!done)
     {
-        simAddLog(LIBRARY_NAME,sim_verbosity_loadinfos,Vx::VxGetVersion());
-        std::string year(Vx::VxGetVersion(),Vx::VxGetVersion()+4);
+        simAddLog(LIBRARY_NAME, sim_verbosity_loadinfos, Vx::VxGetVersion());
+        std::string year(Vx::VxGetVersion(), Vx::VxGetVersion() + 4);
 
-        _checkingLicense=true;
-        if (std::stoi(year)<=2019)
+        _checkingLicense = true;
+        if (std::stoi(year) <= 2019)
         {
-            Vx::VxPart* partDynamic=new Vx::VxPart(1.0);
+            Vx::VxPart* partDynamic = new Vx::VxPart(1.0);
             _dynamicsWorld->addPart(partDynamic);
-            Vx::VxPart* partStatic=new Vx::VxPart(1.0);
+            Vx::VxPart* partStatic = new Vx::VxPart(1.0);
             _dynamicsWorld->addPart(partStatic);
             partStatic->setControl(Vx::VxPart::kControlStatic);
-            Vx::VxCollisionGeometry* cgDynamic=new Vx::VxCollisionGeometry(new Vx::VxBox(C3Vector2VxVector3(C3Vector(0.1,0.1,0.1))),nullptr);
+            Vx::VxCollisionGeometry* cgDynamic = new Vx::VxCollisionGeometry(new Vx::VxBox(C3Vector2VxVector3(C3Vector(0.1, 0.1, 0.1))), nullptr);
             partDynamic->addCollisionGeometry(cgDynamic);
-            Vx::VxCollisionGeometry* cgStatic=new Vx::VxCollisionGeometry(new Vx::VxBox(C3Vector2VxVector3(C3Vector(0.1,0.1,0.1))),nullptr);
+            Vx::VxCollisionGeometry* cgStatic = new Vx::VxCollisionGeometry(new Vx::VxBox(C3Vector2VxVector3(C3Vector(0.1, 0.1, 0.1))), nullptr);
             partStatic->addCollisionGeometry(cgStatic);
-            partDynamic->setPosition(C3Vector2VxVector3(C3Vector(0,0,100.0)));
-            partStatic->setPosition(C3Vector2VxVector3(C3Vector(0,0,99.0)));
+            partDynamic->setPosition(C3Vector2VxVector3(C3Vector(0, 0, 100.0)));
+            partStatic->setPosition(C3Vector2VxVector3(C3Vector(0, 0, 99.0)));
             Vx::VxFrame::currentInstance()->setTimeStep(0.1);
-            for (int i=0;i<10;i++)
+            for (int i = 0; i < 10; i++)
                 Vx::VxFrame::currentInstance()->step();
-            double zCoord=partDynamic->getTransform().t()[2];
+            double zCoord = partDynamic->getTransform().t()[2];
             _dynamicsWorld->removePart(partDynamic);
             _dynamicsWorld->removePart(partStatic);
             delete partDynamic;
             delete partStatic;
-            licensePresent=(zCoord>98.0);
+            licensePresent = (zCoord > 98.0);
         }
         else
         {
-            Vx::VxPart* partDynamic=new Vx::VxPart(1.0);
+            Vx::VxPart* partDynamic = new Vx::VxPart(1.0);
             _dynamicsWorld->addPart(partDynamic);
-            partDynamic->setPosition(C3Vector2VxVector3(C3Vector(0,0,100.0)));
+            partDynamic->setPosition(C3Vector2VxVector3(C3Vector(0, 0, 100.0)));
             Vx::VxFrame::currentInstance()->setTimeStep(0.1);
-            for (int i=0;i<10;i++)
+            for (int i = 0; i < 10; i++)
                 Vx::VxFrame::currentInstance()->step();
-            double zCoord=partDynamic->getTransform().t()[2];
+            double zCoord = partDynamic->getTransform().t()[2];
             _dynamicsWorld->removePart(partDynamic);
             delete partDynamic;
-            licensePresent=(zCoord<99.0);
+            licensePresent = (zCoord < 99.0);
         }
-        done=true;
-        _checkingLicense=false;
+        done = true;
+        _checkingLicense = false;
     }
     if (!licensePresent)
         _simMakeDynamicAnnouncement(sim_announce_vortexpluginisdemo);
 }
 
-
-void CRigidBodyContainerDyn::_vortexCollisionCallbackStatic(void* data,Vx::VxCollisionGeometry* o1,Vx::VxCollisionGeometry* o2)
+void CRigidBodyContainerDyn::_vortexCollisionCallbackStatic(void* data, Vx::VxCollisionGeometry* o1, Vx::VxCollisionGeometry* o2)
 { // this function is static and will call the corresponding function of the current object:
-    ((CRigidBodyContainerDyn*)_dynWorld)->_vortexCollisionCallback(data,o1,o2);
+    ((CRigidBodyContainerDyn*)_dynWorld)->_vortexCollisionCallback(data, o1, o2);
 }
 
-void CRigidBodyContainerDyn::_vortexCollisionCallback(void* data,Vx::VxCollisionGeometry* o1,Vx::VxCollisionGeometry* o2)
+void CRigidBodyContainerDyn::_vortexCollisionCallback(void* data, Vx::VxCollisionGeometry* o1, Vx::VxCollisionGeometry* o2)
 {
-    Vx::VxPart* b1=getCollisionGeometryPart(o1);
-    Vx::VxPart* b2=getCollisionGeometryPart(o2);
+    Vx::VxPart* b1 = getCollisionGeometryPart(o1);
+    Vx::VxPart* b2 = getCollisionGeometryPart(o2);
 
-    CXShape* shapeA = b1==nullptr?nullptr:(CXShape*)_simGetObject(b1->userData().getData("csim").getValueInteger());
-    CXShape* shapeB = b2==nullptr?nullptr:(CXShape*)_simGetObject(b2->userData().getData("csim").getValueInteger());
+    CXShape* shapeA = b1 == nullptr ? nullptr : (CXShape*)_simGetObject(b1->userData().getData("csim").getValueInteger());
+    CXShape* shapeB = b2 == nullptr ? nullptr : (CXShape*)_simGetObject(b2->userData().getData("csim").getValueInteger());
 
-    bool canCollide=false;
+    bool canCollide = false;
     int objID1;
     int objID2;
 
-    if ( (shapeA!=nullptr)&&(shapeB!=nullptr) )
+    if ((shapeA != nullptr) && (shapeB != nullptr))
     { // regular case (shape-shape)
-        unsigned int collFA=_simGetDynamicCollisionMask(shapeA);
-        unsigned int collFB=_simGetDynamicCollisionMask(shapeB);
-        canCollide=_simIsShapeDynamicallyRespondable(shapeA)&&_simIsShapeDynamicallyRespondable(shapeB)&&((_simGetTreeDynamicProperty(shapeA)&sim_objdynprop_respondable)!=0)&&((_simGetTreeDynamicProperty(shapeB)&sim_objdynprop_respondable)!=0);
-        if (_simGetLastParentForLocalGlobalCollidable(shapeA)==_simGetLastParentForLocalGlobalCollidable(shapeB))
-            canCollide=canCollide&&(collFA&collFB&0x00ff); // we are local
+        unsigned int collFA = _simGetDynamicCollisionMask(shapeA);
+        unsigned int collFB = _simGetDynamicCollisionMask(shapeB);
+        canCollide = _simIsShapeDynamicallyRespondable(shapeA) && _simIsShapeDynamicallyRespondable(shapeB) && ((_simGetTreeDynamicProperty(shapeA) & sim_objdynprop_respondable) != 0) && ((_simGetTreeDynamicProperty(shapeB) & sim_objdynprop_respondable) != 0);
+        if (_simGetLastParentForLocalGlobalCollidable(shapeA) == _simGetLastParentForLocalGlobalCollidable(shapeB))
+            canCollide = canCollide && (collFA & collFB & 0x00ff); // we are local
         else
-            canCollide=canCollide&&(collFA&collFB&0xff00); // we are global
-        if ( (_simIsShapeDynamicallyStatic(shapeA)||((_simGetTreeDynamicProperty(shapeA)&sim_objdynprop_dynamic)==0))&&
-            (_simIsShapeDynamicallyStatic(shapeB)||((_simGetTreeDynamicProperty(shapeB)&sim_objdynprop_dynamic)==0)) )
-            canCollide=false;
+            canCollide = canCollide && (collFA & collFB & 0xff00); // we are global
+        if ((_simIsShapeDynamicallyStatic(shapeA) || ((_simGetTreeDynamicProperty(shapeA) & sim_objdynprop_dynamic) == 0)) &&
+            (_simIsShapeDynamicallyStatic(shapeB) || ((_simGetTreeDynamicProperty(shapeB) & sim_objdynprop_dynamic) == 0)))
+            canCollide = false;
     }
     else
     { // particle-shape or particle-particle case:
-        CParticleObjectContainer_base* particleCont=CRigidBodyContainerDyn::getDynWorld()->getParticleCont();
-        int dataA=(uint64_t) b1->userData().getData("csim").getValueInteger();
-        int dataB=(uint64_t) b2->userData().getData("csim").getValueInteger();
-        if ( (shapeA==nullptr)&&(shapeB==nullptr) )
+        CParticleObjectContainer_base* particleCont = CRigidBodyContainerDyn::getDynWorld()->getParticleCont();
+        int dataA = (uint64_t)b1->userData().getData("csim").getValueInteger();
+        int dataB = (uint64_t)b2->userData().getData("csim").getValueInteger();
+        if ((shapeA == nullptr) && (shapeB == nullptr))
         { // particle-particle case:
-            CParticleObject_base* pa=particleCont->getObject(dataA-CRigidBodyContainerDyn::getDynamicParticlesIdStart(),false);
-            CParticleObject_base* pb=particleCont->getObject(dataB-CRigidBodyContainerDyn::getDynamicParticlesIdStart(),false);
+            CParticleObject_base* pa = particleCont->getObject(dataA - CRigidBodyContainerDyn::getDynamicParticlesIdStart(), false);
+            CParticleObject_base* pb = particleCont->getObject(dataB - CRigidBodyContainerDyn::getDynamicParticlesIdStart(), false);
 
-            if ( (pa!=nullptr)&&(pb!=nullptr) ) // added this condition on 08/02/2011 because of some crashes when scaling some models
+            if ((pa != nullptr) && (pb != nullptr)) // added this condition on 08/02/2011 because of some crashes when scaling some models
             {
-                canCollide=pa->isParticleRespondable()&&pb->isParticleRespondable();
+                canCollide = pa->isParticleRespondable() && pb->isParticleRespondable();
             }
         }
         else
         { // particle-shape case:
             CXShape* shape;
             CParticleObject_base* particle;
-            if (shapeA!=nullptr)
+            if (shapeA != nullptr)
             {
-                shape=shapeA;
-                objID1=_simGetObjectID(shapeA);
+                shape = shapeA;
+                objID1 = _simGetObjectID(shapeA);
             }
             else
             {
-                particle=particleCont->getObject(dataA-CRigidBodyContainerDyn::getDynamicParticlesIdStart(),false);
-                objID1=dataA;
+                particle = particleCont->getObject(dataA - CRigidBodyContainerDyn::getDynamicParticlesIdStart(), false);
+                objID1 = dataA;
             }
-            if (shapeB!=nullptr)
+            if (shapeB != nullptr)
             {
-                shape=shapeB;
-                objID2=_simGetObjectID(shapeB);
+                shape = shapeB;
+                objID2 = _simGetObjectID(shapeB);
             }
             else
             {
-                particle=particleCont->getObject(dataB-CRigidBodyContainerDyn::getDynamicParticlesIdStart(),false);
-                objID2=dataB;
+                particle = particleCont->getObject(dataB - CRigidBodyContainerDyn::getDynamicParticlesIdStart(), false);
+                objID2 = dataB;
             }
 
-            if (particle!=nullptr) // added this condition on 08/02/2011 because of some crashes when scaling some models
+            if (particle != nullptr) // added this condition on 08/02/2011 because of some crashes when scaling some models
             {
-                canCollide=_simIsShapeDynamicallyRespondable(shape)&&(_simGetDynamicCollisionMask(shape)&particle->getShapeRespondableMask()&0xff00)&&((_simGetTreeDynamicProperty(shape)&sim_objdynprop_respondable)!=0); // we are global
+                canCollide = _simIsShapeDynamicallyRespondable(shape) && (_simGetDynamicCollisionMask(shape) & particle->getShapeRespondableMask() & 0xff00) && ((_simGetTreeDynamicProperty(shape) & sim_objdynprop_respondable) != 0); // we are global
             }
         }
     }
 
-    bool disableThisContact=true;
+    bool disableThisContact = true;
     if (canCollide)
     {
-        int dataInt[3]={0,0,0};
-        double dataFloat[14]={0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+        int dataInt[3] = {0, 0, 0};
+        double dataFloat[14] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
         // For now we won't allow modification of contact parameters when using VORTEX
-        bool canReallyCollide=(_simHandleCustomContact(objID1,objID2,sim_physics_vortex,dataInt,dataFloat)!=0);
+        bool canReallyCollide = (_simHandleCustomContact(objID1, objID2, sim_physics_vortex, dataInt, dataFloat) != 0);
         if (canReallyCollide)
-            disableThisContact=false;
+            disableThisContact = false;
     }
 
     bool* pCanCollide = (bool*)data;
     *pCanCollide = !disableThisContact;
-
 }
 
 void CRigidBodyContainerDyn::_applyGravity()
@@ -526,16 +520,16 @@ void CRigidBodyContainerDyn::_applyGravity()
 
     _dynamicsWorld->setGravity(C3Vector2VxVector3(gravity));
 
-    gravityVectorLength=(gravity).getLength();
+    gravityVectorLength = (gravity).getLength();
 }
 
 Vx::VxUniverse* CRigidBodyContainerDyn::getWorld() const
 {
-    return(_dynamicsWorld);
+    return (_dynamicsWorld);
 }
 
-void CRigidBodyContainerDyn::serializeDynamicContent(const std::string& filenameAndPath,int maxSerializeBufferSize)
-{ 
+void CRigidBodyContainerDyn::serializeDynamicContent(const std::string& filenameAndPath, int maxSerializeBufferSize)
+{
     _dynamicsWorld->printContent(filenameAndPath.c_str());
 }
 
@@ -543,19 +537,19 @@ void CRigidBodyContainerDyn::_createDependenciesBetweenJoints()
 {
     std::vector<CConstraintDyn*> allConstraints;
     _getAllConstraints(allConstraints);
-    for (size_t i=0;i<allConstraints.size();i++)
+    for (size_t i = 0; i < allConstraints.size(); i++)
     {
-        CConstraintDyn* constr1=allConstraints[i];
+        CConstraintDyn* constr1 = allConstraints[i];
         int linkedJoint;
-        double fact,off;
-        if (((CConstraintDyn*)constr1)->getVortexDependencyInfo(linkedJoint,fact,off))
-        { // when we enter here, the dependency flag is automatically cleared in constr1
-            fact*=-1.0; // when fact is >0, we want to turn into the same direction!
-            CConstraintDyn* constr2=_getConstraintFromObjectHandle(linkedJoint,-1);
-            if (constr2!=nullptr)
+        double fact, off;
+        if (((CConstraintDyn*)constr1)->getVortexDependencyInfo(linkedJoint, fact, off))
+        {                 // when we enter here, the dependency flag is automatically cleared in constr1
+            fact *= -1.0; // when fact is >0, we want to turn into the same direction!
+            CConstraintDyn* constr2 = _getConstraintFromObjectHandle(linkedJoint, -1);
+            if (constr2 != nullptr)
             {
-                Vx::VxConstraint* joint1=((CConstraintDyn*)constr1)->getVortexConstraint();
-                Vx::VxConstraint* joint2=((CConstraintDyn*)constr2)->getVortexConstraint();
+                Vx::VxConstraint* joint1 = ((CConstraintDyn*)constr1)->getVortexConstraint();
+                Vx::VxConstraint* joint2 = ((CConstraintDyn*)constr2)->getVortexConstraint();
 
                 // We have following equation:
                 // joint1=off+joint2*fact
@@ -585,7 +579,7 @@ void CRigidBodyContainerDyn::_createDependenciesBetweenJoints()
 
                 // set the gears reference parts and attachments.
                 // note here if we only support geears being attached to the same part, se can simply call gr->setengageMode(true) instead.
-                const int other[2] = {1,0};
+                const int other[2] = {1, 0};
                 gr->getPartAttachmentPosition(0, p0);
                 gr->getPartAttachmentAxes(0, a00, a01);
                 gr->getPartAttachmentPosition(1, p1);
@@ -622,7 +616,7 @@ void CRigidBodyContainerDyn::_createDependenciesBetweenJoints()
 
                 // internally, the gear error is filter for smoother result. The is the constraint violation mean lifetime
                 // which should be larger than the time step.
-                gr->setPositionOffsetMeanLifeTime(Vx::VxFrame::currentInstance()->getTimeStep()*10);
+                gr->setPositionOffsetMeanLifeTime(Vx::VxFrame::currentInstance()->getTimeStep() * 10);
 
                 if (joint1->getUniverse())
                 {
@@ -636,9 +630,9 @@ void CRigidBodyContainerDyn::_createDependenciesBetweenJoints()
 
                 // this is used to destroy the gear for now...
                 SVortexJointDependency dep;
-                dep.gear=gr;
-                dep.constr1=constr1;
-                dep.constr2=constr2;
+                dep.gear = gr;
+                dep.constr1 = constr1;
+                dep.constr2 = constr2;
                 _gears.push_back(dep);
             }
         }
@@ -647,16 +641,16 @@ void CRigidBodyContainerDyn::_createDependenciesBetweenJoints()
 
 void CRigidBodyContainerDyn::_removeDependenciesBetweenJoints(CConstraintDyn* theInvolvedConstraint)
 {
-    size_t i=0;
-    while (i<_gears.size())
+    size_t i = 0;
+    while (i < _gears.size())
     {
-        if ( (_gears[i].constr1==theInvolvedConstraint)||(_gears[i].constr2==theInvolvedConstraint) )
+        if ((_gears[i].constr1 == theInvolvedConstraint) || (_gears[i].constr2 == theInvolvedConstraint))
         {
-            Vx::VxConstraint* c=_gears[i].gear;
+            Vx::VxConstraint* c = _gears[i].gear;
             if (c->getUniverse())
                 c->getUniverse()->removeConstraint(c);
             delete c;
-            _gears.erase(_gears.begin()+i);
+            _gears.erase(_gears.begin() + i);
         }
         else
             i++;
@@ -665,44 +659,44 @@ void CRigidBodyContainerDyn::_removeDependenciesBetweenJoints(CConstraintDyn* th
 
 void CRigidBodyContainerDyn::_addVortexContactPoints(int dynamicPassNumber)
 {
-    Vx::VxUniverse::DynamicsContactIterator it=_dynamicsWorld->dynamicsContactBegin();
-    Vx::VxUniverse::DynamicsContactIterator ie=_dynamicsWorld->dynamicsContactEnd();
+    Vx::VxUniverse::DynamicsContactIterator it = _dynamicsWorld->dynamicsContactBegin();
+    Vx::VxUniverse::DynamicsContactIterator ie = _dynamicsWorld->dynamicsContactEnd();
 
     while (it != ie)
     {
         if ((*it)->isEnabled())
         {
-            Vx::VxReal3 pos,force, n;
+            Vx::VxReal3 pos, force, n;
             (*it)->getPosition(pos);
             (*it)->getNormal(n);
             C3Vector n2(VxVector32C3Vector(n));
             n2.normalize();
             C3Vector pos2(VxVector32C3Vector(pos));
             SContactInfo ci;
-            ci.subPassNumber=dynamicPassNumber;
+            ci.subPassNumber = dynamicPassNumber;
             Vx::VxPart* part1;
             Vx::VxPart* part2;
-            (*it)->getPartPair(&part1,&part2);
-            ci.objectID1=part1->userData().getData("csim").getValueInteger();
-            ci.objectID2=part2->userData().getData("csim").getValueInteger();
-            ci.position=pos2;
-            if (part1->getControl()==Vx::VxPart::kControlDynamic)
-                (*it)->getForce(0,force);
+            (*it)->getPartPair(&part1, &part2);
+            ci.objectID1 = part1->userData().getData("csim").getValueInteger();
+            ci.objectID2 = part2->userData().getData("csim").getValueInteger();
+            ci.position = pos2;
+            if (part1->getControl() == Vx::VxPart::kControlDynamic)
+                (*it)->getForce(0, force);
             else
-                (*it)->getForce(1,force);
+                (*it)->getForce(1, force);
             C3Vector force2(VxVector32C3Vector(force));
-            ci.directionAndAmplitude=force2;
-            if (force2*n2<0.0)
-                n2=n2*-1.0;
-            ci.surfaceNormal=n2;
+            ci.directionAndAmplitude = force2;
+            if (force2 * n2 < 0.0)
+                n2 = n2 * -1.0;
+            ci.surfaceNormal = n2;
             _contactInfo.push_back(ci);
 
             _contactPoints.push_back(pos2(0));
             _contactPoints.push_back(pos2(1));
             _contactPoints.push_back(pos2(2));
-        //   _contactPoints.push_back(pos2(0)+n[0]*0.01);
-        //   _contactPoints.push_back(pos2(1)+n[1]*0.01);
-        //   _contactPoints.push_back(pos2(2)+n[2]*0.01);
+            //   _contactPoints.push_back(pos2(0)+n[0]*0.01);
+            //   _contactPoints.push_back(pos2(1)+n[1]*0.01);
+            //   _contactPoints.push_back(pos2(2)+n[2]*0.01);
         }
         ++it;
     }
@@ -717,15 +711,15 @@ void CRigidBodyContainerDyn::_addVortexContactPoints(int dynamicPassNumber)
         if (part->getControl() != Vx::VxPart::kControlDynamic)
             continue;
 
-        CRigidBodyDyn* body=(CRigidBodyDyn*)part->userData().getData("csim1").getPointerVoid();
-        if ((body!=nullptr)&&(((CRigidBodyDyn*)body)->vortex_autoAngularDampingTensionRatio!=0.0))
+        CRigidBodyDyn* body = (CRigidBodyDyn*)part->userData().getData("csim1").getPointerVoid();
+        if ((body != nullptr) && (((CRigidBodyDyn*)body)->vortex_autoAngularDampingTensionRatio != 0.0))
         { // auto angular damping is enabled
             const Vx::VxReal pAutoAngularDampingTensionAdded = ((CRigidBodyDyn*)body)->vortex_angularVelocityDamping;
             const Vx::VxReal pAutoAngularDampingTensionTreshold = part->getMass();
             const Vx::VxReal pAutoAngularDampingTensionRatio = ((CRigidBodyDyn*)body)->vortex_autoAngularDampingTensionRatio;
 
             Vx::VxReal sumF = 0;
-            for (int i=0; i<part->getConstraintCount(); ++i)
+            for (int i = 0; i < part->getConstraintCount(); ++i)
             {
                 Vx::VxVector3 v;
                 Vx::VxConstraint* c = part->getConstraint(i);
@@ -737,13 +731,13 @@ void CRigidBodyContainerDyn::_addVortexContactPoints(int dynamicPassNumber)
                 c->getPartForce(index, v);
                 sumF += v.norm();
             }
-            for (int i=0; i<part->getContactCount(); ++i)
+            for (int i = 0; i < part->getContactCount(); ++i)
             {
                 Vx::VxVector3 v;
                 Vx::VxDynamicsContact* c = part->getContact(i)->getContact();
                 int index = 0;
                 Vx::VxPart* p[2];
-                c->getPartPair(p, p+1);
+                c->getPartPair(p, p + 1);
                 if (p[0] != part)
                 {
                     index = 1;
@@ -753,7 +747,7 @@ void CRigidBodyContainerDyn::_addVortexContactPoints(int dynamicPassNumber)
             }
             sumF /= gravityVectorLength;
             Vx::VxReal angularDamping = pAutoAngularDampingTensionAdded;
-            if(sumF > pAutoAngularDampingTensionTreshold)
+            if (sumF > pAutoAngularDampingTensionTreshold)
             {
                 const Vx::VxReal excess = sumF - pAutoAngularDampingTensionTreshold;
                 angularDamping += (excess * pAutoAngularDampingTensionRatio);
@@ -763,7 +757,7 @@ void CRigidBodyContainerDyn::_addVortexContactPoints(int dynamicPassNumber)
     }
 }
 
-void CRigidBodyContainerDyn::_stepDynamics(double dt,int pass)
+void CRigidBodyContainerDyn::_stepDynamics(double dt, int pass)
 {
     if (VxFrameReleased)
     {

@@ -5,16 +5,16 @@
 
 class CCollShapeDyn : public CCollShapeDyn_base
 {
-public:
+  public:
     CCollShapeDyn();
     virtual ~CCollShapeDyn();
 
-    void init(CXShape* shape,bool willBeStatic,const C7Vector& inverseLocalInertiaFrame_scaled);
+    void init(CXShape* shape, bool willBeStatic, const C7Vector& inverseLocalInertiaFrame_scaled);
 
     dGeomID getOdeGeoms(int index);
     void setOdeMeshLastTransform();
 
-protected:
+  protected:
     std::vector<dGeomID> _odeGeoms; // if more than 1 element, then it is a compound object
     dTriMeshDataID _trimeshDataID;
     dHeightfieldDataID _odeHeightfieldDataID;
@@ -27,7 +27,7 @@ protected:
     std::vector<float> _odeHeightfieldData_scaled;
     std::vector<dReal> _odeConvexPlanes_scaled;
     std::vector<unsigned int> _odeConvexPolygons;
-    std::vector<std::vector<dReal>* > _odeMmeshVertices_scaled;
-    std::vector<std::vector<dReal>* > _odeMconvexPlanes_scaled;
-    std::vector<std::vector<unsigned int>* > _odeMconvexPolygons;
+    std::vector<std::vector<dReal>*> _odeMmeshVertices_scaled;
+    std::vector<std::vector<dReal>*> _odeMconvexPlanes_scaled;
+    std::vector<std::vector<unsigned int>*> _odeMconvexPolygons;
 };

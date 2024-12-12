@@ -4,58 +4,58 @@
 
 class CXSceneObject
 {
-public:
+  public:
 };
 
 class CXShape : public CXSceneObject
 {
-public:
+  public:
 };
 
 class CXJoint : public CXSceneObject
 {
-public:
+  public:
 };
 
 class CXForceSensor : public CXSceneObject
 {
-public:
+  public:
 };
 
 class CXDummy : public CXSceneObject
 {
-public:
+  public:
 };
 
 class CXGeomProxy
 {
-public:
+  public:
 };
 
 class CXGeomWrap
 {
-public:
+  public:
 };
 
 class CXGeometric
 {
-public:
+  public:
 };
 
 static bool isJointInDynamicMode(CXSceneObject* joint)
 {
-    int m=_simGetJointMode(joint);
-    while (m==sim_jointmode_dependent)
+    int m = _simGetJointMode(joint);
+    while (m == sim_jointmode_dependent)
     {
         int masterJ;
-        sReal off,mult;
-        simGetJointDependency(_simGetObjectID(joint),&masterJ,&off,&mult);
-        if (masterJ==-1)
+        sReal off, mult;
+        simGetJointDependency(_simGetObjectID(joint), &masterJ, &off, &mult);
+        if (masterJ == -1)
             break;
-        joint=(CXSceneObject*)_simGetObject(masterJ);
-        m=_simGetJointMode(joint);
+        joint = (CXSceneObject*)_simGetObject(masterJ);
+        m = _simGetJointMode(joint);
     }
-    return(m==sim_jointmode_dynamic);
+    return (m == sim_jointmode_dynamic);
 }
 
 static CXSceneObject* getJointOrFsensorChild(CXSceneObject* object, int* objType = nullptr, int* objHandle = nullptr)
@@ -64,7 +64,7 @@ static CXSceneObject* getJointOrFsensorChild(CXSceneObject* object, int* objType
     bool isJoint = (_simGetObjectType(object) == sim_sceneobject_joint);
     int rcnt = 0;
     int childrenCount = 0;
-    CXSceneObject** childrenPointer=(CXSceneObject**)_simGetObjectChildren(object,&childrenCount);
+    CXSceneObject** childrenPointer = (CXSceneObject**)_simGetObjectChildren(object, &childrenCount);
     for (int i = 0; i < childrenCount; i++)
     {
         CXSceneObject* child = childrenPointer[i];
@@ -75,23 +75,23 @@ static CXSceneObject* getJointOrFsensorChild(CXSceneObject* object, int* objType
             if (_simIsShapeDynamicallyStatic(child) == 0)
                 rcnt++;
         }
-        #ifdef INCLUDE_MUJOCO_CODE
-            else if ( (t == sim_sceneobject_joint) && isJoint ) // consecutive joints
-            {
-                if (isJointInDynamicMode(child))
-                    rcnt++;
-            }
-        #endif
+#ifdef INCLUDE_MUJOCO_CODE
+        else if ((t == sim_sceneobject_joint) && isJoint) // consecutive joints
+        {
+            if (isJointInDynamicMode(child))
+                rcnt++;
+        }
+#endif
         else if (t == sim_sceneobject_dummy)
         {
-            int linkedDummyHandle=-1;
-            int linkType=_simGetDummyLinkType(child, &linkedDummyHandle);
-            #ifdef INCLUDE_MUJOCO_CODE
-                if ( (linkedDummyHandle != -1) && ( (linkType == sim_dummylink_dynloopclosure)||(linkType == sim_dummylink_dyntendon) ) )
-            #else
-                if ( (linkedDummyHandle != -1) && (linkType == sim_dummylink_dynloopclosure) )
-            #endif
-                    rcnt++;
+            int linkedDummyHandle = -1;
+            int linkType = _simGetDummyLinkType(child, &linkedDummyHandle);
+#ifdef INCLUDE_MUJOCO_CODE
+            if ((linkedDummyHandle != -1) && ((linkType == sim_dummylink_dynloopclosure) || (linkType == sim_dummylink_dyntendon)))
+#else
+            if ((linkedDummyHandle != -1) && (linkType == sim_dummylink_dynloopclosure))
+#endif
+                rcnt++;
         }
         if (inc != rcnt)
         {
@@ -106,4 +106,3 @@ static CXSceneObject* getJointOrFsensorChild(CXSceneObject* object, int* objType
         retVal = nullptr;
     return retVal;
 }
-

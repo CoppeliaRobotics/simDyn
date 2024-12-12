@@ -5,11 +5,11 @@
 
 class CRigidBodyDyn : public CRigidBodyDyn_base
 {
-public:
+  public:
     CRigidBodyDyn();
     virtual ~CRigidBodyDyn();
 
-    void init(CXShape* shape,bool forceStatic,bool forceNonRespondable);
+    void init(CXShape* shape, bool forceStatic, bool forceNonRespondable);
 
     NewtonBody* getNewtonRigidBody() const;
 
@@ -21,16 +21,16 @@ public:
     C7Vector getShapeFrameTransformation();
     void reportVelocityToShape(sReal simulationTime);
     void handleAdditionalForcesAndTorques();
-    void handleKinematicBody_step(sReal t,sReal cumulatedTimeStep);
+    void handleKinematicBody_step(sReal t, sReal cumulatedTimeStep);
     void handleKinematicBody_end();
 
-protected:    
+  protected:
     void _setNewtonParameters(CXShape* shape);
 
     NewtonBody* _newtonBody;
     C3Vector m_externForce;
     C3Vector m_externTorque;
-    void* _newtonBodyUserData[5];// shapeHandle,this,stat. friction,kin. friction, restitution
+    void* _newtonBodyUserData[5]; // shapeHandle,this,stat. friction,kin. friction, restitution
     sReal _newtonStaticFriction;
     sReal _newtonKineticFriction;
     sReal _newtonRestitution;

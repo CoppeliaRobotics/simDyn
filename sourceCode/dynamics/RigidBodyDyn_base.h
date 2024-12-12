@@ -6,17 +6,17 @@
 
 class CRigidBodyDyn_base
 {
-public:
+  public:
     CRigidBodyDyn_base();
     virtual ~CRigidBodyDyn_base();
 
-    virtual void init(CXShape* shape,bool forceStatic,bool forceNonRespondable);
+    virtual void init(CXShape* shape, bool forceStatic, bool forceNonRespondable);
 
     virtual C7Vector getInertiaFrameTransformation();
     virtual C7Vector getShapeFrameTransformation();
     virtual void reportVelocityToShape(sReal simulationTime);
     virtual void handleAdditionalForcesAndTorques();
-    virtual void handleKinematicBody_step(sReal t,sReal cumulatedTimeStep);
+    virtual void handleKinematicBody_step(sReal t, sReal cumulatedTimeStep);
     virtual void handleKinematicBody_end();
 
     int getShapeHandle() const;
@@ -27,7 +27,7 @@ public:
     void reportConfigurationToShape(sReal simulationTime);
     void handleKinematicBody_init(sReal dt);
 
-protected:    
+  protected:
     int _shapeHandle; // rigid body id is the same
     CXShape* _shape;
     CCollShapeDyn* _collisionShapeDyn;
