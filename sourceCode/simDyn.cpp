@@ -135,7 +135,7 @@ void LUA_MUJOCOCOMPOSITE_CALLBACK(SScriptCallBack* p)
                             {
                                 std::string type(map->getString("type"));
                                 int respondableMask = 0xffff;
-                                if ((type == "box") || (type == "cylinder") || (type == "ellipsoide"))
+                                if ((type == "box") || (type == "cylinder") || (type == "ellipsoid"))
                                     respondableMask = 0xff00; // do not collide with other composite elements
                                 if (map->isNumber("respondableMask"))
                                     respondableMask = map->getInt("respondableMask");

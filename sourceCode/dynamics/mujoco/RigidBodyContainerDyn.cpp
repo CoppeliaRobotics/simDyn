@@ -1084,7 +1084,7 @@ void CRigidBodyContainerDyn::_appendGeneralInjections(std::string& data) const
     for (size_t inj = 0; inj < _xmlGeneralInjections.size(); inj++)
     {
         SGeneralInject* comp = &_xmlGeneralInjections[inj];
-        if (comp->element != "")
+        if ((comp->element != "") || (comp->shapeHandle != -1))
         {
             comp->updateCnt++;
             if ((comp->cbFunc.size() > 0) && (comp->cbScript != -1) && (comp->updateCnt > 1))
