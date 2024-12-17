@@ -61,11 +61,13 @@ struct SMjJoint
 
     int mjId;         // joint or tendon
     int mjIdActuator; // actuator
-    int actMode;      // 0=free, 1=force/torque, 2=mixed(force/vel, using inverse dyn.)
+    int actMode;      // 0=free, 1=force/torque, 2=mixed(force/vel, using inverse dyn.), 3=general mujoco actuator
     int jointType;
     bool tendonJoint;
     double jointCtrlDv;
-    double jointCtrlForceToApply;
+    double jointCtrlToApply;
+    std::string customActuatorXml;
+    std::string customActuatorReplStr;
     C4Vector initialBallQuat;
     C4Vector initialBallQuat2;
     int dependencyJointHandle;

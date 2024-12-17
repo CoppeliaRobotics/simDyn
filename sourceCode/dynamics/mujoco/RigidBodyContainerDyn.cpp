@@ -563,22 +563,51 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
             for (size_t i = 0; i < _allJoints.size(); i++)
             {
                 CXSceneObject* joint = (CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
+                const char* customXml = nullptr;
                 int m;
+                simGetIntProperty(_allJoints[i].objectHandle, "dynCtrlMode", &m);
                 simGetObjectInt32Param(_allJoints[i].objectHandle, sim_jointintparam_dynctrlmode, &m);
-                xmlDoc->pushNewNode("motor");
-                std::string nm(_getObjectName(joint));
-                xmlDoc->setAttr("name", (nm + "act").c_str());
-                if (_allJoints[i].tendonJoint)
-                    xmlDoc->setAttr("tendon", nm.c_str());
-                else
-                    xmlDoc->setAttr("joint", nm.c_str());
                 if (m == sim_jointdynctrl_free)
                     _allJoints[i].actMode = 0; // not actuated
                 else if ((m == sim_jointdynctrl_force) || (m == sim_jointdynctrl_spring))
                     _allJoints[i].actMode = 1; // pure force/torque
                 else
-                    _allJoints[i].actMode = 2; // mixed
-                xmlDoc->popNode();             // motor
+                {
+                    if (m == sim_jointdynctrl_callback)
+                    {
+                        SPropertyInfo infos;
+                        if (0 < simGetPropertyInfo(_allJoints[i].objectHandle, "customData.mujoco.customActuator", &infos, nullptr))
+                        {
+                            customXml = simGetStringProperty(_allJoints[i].objectHandle, "customData.mujoco.customActuator");
+                            if (customXml != nullptr)
+                            {
+                                _allJoints[i].actMode = 3; // general Mujoco actuator
+                                _allJoints[i].customActuatorXml = customXml;
+                                std::string str("__xmlCustomActuatorInject__");
+                                str += std::to_string(_allJoints[i].objectHandle);
+                                _allJoints[i].customActuatorReplStr = str;
+                                simReleaseBuffer(customXml);
+                                xmlDoc->pushNewNode(str.c_str());
+                                xmlDoc->pushNewNode("dummy");
+                                xmlDoc->popNode();
+                                xmlDoc->popNode();
+                            }
+                        }
+                    }
+                    if (customXml == nullptr)
+                        _allJoints[i].actMode = 2; // mixed
+                }
+                if (customXml == nullptr)
+                {
+                    xmlDoc->pushNewNode("motor");
+                    std::string nm(_getObjectName(joint));
+                    xmlDoc->setAttr("name", (nm + "act").c_str());
+                    if (_allJoints[i].tendonJoint)
+                        xmlDoc->setAttr("tendon", nm.c_str());
+                    else
+                        xmlDoc->setAttr("joint", nm.c_str());
+                    xmlDoc->popNode();             // motor
+                }
             }
             for (size_t i = 0; i < _allShapes.size(); i++)
             {
@@ -686,6 +715,22 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
         }
         xmlDoc->setString(xml.c_str());
     }
+
+    // handle general actuators (custom control)
+    std::string xml(xmlDoc->getString());
+    for (size_t i = 0; i < _allJoints.size(); i++)
+    {
+        if (_allJoints[i].actMode == 3)
+        {
+            std::size_t p1 = xml.find(_allJoints[i].customActuatorReplStr);
+            if (p1 != std::string::npos)
+            {
+                std::size_t p2 = xml.find(_allJoints[i].customActuatorReplStr, p1 + 1);
+                xml.replace(p1 - 1, p2 - p1 + _allJoints[i].customActuatorReplStr.size() + 2, _allJoints[i].customActuatorXml);
+            }
+        }
+    }
+    xmlDoc->setString(xml.c_str());
 
     delete xmlDoc; // saves the file
 
@@ -2445,6 +2490,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object, CXSceneObject* par
                 double armature = simGetEngineFloatParam(sim_mujoco_joint_armature, -1, joint, nullptr);
                 double margin = simGetEngineFloatParam(sim_mujoco_joint_margin, -1, joint, nullptr);
                 double frictionLoss = simGetEngineFloatParam(sim_mujoco_joint_frictionloss, -1, joint, nullptr);
+                xmlDoc->setAttr("name", jointName.c_str());
                 xmlDoc->setAttr("solreflimit", solrefLimit, 2);
                 xmlDoc->setAttr("solimplimit", solimpLimit, 5);
                 xmlDoc->setAttr("frictionloss", frictionLoss);
@@ -2455,7 +2501,6 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object, CXSceneObject* par
                 xmlDoc->setAttr("springref", springref);
                 xmlDoc->setAttr("armature", armature);
                 xmlDoc->setAttr("margin", margin);
-                xmlDoc->setAttr("name", jointName.c_str());
 
                 SMjJoint gjoint;
                 if (jt == sim_joint_spherical)
@@ -2799,6 +2844,8 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object, CXmlSer* xmlDoc, 
     for (size_t i = 0; i < componentList.size(); i++)
     {
         xmlDoc->pushNewNode("geom");
+        std::string nm(_getObjectName(object) + std::to_string(i));
+        xmlDoc->setAttr("name", nm.c_str());
         xmlDoc->setAttr("friction", friction, 3);
         xmlDoc->setAttr("solref", solref, 2);
         xmlDoc->setAttr("solimp", solimp, 5);
@@ -2807,8 +2854,6 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object, CXmlSer* xmlDoc, 
         xmlDoc->setAttr("margin", margin);
         xmlDoc->setAttr("gap", gap);
         xmlDoc->setAttr("priority", priority);
-        std::string nm(_getObjectName(object) + std::to_string(i));
-        xmlDoc->setAttr("name", nm.c_str());
 
         SMjGeom g;
         g.belongsToStaticItem = shapeIsStatic;
@@ -3296,8 +3341,8 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m, mjData* d)
     for (size_t i = 0; i < jointMujocoItems.size(); i++)
     {
         SMjJoint* mujocoItem = jointMujocoItems[i];
-        if (mujocoItem->actMode == 1)
-            _mjDataCopy->ctrl[mujocoItem->mjIdActuator] = mujocoItem->jointCtrlForceToApply;
+        if ((mujocoItem->actMode == 1) || (mujocoItem->actMode == 3))
+            _mjDataCopy->ctrl[mujocoItem->mjIdActuator] = mujocoItem->jointCtrlToApply;
         if (mujocoItem->actMode == 2)
         {
             if (mujocoItem->tendonJoint)
@@ -3319,8 +3364,8 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m, mjData* d)
     for (size_t i = 0; i < jointMujocoItems.size(); i++)
     {
         SMjJoint* mujocoItem = jointMujocoItems[i];
-        if (mujocoItem->actMode == 1)
-            d->ctrl[mujocoItem->mjIdActuator] = mujocoItem->jointCtrlForceToApply;
+        if ((mujocoItem->actMode == 1) || (mujocoItem->actMode == 3))
+            d->ctrl[mujocoItem->mjIdActuator] = mujocoItem->jointCtrlToApply;
         if (mujocoItem->actMode == 2)
         {
             if (mujocoItem->tendonJoint)
@@ -3330,10 +3375,10 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m, mjData* d)
             {
                 int vadr = m->jnt_dofadr[mujocoItem->mjId];
                 double f = _mjDataCopy->qfrc_inverse[vadr];
-                if (f > fabs(mujocoItem->jointCtrlForceToApply))
-                    f = fabs(mujocoItem->jointCtrlForceToApply);
-                else if (f < -fabs(mujocoItem->jointCtrlForceToApply))
-                    f = -fabs(mujocoItem->jointCtrlForceToApply);
+                if (f > fabs(mujocoItem->jointCtrlToApply))
+                    f = fabs(mujocoItem->jointCtrlToApply);
+                else if (f < -fabs(mujocoItem->jointCtrlToApply))
+                    f = -fabs(mujocoItem->jointCtrlToApply);
                 d->ctrl[mujocoItem->mjIdActuator] = f;
             }
         }
@@ -3427,12 +3472,15 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
         if ((res & 1) == 1)
         {
             mujocoItem->jointCtrlDv = outputValues[0] - currentVel;
-            mujocoItem->jointCtrlForceToApply = outputValues[1];
+            if (mujocoItem->actMode == 3)
+                mujocoItem->jointCtrlToApply = outputValues[2]; // ctrl value to apply (custom mujoco actuator)
+            else
+                mujocoItem->jointCtrlToApply = outputValues[1]; // force to apply
         }
         else
         {
             mujocoItem->jointCtrlDv = 0.0;
-            mujocoItem->jointCtrlForceToApply = 0.0;
+            mujocoItem->jointCtrlToApply = 0.0;
         }
     }
     //    else
