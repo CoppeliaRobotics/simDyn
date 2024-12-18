@@ -16,9 +16,10 @@
 #    VORTEX_LIBPATH = $${VORTEX_DIR}/lib # (e.g. Windows)
 
 # location of MuJoCo files
-#    MUJOCO_PATH = "e:/Mujoco-2.1.1" # (e.g. Windows)
-#    MUJOCO_LIBPATH = $${MUJOCO_PATH}/lib # (e.g. Windows)
-#    MUJOCO_INCLUDEPATH = $${MUJOCO_PATH}/include # (e.g. Windows)
+#    MUJOCO_PATH = "e:/Mujoco-3.2.6" # (e.g. Windows)
+#    MUJOCO_LIBFILE = $${MUJOCO_PATH}/lib/mujoco.lib # (e.g. Windows)
+#    MUJOCO_LIBPATH = $${MUJOCO_PATH}/lib # (e.g. Linux)
+#    MUJOCO_INCLUDEPATH = $${MUJOCO_PATH}/include
 
 exists(../config.pri) { include(../config.pri) }
 
