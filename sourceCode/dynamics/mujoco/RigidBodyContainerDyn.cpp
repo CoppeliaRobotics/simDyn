@@ -752,7 +752,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                 int r = mj_saveXML(spec, mjFileExt1.c_str(), error, 1000);
                 mj_deleteModel(_mjModel);
                 _mjModel = nullptr;
-                if (r == 1)
+                if (r == 0)
                 {
                     std::ifstream extFile1(mjFileExt1);
                     if (extFile1)
