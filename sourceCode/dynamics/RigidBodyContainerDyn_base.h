@@ -35,7 +35,7 @@ class CRigidBodyContainerDyn_base
     virtual void serializeDynamicContent(const std::string& filenameAndPath, int maxSerializeBufferSize);
 
     virtual void handleDynamics(sReal dt, sReal simulationTime);
-    virtual bool isDynamicContentAvailable();
+    virtual bool isDynamicContentAvailable() const;
     bool getContactForce(int dynamicPass, int objectHandle, int index, int objectHandles[2], sReal* contactInfo);
     int getDynamicsCalculationPasses() const;
     sReal getSimulationTime() const;

@@ -310,16 +310,16 @@ void CRigidBodyContainerDyn_base::_updateRigidBodiesFromShapes(const std::set<CX
     }
 }
 
-bool CRigidBodyContainerDyn_base::isDynamicContentAvailable()
+bool CRigidBodyContainerDyn_base::isDynamicContentAvailable() const
 {
     auto it = _allRigidBodies.begin();
     while (it != _allRigidBodies.end())
     {
         if (!it->second->isStatic())
-            return (true);
+            return true;
         ++it;
     }
-    return (false);
+    return false;
 }
 
 void CRigidBodyContainerDyn_base::handleDynamics(sReal dt, sReal simulationTime)

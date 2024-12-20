@@ -3446,7 +3446,7 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
     else
         inputValuesFloat[0] = currentPos;
     double eff = _mjData->actuator_force[mujocoItem->mjIdActuator];
-    inputValuesFloat[1] = eff;
+    inputValuesFloat[1] = -eff;
     if (_rg4Cnt == 0)
         inputValuesFloat[2] = dynStepSize;
     else
@@ -3472,10 +3472,7 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
         if ((res & 1) == 1)
         {
             mujocoItem->jointCtrlDv = outputValues[0] - currentVel;
-            if (mujocoItem->actMode == 3)
-                mujocoItem->jointCtrlToApply = outputValues[2]; // ctrl value to apply (custom mujoco actuator)
-            else
-                mujocoItem->jointCtrlToApply = outputValues[1]; // force to apply
+            mujocoItem->jointCtrlToApply = outputValues[1]; // force (or ctrl) to apply
         }
         else
         {
