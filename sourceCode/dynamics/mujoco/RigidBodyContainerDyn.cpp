@@ -3530,6 +3530,9 @@ void CRigidBodyContainerDyn::_handleContactPoints(int dynPass)
         ci.directionAndAmplitude(0) = ft[0] * frame[0] + ft[1] * frame[3] + ft[2] * frame[6];
         ci.directionAndAmplitude(1) = ft[0] * frame[1] + ft[1] * frame[4] + ft[2] * frame[7];
         ci.directionAndAmplitude(2) = ft[0] * frame[2] + ft[1] * frame[5] + ft[2] * frame[8];
+        // following 2 fixed on 06.01.2025:
+        ci.surfaceNormal *= -1.0;
+        ci.directionAndAmplitude *= -1.0;
         _contactInfo.push_back(ci);
     }
 }

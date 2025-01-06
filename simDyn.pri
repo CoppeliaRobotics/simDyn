@@ -218,35 +218,25 @@ MUJOCO_ENGINE {
     INCLUDEPATH += "sourceCode/dynamics/mujoco"
 }
 
-PHYSX_ENGINE {
-    TARGET = simPhysx
+DRAKE_ENGINE {
+    TARGET = simDrake
     DEFINES += SIM_MATH_DOUBLE
     DEFINES += sReal=double
-    DEFINES += INCLUDE_PHYSX_CODE
-    DEFINES += DYNAMICS_PLUGIN_VERSION=23
-    DEFINES += LIBRARY_NAME=\\\"simPhysx\\\"
-    DEFINES += ENGINE_NAME=\\\"Physx\\\"
+    DEFINES += INCLUDE_DRAKE_CODE
+    DEFINES += DYNAMICS_PLUGIN_VERSION=1
+    DEFINES += LIBRARY_NAME=\\\"simDrake\\\"
+    DEFINES += ENGINE_NAME=\\\"Drake\\\"
     *-msvc* {
         QMAKE_CFLAGS_RELEASE += -MT
         QMAKE_CXXFLAGS_RELEASE += -MT
-        LIBS += $${PHYSX_LIBPATH}/PhysX_64.lib
-        LIBS += $${PHYSX_LIBPATH}/PhysXFoundation_64.lib
-        LIBS += $${PHYSX_LIBPATH}/PhysXCommon_64.lib
-        LIBS += $${PHYSX_LIBPATH}/PhysXExtensions_static_64.lib
-        LIBS += $${PHYSX_LIBPATH}/PhysXCooking_64.lib
-        LIBS += $${PHYSX_LIBPATH}/PhysXPvdSDK_static_64.lib
+        LIBS += $${DRAKE_LIBFILE}
     }
     unix {
-        LIBS += $${PHYSX_LIBPATH}/PhysX.so
-        LIBS += $${PHYSX_LIBPATH}/PhysXFoundation.so
-        LIBS += $${PHYSX_LIBPATH}/PhysXCommon.so
-        LIBS += $${PHYSX_LIBPATH}/PhysXExtensions_static.so
-        LIBS += $${PHYSX_LIBPATH}/PhysXCooking.so
-        LIBS += $${PHYSX_LIBPATH}/PhysXPvdSDK_static.so
+        LIBS += $${DRAKE_LIBPATH}/libmujoco.so
     }
 
-    INCLUDEPATH += $$PHYSX_INCLUDEPATH
-    INCLUDEPATH += "sourceCode/dynamics/physx"
+    INCLUDEPATH += $$DRAKE_INCLUDEPATH
+    INCLUDEPATH += "sourceCode/dynamics/drake"
 }
 
 HEADERS += ../include/simLib/simLib.h \
@@ -383,17 +373,22 @@ MUJOCO_ENGINE {
         sourceCode/dynamics/mujoco/xmlser.cpp
 }
 
-PHYSX_ENGINE {
-    HEADERS +=sourceCode/dynamics/physx/CollShapeDyn.h \
-        sourceCode/dynamics/physx/RigidBodyDyn.h \
-        sourceCode/dynamics/physx/ConstraintDyn.h \
-        sourceCode/dynamics/physx/RigidBodyContainerDyn.h \
-        sourceCode/dynamics/physx/ParticleDyn.h
-    SOURCES +=sourceCode/dynamics/physx/CollShapeDyn.cpp \
-        sourceCode/dynamics/physx/RigidBodyDyn.cpp \
-        sourceCode/dynamics/physx/ConstraintDyn.cpp \
-        sourceCode/dynamics/physx/RigidBodyContainerDyn.cpp \
-        sourceCode/dynamics/physx/ParticleDyn.cpp
+DRAKE_ENGINE {
+    HEADERS +=sourceCode/dynamics/drake/CollShapeDyn.h \
+        sourceCode/dynamics/drake/RigidBodyDyn.h \
+        sourceCode/dynamics/drake/ConstraintDyn.h \
+        sourceCode/dynamics/drake/RigidBodyContainerDyn.h \
+        sourceCode/dynamics/drake/ParticleDyn.h \
+        sourceCode/dynamics/drake/tinyxml2.h \
+        sourceCode/dynamics/drake/xmlser.h
+
+    SOURCES +=sourceCode/dynamics/drake/CollShapeDyn.cpp \
+        sourceCode/dynamics/drake/RigidBodyDyn.cpp \
+        sourceCode/dynamics/drake/ConstraintDyn.cpp \
+        sourceCode/dynamics/drake/RigidBodyContainerDyn.cpp \
+        sourceCode/dynamics/drake/ParticleDyn.cpp \
+        sourceCode/dynamics/drake/tinyxml2.cpp \
+        sourceCode/dynamics/drake/xmlser.cpp
 }
 
 BULLET_2_78_ENGINE {

@@ -60,6 +60,14 @@ libsimMujoco.so
 libsimMujoco.so.1
 libsimMujoco.so.1.0
 libsimMujoco.so.1.0.0
+libsimDrake.1.0.0.dylib
+libsimDrake.1.0.dylib
+libsimDrake.1.dylib
+libsimDrake.dylib
+libsimDrake.so
+libsimDrake.so.1
+libsimDrake.so.1.0
+libsimDrake.so.1.0.0
 debug
 release
 release_bullet2_78
@@ -68,6 +76,7 @@ release_newton
 release_vortex
 release_ode
 release_mujoco
+release_drake
 object_script.*.Debug
 object_script.*.Release
 build-*

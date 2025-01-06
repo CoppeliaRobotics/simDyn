@@ -687,8 +687,8 @@ SIM_DLLEXPORT void dynPlugin_mujoco()
 {
 }
 #endif
-#ifdef INCLUDE_PHYSX_CODE
-SIM_DLLEXPORT void dynPlugin_physx()
+#ifdef INCLUDE_DRAKE_CODE
+SIM_DLLEXPORT void dynPlugin_drake()
 {
 }
 #endif
