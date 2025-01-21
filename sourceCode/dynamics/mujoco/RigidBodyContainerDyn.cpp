@@ -740,7 +740,6 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
     char error[1000] = "could not load binary model";
 
     _mjModel = nullptr;
-
     if (_xmlFlexcompInjections.size() + _xmlGeneralInjections.size() + _xmlCompositeInjections.size() > 0)
     { // we have flexcomps and/or other XML injections. We need to access/modify the expanded XML data:
         mjSpec* spec = mj_parseXML(mjFile.c_str(), nullptr, error, 1000);
@@ -752,7 +751,11 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                 int r = mj_saveXML(spec, mjFileExt1.c_str(), error, 1000);
                 mj_deleteModel(_mjModel);
                 _mjModel = nullptr;
+#if mjVERSION_HEADER == 325
+                if (r != 0) // due to a bug in V3.2.6
+#else
                 if (r == 0)
+#endif
                 {
                     std::ifstream extFile1(mjFileExt1);
                     if (extFile1)
