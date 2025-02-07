@@ -1179,6 +1179,51 @@ void CRigidBodyContainerDyn::particlesAdded()
 std::string CRigidBodyContainerDyn::getInfo(const char* queryString) const
 {
     std::string retVal;
+    if (std::string(queryString) == "bodies")
+    {
+        if (_mjModel != nullptr)
+        {
+            for (int i = 0; i < _mjModel->nbody; i++)
+            {
+                const char* n = mj_id2name(_mjModel, mjOBJ_BODY, i);
+                retVal += "body ";
+                retVal += n;
+                retVal += ":\n    position:     {";
+                const double* pos = _mjData->xpos + 3 * i;
+                for (int j = 0; j < 3; j++)
+                {
+                    retVal += std::to_string(pos[j]);
+                    if (j != 2)
+                        retVal += ", ";
+                }
+                retVal += "}\n    quaternion:   {";
+                const double* quat = _mjData->xquat + 4 * i;
+                for (int j = 0; j < 4; j++)
+                {
+                    retVal += std::to_string(quat[j]);
+                    if (j != 3)
+                        retVal += ", ";
+                }
+                retVal += "}:\n    linear vel.:    {";
+                const double* lvel = _mjData->cvel + 6 * i;
+                for (int j = 0; j < 3; j++)
+                {
+                    retVal += std::to_string(lvel[j]);
+                    if (j != 2)
+                        retVal += ", ";
+                }
+                retVal += "}:\n    angular vel.:   {";
+                const double* avel = _mjData->cvel + 6 * i + 3;
+                for (int j = 0; j < 3; j++)
+                {
+                    retVal += std::to_string(avel[j]);
+                    if (j != 2)
+                        retVal += ", ";
+                }
+                retVal += "}\n";
+            }
+        }
+    }
     if (std::string(queryString) == "nameAndIds")
     {
         if (_mjModel != nullptr)
