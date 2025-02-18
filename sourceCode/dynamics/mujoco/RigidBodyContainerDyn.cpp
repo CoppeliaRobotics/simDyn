@@ -481,6 +481,24 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                 CXSceneObject* dummy2 = (CXSceneObject*)_simGetObject(dummy2Handle);
                 CXSceneObject* shape2 = (CXSceneObject*)_simGetParentObject(dummy2);
                 CXSceneObject* dummy1Parent = (CXSceneObject*)_simGetParentObject(dummy1);
+                double constrOverlap_torqueScale;
+                simGetFloatProperty(dummy1Handle, "mujoco.overlapConstrTorquescale", &constrOverlap_torqueScale);
+                int sv;
+                double* constrOverlap_solref = simGetFloatArrayProperty(dummy1Handle, "mujoco.overlapConstrSolref", &sv);
+                double* constrOverlap_solimp = simGetFloatArrayProperty(dummy1Handle, "mujoco.overlapConstrSolimp", &sv);
+                if (dummy2Handle != -1)
+                {
+                    double tmp;
+                    simGetFloatProperty(dummy2Handle, "mujoco.overlapConstrTorquescale", &tmp);
+                    constrOverlap_torqueScale = 0.5 * (constrOverlap_torqueScale + tmp);
+                    double* solrefT = simGetFloatArrayProperty(dummy2Handle, "mujoco.overlapConstrSolref", &sv);
+                    double* solimpT = simGetFloatArrayProperty(dummy2Handle, "mujoco.overlapConstrSolimp", &sv);
+                    for (size_t j = 0; j < 2; j++)
+                        constrOverlap_solref[j] = 0.5 * (constrOverlap_solref[j] + solrefT[j]);
+                    for (size_t j = 0; j < 5; j++)
+                        constrOverlap_solimp[j] = 0.5 * (constrOverlap_solimp[j] + solimpT[j]);
+                }
+                
                 if (_simGetObjectType(dummy1Parent) == sim_sceneobject_shape)
                 { // we have shape --> dummy -- dummy <-- shape
                     if (dummy1Handle < dummy2Handle)
@@ -490,7 +508,9 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                         xmlDoc->setAttr("body1", nm.c_str());
                         nm = _getObjectName(shape2);
                         xmlDoc->setAttr("body2", nm.c_str());
-                        xmlDoc->setAttr("torquescale", 1.0);
+                        xmlDoc->setAttr("torquescale", constrOverlap_torqueScale);
+                        xmlDoc->setAttr("solref", constrOverlap_solref, 2);
+                        xmlDoc->setAttr("solimp", constrOverlap_solimp, 5);
                         C7Vector tr1, tr2;
                         _simGetObjectCumulativeTransformation(dummy1Parent, tr1.X.data, tr1.Q.data, 1);
                         _simGetObjectCumulativeTransformation(dummy1, tr2.X.data, tr2.Q.data, 1);
@@ -510,11 +530,15 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                     std::string nm(_getObjectName(info.loopClosures[i]) + "loop");
                     xmlDoc->setAttr("body1", nm.c_str());
                     xmlDoc->setAttr("body2", _getObjectName(shape2).c_str());
-                    xmlDoc->setAttr("torquescale", 1.0);
+                    xmlDoc->setAttr("torquescale", constrOverlap_torqueScale);
+                    xmlDoc->setAttr("solref", constrOverlap_solref, 2);
+                    xmlDoc->setAttr("solimp", constrOverlap_solimp, 5);
                     double v[7] = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
                     xmlDoc->setAttr("relpose", v, 7);
                     xmlDoc->popNode(); // weld
                 }
+                simReleaseBuffer(constrOverlap_solref);
+                simReleaseBuffer(constrOverlap_solimp);
             }
             for (size_t i = 0; i < info.staticWelds.size(); i++)
             {
