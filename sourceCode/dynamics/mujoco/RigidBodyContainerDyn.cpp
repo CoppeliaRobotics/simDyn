@@ -497,6 +497,8 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                         constrOverlap_solref[j] = 0.5 * (constrOverlap_solref[j] + solrefT[j]);
                     for (size_t j = 0; j < 5; j++)
                         constrOverlap_solimp[j] = 0.5 * (constrOverlap_solimp[j] + solimpT[j]);
+                    simReleaseBuffer(solrefT);
+                    simReleaseBuffer(solimpT);
                 }
                 
                 if (_simGetObjectType(dummy1Parent) == sim_sceneobject_shape)
@@ -546,7 +548,16 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                 std::string nm(_getObjectName(info.staticWelds[i]));
                 xmlDoc->setAttr("body1", (nm + "staticCounterpart").c_str());
                 xmlDoc->setAttr("body2", nm.c_str());
-                xmlDoc->setAttr("torquescale", 1.0);
+                double kinematicWeld_torqueScale;
+                simGetFloatProperty(sim_handle_scene, "mujoco.kinematicWeldTorquescale", &kinematicWeld_torqueScale);
+                xmlDoc->setAttr("torquescale", kinematicWeld_torqueScale);
+                int sv;
+                double* solrefT = simGetFloatArrayProperty(sim_handle_scene, "mujoco.kinematicWeldSolref", &sv);
+                double* solimpT = simGetFloatArrayProperty(sim_handle_scene, "mujoco.kinematicWeldSolimp", &sv);
+                xmlDoc->setAttr("solref", solrefT, 2);
+                xmlDoc->setAttr("solimp", solimpT, 5);
+                simReleaseBuffer(solrefT);
+                simReleaseBuffer(solimpT);
                 double v[7] = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
                 xmlDoc->setAttr("relpose", v, 7);
                 xmlDoc->popNode(); // weld
