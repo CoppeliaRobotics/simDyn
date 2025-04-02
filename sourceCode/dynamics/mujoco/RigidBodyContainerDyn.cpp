@@ -3386,6 +3386,55 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m, mjData* d)
     }
 
     // Joints:
+    // Order them from leaf to root (important for later, when we need to access force/torque data for child joints):
+    std::vector<SMjJoint*> jointMujocoItems;
+    std::vector<size_t> allCtrlJoints;
+    std::set<CXSceneObject*> allCtrlJoints_set;
+    for (size_t i = 0; i < _allJoints.size(); i++)
+    {
+        CXSceneObject* joint = (CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
+        if ((joint != nullptr) && (_allJoints[i].actMode > 0) && (_allJoints[i].jointType != sim_joint_spherical))
+        {
+            _allJoints[i].object = joint;
+            allCtrlJoints.push_back(i);
+            allCtrlJoints_set.insert(joint);
+        }
+    }
+    while (allCtrlJoints.size() > 0)
+    {
+        size_t ind = 0;
+        while (ind < allCtrlJoints.size())
+        {
+            size_t i = allCtrlJoints[ind];
+            CXSceneObject* joint =  _allJoints[i].object;
+            CXSceneObject* p = joint;
+            bool hasJointParent = false;
+            while (true)
+            {
+                p = (CXSceneObject*)_simGetParentObject(p);
+                if (p == nullptr)
+                    break;
+                else
+                {
+                    if (allCtrlJoints_set.find(p) != allCtrlJoints_set.end())
+                    {
+                        hasJointParent = true;
+                        break;
+                    }
+                }
+            }
+            if (hasJointParent)
+                ind++;
+            else
+            {
+                allCtrlJoints.erase(allCtrlJoints.begin() + ind);
+                allCtrlJoints_set.erase(joint);
+                jointMujocoItems.insert(jointMujocoItems.begin(), &_allJoints[i]);
+            }
+        }
+    }
+/*
+    // Following is without ordering the joints from leaf to root:
     std::vector<SMjJoint*> jointMujocoItems;
     for (size_t i = 0; i < _allJoints.size(); i++)
     {
@@ -3396,6 +3445,8 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m, mjData* d)
             jointMujocoItems.push_back(&_allJoints[i]);
         }
     }
+    */
+
     for (size_t i = 0; i < _allFreejoints.size(); i++)
     {
         int padr = _mjModel->jnt_qposadr[_allFreejoints[i].mjId];
@@ -3524,10 +3575,7 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
     inputValuesInt[1] = _dynamicsCalculationPasses;
     inputValuesInt[2] = _rg4Cnt;
     double inputValuesFloat[7] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    if (mujocoItem->jointType == sim_joint_revolute)
-        inputValuesFloat[0] = currentPos;
-    else
-        inputValuesFloat[0] = currentPos;
+    inputValuesFloat[0] = currentPos;
     double eff = _mjData->actuator_force[mujocoItem->mjIdActuator];
     inputValuesFloat[1] = -eff;
     if (_rg4Cnt == 0)
@@ -3553,12 +3601,12 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
     //    if ((res&2)==0)
     { // motor is not locked
         if ((res & 1) == 1)
-        {
+        { // motor on
             mujocoItem->jointCtrlDv = outputValues[0] - currentVel;
             mujocoItem->jointCtrlToApply = outputValues[1]; // force (or ctrl) to apply
         }
         else
-        {
+        { // motor off
             mujocoItem->jointCtrlDv = 0.0;
             mujocoItem->jointCtrlToApply = 0.0;
         }
