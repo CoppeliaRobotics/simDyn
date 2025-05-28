@@ -68,7 +68,7 @@ end
 
 function simMujoco.injectXML(...)
     local xml, item2, info = checkargs({
-        {type = 'string'}, {type = 'any'}, {type = 'table', default = NIL, nullable = true},
+        {type = 'string'}, {type = 'any'}, {type = 'table', default_nil = true, nullable = true},
     }, ...)
     local lb = sim.setStepping(true)
     function __cb2(xml, info)
