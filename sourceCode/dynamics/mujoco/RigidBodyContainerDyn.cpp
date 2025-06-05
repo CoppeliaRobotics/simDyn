@@ -3618,17 +3618,24 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
 
 void CRigidBodyContainerDyn::_errorCallback(const char* err)
 {
-    simAddLog(LIBRARY_NAME, sim_verbosity_errors, err);
+    std::string msg("Engine error: ");
+    msg += err;
+    simAddLog(LIBRARY_NAME, sim_verbosity_errors, msg.c_str());
     _simulationHalted = true;
 }
 
 void CRigidBodyContainerDyn::_warningCallback(const char* warn)
 {
-    simAddLog(LIBRARY_NAME, sim_verbosity_warnings, warn);
-    std::string str(warn);
-    if (str.find("simulation is unstable") != std::string::npos)
+    std::string msg("Engine warning: ");
+    msg += warn;
+    simAddLog(LIBRARY_NAME, sim_verbosity_warnings, msg.c_str());
+    if (msg.find("simulation is unstable") != std::string::npos)
         _simulationHalted = true;
-    if (str.find("constraint buffer is full") != std::string::npos)
+    if (msg.find("constraint buffer is full") != std::string::npos)
+        _simulationHalted = true;
+    if (msg.find("Nan, Inf or huge value") != std::string::npos)
+        _simulationHalted = true;
+    if (msg.find("Inertia matrix is too close to singular") != std::string::npos)
         _simulationHalted = true;
 }
 
