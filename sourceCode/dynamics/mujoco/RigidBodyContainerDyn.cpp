@@ -3622,6 +3622,7 @@ void CRigidBodyContainerDyn::_errorCallback(const char* err)
     msg += err;
     simAddLog(LIBRARY_NAME, sim_verbosity_errors, msg.c_str());
     _simulationHalted = true;
+    simPauseSimulation();
 }
 
 void CRigidBodyContainerDyn::_warningCallback(const char* warn)
@@ -3637,6 +3638,10 @@ void CRigidBodyContainerDyn::_warningCallback(const char* warn)
         _simulationHalted = true;
     if (msg.find("Inertia matrix is too close to singular") != std::string::npos)
         _simulationHalted = true;
+    if (msg.find("Insufficient arena memory") != std::string::npos)
+        _simulationHalted = true;
+    if (_simulationHalted)
+        simPauseSimulation();
 }
 
 void CRigidBodyContainerDyn::_handleContactPoints(int dynPass)
