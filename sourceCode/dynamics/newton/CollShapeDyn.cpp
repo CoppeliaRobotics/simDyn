@@ -213,6 +213,7 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                     attributeMap[i] = 0;
                 _shape = NewtonCreateHeightFieldCollision(world, xCnt, yCnt, 1, 0, &_newtonHeightfieldData[0], attributeMap, 1.0, s(0) / (sReal(xCnt - 1)), 0);
                 NewtonCollisionSetMatrix(_shape, &invMatrix[0][0]);
+                delete[] attributeMap;
                 break;
             }
 
