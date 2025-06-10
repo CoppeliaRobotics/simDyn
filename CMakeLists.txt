@@ -37,23 +37,26 @@ else()
     set(Vortex_default ON)
 endif()
 
+include(CheckCXXCompilerFlag)
+
+# Detect CPU architecture
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" ARCH_LOWER)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
         # using clang with clang-cl front end
-    #elseif(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     else()
         # using clang with regular front end
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2 -msse3 -msse4")
+        if(ARCH_LOWER MATCHES "x86_64|i[3-6]86")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2 -msse3 -msse4")
+        endif()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -Wno-narrowing")
-        # following flags cause instability of Bullet-2.78 plugin:
-        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=sse")
-        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
-        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -freciprocal-math")
-        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funsafe-math-optimizations")
     endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # using GCC
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2 -msse3 -msse4 -mfpmath=sse -ffloat-store -ffast-math -freciprocal-math -funsafe-math-optimizations")
+    string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" ARCH_LOWER)
+    if(ARCH_LOWER MATCHES "x86_64|i[3-6]86")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2 -msse3 -msse4 -mfpmath=sse -ffloat-store -ffast-math -freciprocal-math -funsafe-math-optimizations")
+    endif()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -Wno-narrowing")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # using Visual Studio C++
