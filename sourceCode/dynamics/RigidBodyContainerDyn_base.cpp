@@ -1,8 +1,12 @@
-#include <simLib/simLib.h>
 #include <RigidBodyContainerDyn.h>
 #include <CollShapeDyn.h>
 #include <RigidBodyDyn.h>
 #include <ConstraintDyn.h>
+#ifdef INCLUDE_MUJOCO_CODE
+    #include <simLib/simLib.h>
+#else
+    #include <simLib/simLib.h>
+#endif
 
 CRigidBodyContainerDyn* CRigidBodyContainerDyn_base::_dynWorld = nullptr;
 

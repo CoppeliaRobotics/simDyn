@@ -1,6 +1,10 @@
 #include <RigidBodyDyn_base.h>
 #include <RigidBodyContainerDyn.h>
-#include <simLib/simLib.h>
+#ifdef INCLUDE_MUJOCO_CODE
+    #include <simLib/simLib.h>
+#else
+    #include <simLib/simLib.h>
+#endif
 
 CRigidBodyDyn_base::CRigidBodyDyn_base()
 {

@@ -1,6 +1,10 @@
 #include <ParticleObjectContainer_base.h>
 #include <RigidBodyContainerDyn.h>
-#include <simLib/simLib.h>
+#ifdef INCLUDE_MUJOCO_CODE
+    #include <simLib/simLib.h>
+#else
+    #include <simLib/simLib.h>
+#endif
 
 CParticleObjectContainer_base::CParticleObjectContainer_base()
 {

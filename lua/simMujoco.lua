@@ -1,4 +1,5 @@
-local simMujoco = loadPlugin 'simMujoco';
+local simMujoco = loadPlugin 'simMujoco'
+local sim = require 'sim-2'
 
 function simMujoco.addFlexcomp(...)
     local info = checkargs({{type = 'table'}}, ...)

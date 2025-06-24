@@ -1,6 +1,10 @@
 #include <ParticleObject_base.h>
-#include <simLib/simLib.h>
 #include <ParticleDyn.h>
+#ifdef INCLUDE_MUJOCO_CODE
+    #include <simLib/simLib.h>
+#else
+    #include <simLib/simLib.h>
+#endif
 
 CParticleObject_base::CParticleObject_base(int theObjectType, sReal size, sReal massVolumic, const void* params, sReal lifeTime, int maxItemCount)
 {
