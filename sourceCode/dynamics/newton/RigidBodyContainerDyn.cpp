@@ -475,7 +475,7 @@ void* CRigidBodyContainerDyn::NewtonAllocMemory(int sizeInBytes)
 void CRigidBodyContainerDyn::NewtonFreeMemory(void* const ptr, int sizeInBytes)
 {
     //free (ptr);
-    ptrSimReleaseBuffer((char*)ptr);
+    simReleaseBuffer((char*)ptr);
 }
 
 void CRigidBodyContainerDyn::_stepDynamics(sReal dt, int pass)
