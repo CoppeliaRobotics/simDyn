@@ -150,6 +150,7 @@ NEWTON_ENGINE {
     DEFINES += _NEWTON_STATIC_LIB
     DEFINES += PTW32_STATIC_LIB
     DEFINES += _ASSERTE\\\(x\\\) #for _ASSERTE(x)
+    DEFINES += _SILENCE_AMP_DEPRECATION_WARNINGS
     !win32 {
         QMAKE_CXXFLAGS += -msse2 -msse3 -g -msse -msse2 -msse3 -msse4 -mfpmath=sse -ffloat-store -ffast-math -freciprocal-math -funsafe-math-optimizations -fsingle-precision-constant
     }
