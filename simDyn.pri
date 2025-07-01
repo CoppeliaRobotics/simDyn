@@ -217,6 +217,8 @@ MUJOCO_ENGINE {
 
     INCLUDEPATH += $$MUJOCO_INCLUDEPATH
     INCLUDEPATH += "sourceCode/dynamics/mujoco"
+    INCLUDEPATH += $$TINYXML2_INCLUDEPATH
+    LIBS += $$TINYXML2_LIBS
 }
 
 DRAKE_ENGINE {
@@ -363,14 +365,12 @@ MUJOCO_ENGINE {
         sourceCode/dynamics/mujoco/ConstraintDyn.h \
         sourceCode/dynamics/mujoco/RigidBodyContainerDyn.h \
         sourceCode/dynamics/mujoco/ParticleDyn.h \
-        sourceCode/dynamics/mujoco/tinyxml2.h \
         sourceCode/dynamics/mujoco/xmlser.h
     SOURCES +=sourceCode/dynamics/mujoco/CollShapeDyn.cpp \
         sourceCode/dynamics/mujoco/RigidBodyDyn.cpp \
         sourceCode/dynamics/mujoco/ConstraintDyn.cpp \
         sourceCode/dynamics/mujoco/RigidBodyContainerDyn.cpp \
         sourceCode/dynamics/mujoco/ParticleDyn.cpp \
-        sourceCode/dynamics/mujoco/tinyxml2.cpp \
         sourceCode/dynamics/mujoco/xmlser.cpp
 }
 
@@ -380,7 +380,6 @@ DRAKE_ENGINE {
         sourceCode/dynamics/drake/ConstraintDyn.h \
         sourceCode/dynamics/drake/RigidBodyContainerDyn.h \
         sourceCode/dynamics/drake/ParticleDyn.h \
-        sourceCode/dynamics/drake/tinyxml2.h \
         sourceCode/dynamics/drake/xmlser.h
 
     SOURCES +=sourceCode/dynamics/drake/CollShapeDyn.cpp \
@@ -388,7 +387,6 @@ DRAKE_ENGINE {
         sourceCode/dynamics/drake/ConstraintDyn.cpp \
         sourceCode/dynamics/drake/RigidBodyContainerDyn.cpp \
         sourceCode/dynamics/drake/ParticleDyn.cpp \
-        sourceCode/dynamics/drake/tinyxml2.cpp \
         sourceCode/dynamics/drake/xmlser.cpp
 }
 

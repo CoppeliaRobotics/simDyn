@@ -658,7 +658,6 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/mujoco/RigidBodyContainerDyn.cpp
     sourceCode/dynamics/mujoco/ParticleDyn.cpp
     sourceCode/dynamics/mujoco/xmlser.cpp
-    sourceCode/dynamics/mujoco/tinyxml2.cpp
 )
 target_compile_definitions(simMujoco PRIVATE SIM_MATH_DOUBLE)
 target_compile_definitions(simMujoco PRIVATE sReal=double)
@@ -695,7 +694,6 @@ coppeliasim_add_plugin(
     sourceCode/dynamics/drake/RigidBodyContainerDyn.cpp
     sourceCode/dynamics/drake/ParticleDyn.cpp
     sourceCode/dynamics/drake/xmlser.cpp
-    sourceCode/dynamics/drake/tinyxml2.cpp
 )
 target_compile_definitions(simDrake PRIVATE SIM_MATH_DOUBLE)
 target_compile_definitions(simDrake PRIVATE sReal=double)
