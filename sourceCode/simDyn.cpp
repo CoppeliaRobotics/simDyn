@@ -64,7 +64,7 @@ void LUA_MUJOCOADDINJECTION_CALLBACK(SScriptCallBack* p)
 
                     std::string errString;
                     injectionId = CRigidBodyContainerDyn::addOrUpdateGeneralInjection(&inArguments, -1, &errString, p->scriptID);
-                    if (injectionId != -1)
+                    if (injectionId == -1)
                         simSetLastError(nullptr, errString.c_str());
                 }
                 else if ((inArguments.getSize() >= 2) && inArguments.isString(0) && (inArguments.isString(1) || inArguments.isNumber(1)))
@@ -263,7 +263,7 @@ void LUA_MUJOCOADDFLEXCOMP_CALLBACK(SScriptCallBack* p)
             {
                 std::string errString;
                 injectionId = CRigidBodyContainerDyn::addOrUpdateFlexcompInjection(&inArguments, -1, &errString, p->scriptID);
-                if (injectionId != -1)
+                if (injectionId == -1)
                     simSetLastError(nullptr, errString.c_str());
             }
             else
