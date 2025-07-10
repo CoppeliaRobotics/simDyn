@@ -1,5 +1,6 @@
 local simMujoco = loadPlugin 'simMujoco'
 local sim = require 'sim-2'
+local checkargs = require('checkargs')
 
 function simMujoco.addFlexcomp(...)
     local info = checkargs({{type = 'table'}}, ...)
