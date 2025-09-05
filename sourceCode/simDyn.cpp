@@ -655,6 +655,26 @@ SIM_DLLEXPORT double mujocoPlugin_computePMI(const double* vertices, int vertice
     return (mass);
 }
 
+SIM_DLLEXPORT char mujocoPlugin_generateMjcfFile()
+{ // returns the mjcf file
+    char retVal = 0;
+    CRigidBodyContainerDyn* dynWorld = CRigidBodyContainerDyn::getDynWorld();
+    if (dynWorld == nullptr)
+    {
+        double floatParams[20] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1000.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        int intParams[20] = {999999 + 1, 0, 999999, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        if (dynPlugin_startSimulation_D(floatParams, intParams) == 1)
+        {
+            dynWorld = CRigidBodyContainerDyn::getDynWorld();
+            dynWorld->handleDynamics(0.0, 0.0);
+            retVal = 1;
+        }
+        dynPlugin_endSimulation();
+    }
+    return retVal;
+}
+
+
 #endif
 
 #ifdef INCLUDE_BULLET_2_78_CODE

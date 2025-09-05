@@ -80,4 +80,5 @@ release_drake
 object_script.*.Debug
 object_script.*.Release
 build-*
+build
 

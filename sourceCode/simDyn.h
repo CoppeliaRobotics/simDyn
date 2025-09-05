@@ -24,6 +24,7 @@ SIM_DLLEXPORT int dynPlugin_getDynamicStepDivider();
 #ifdef INCLUDE_MUJOCO_CODE
 SIM_DLLEXPORT double mujocoPlugin_computeInertia(int shapeHandle, double* relPos, double* relQuat, double* diagI);
 SIM_DLLEXPORT double mujocoPlugin_computePMI(const double* vertices, int verticesL, const int* indices, int indicesL, double* relPos, double* relQuat, double* diagI);
+SIM_DLLEXPORT char mujocoPlugin_generateMjcfFile();
 #endif
 
 #ifdef INCLUDE_BULLET_2_78_CODE

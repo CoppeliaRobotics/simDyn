@@ -3186,6 +3186,9 @@ void CRigidBodyContainerDyn::handleDynamics(double dt, double simulationTime)
 {
     if (!_simulationHalted)
     {
+        bool justCreateFile = (dt == 0.0);
+        if (justCreateFile)
+            dt = 0.005;
         double maxDynStep;
         simGetFloatParam(sim_floatparam_physicstimestep, &maxDynStep);
 
@@ -3200,7 +3203,7 @@ void CRigidBodyContainerDyn::handleDynamics(double dt, double simulationTime)
             if (err.size() > 0)
                 simAddLog(LIBRARY_NAME, sim_verbosity_errors, err.c_str());
         }
-        if (_mjModel != nullptr)
+        if ( (_mjModel != nullptr) && (!justCreateFile) )
         {
             _simulationTime = simulationTime;
             _updateWorldFromCoppeliaSim();
