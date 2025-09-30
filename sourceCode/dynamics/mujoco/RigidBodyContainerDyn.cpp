@@ -470,6 +470,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
             }
             xmlDoc->popNode(); // tendon
 
+            _hasLoopClosures = false;
             xmlDoc->pushNewNode("equality");
             _addInjections(xmlDoc, -1, "equality"); // old
             for (size_t i = 0; i < info.loopClosures.size(); i++)
@@ -505,6 +506,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                 { // we have shape --> dummy -- dummy <-- shape
                     if (dummy1Handle < dummy2Handle)
                     { // make sure to not have 2 weld constraints for the same loop closure!
+                        _hasLoopClosures = true;
                         xmlDoc->pushNewNode("weld");
                         std::string nm(_getObjectName(dummy1Parent));
                         xmlDoc->setAttr("body1", nm.c_str());
@@ -528,6 +530,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                 }
                 else
                 { // we have shape --> joint/forceSensor --> dummy -- dummy <-- shape
+                    _hasLoopClosures = true;
                     xmlDoc->pushNewNode("weld");
                     std::string nm(_getObjectName(info.loopClosures[i]) + "loop");
                     xmlDoc->setAttr("body1", nm.c_str());
@@ -3539,12 +3542,14 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
     double dynStepSize = CRigidBodyContainerDyn::getDynWorld()->getDynamicsInternalTimeStep();
     double e = 0.0;
     double currentPos, currentVel, currentAccel;
-    int auxV = 0;
+    int auxV = 0; // 1: first ctrl pass, 2: vel info is provided too, 4: accel info is provided too, 8: scene contains loop closures
+    if (_hasLoopClosures)
+        auxV |= 8;
     if (mujocoItem->tendonJoint)
     { // TODO tendon accel?
         currentPos = _mjData->ten_length[mujocoItem->mjId];
         currentVel = _mjData->ten_velocity[mujocoItem->mjId];
-        auxV = 2; // we provide vel info too
+        auxV |= 2; // we provide vel info too
     }
     else
     {
@@ -3553,7 +3558,7 @@ void CRigidBodyContainerDyn::_handleMotorControl(SMjJoint* mujocoItem)
         int vadr = _mjModel->jnt_dofadr[mujocoItem->mjId];
         currentVel = _mjData->qvel[vadr];
         currentAccel = _mjData->qacc[vadr];
-        auxV = 2 + 4; // we provide vel and accel info too
+        auxV |= 2 + 4; // we provide vel and accel info too
     }
     if (mujocoItem->jointType == sim_joint_revolute)
     {

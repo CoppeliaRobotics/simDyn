@@ -278,6 +278,7 @@ class CRigidBodyContainerDyn : public CRigidBodyContainerDyn_base
     int _restartCount;
     bool _restartWarning;
     int _nextCompositeHandle; // negative, so as not to clash with CoppeliaSim object handles
+    bool _hasLoopClosures;
     static int _nextInjectionId;
     std::map<std::string, bool> _dynamicallyResetObjects;
 };
