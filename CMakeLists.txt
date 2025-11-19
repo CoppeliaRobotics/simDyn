@@ -15,7 +15,7 @@ if(NOT COPPELIASIM_INCLUDE_DIR)
     endif()
 endif()
 list(APPEND CMAKE_MODULE_PATH ${COPPELIASIM_INCLUDE_DIR}/cmake)
-find_package(CoppeliaSim 4.5.1.7 REQUIRED)
+find_package(CoppeliaSim 4.5.1.7 REQUIRED COMPONENTS simLib-1 simMath-1 simStack-1)
 
 if(WIN32)
     # bullet-2-83 fails to compile with:
@@ -76,20 +76,6 @@ include_directories(sourceCode/dynamics)
 include_directories(${COPPELIASIM_INCLUDE_DIR})
 
 set(COMMON_SOURCES
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/3Vector.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/4Vector.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/7Vector.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/3X3Matrix.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/4X4Matrix.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/mXnMatrix.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/mathFuncs.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackArray.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackBool.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackMap.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackNull.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackNumber.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackObject.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simStack/stackString.cpp
     sourceCode/dynamics/CollShapeDyn_base.cpp
     sourceCode/dynamics/ConstraintDyn_base.cpp
     sourceCode/dynamics/ParticleObjectContainer_base.cpp
