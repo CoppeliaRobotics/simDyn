@@ -1,5 +1,5 @@
 local simMujoco = loadPlugin 'simMujoco'
-local sim = require 'sim-2'
+local sim = require 'sim-1'
 local checkargs = require('checkargs')
 
 function simMujoco.addFlexcomp(...)
