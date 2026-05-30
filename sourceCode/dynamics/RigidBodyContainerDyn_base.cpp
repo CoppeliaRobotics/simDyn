@@ -958,6 +958,7 @@ bool CRigidBodyContainerDyn_base::getContactForce(int dynamicPass, int objectHan
     int scanIndex = 0;
     int ind = (index | sim_handleflag_extended) - sim_handleflag_extended;
     bool extended = ((index & sim_handleflag_extended) != 0);
+    int oh = objectHandle;
     for (size_t i = 0; i < _contactInfo.size(); i++)
     {
         if ((_contactInfo[i].subPassNumber == dynamicPass) || (dynamicPass == sim_handle_all))
@@ -966,10 +967,17 @@ bool CRigidBodyContainerDyn_base::getContactForce(int dynamicPass, int objectHan
             {
                 if (ind == scanIndex)
                 {
+                    if (objectHandle == sim_handle_all)
+                    { // in that case, we return a pair where the first handle is always smaller than the second handle
+                        if (_contactInfo[i].objectID1 < _contactInfo[i].objectID2)
+                            oh = _contactInfo[i].objectID1;
+                        else
+                            oh = _contactInfo[i].objectID2;
+                    }
                     contactInfo[0] = _contactInfo[i].position(0);
                     contactInfo[1] = _contactInfo[i].position(1);
                     contactInfo[2] = _contactInfo[i].position(2);
-                    if (_contactInfo[i].objectID2 == objectHandle)
+                    if (_contactInfo[i].objectID2 == oh)
                     {
                         objectHandles[0] = _contactInfo[i].objectID2;
                         objectHandles[1] = _contactInfo[i].objectID1;
