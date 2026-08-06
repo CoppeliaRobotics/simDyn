@@ -244,7 +244,13 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
     xmlDoc->setAttr("contact", disableEnable[bv]);
     bv = 1;
     simGetBoolProperty(sim_handle_scene, "mujoco.passiveEnable", &bv);
-    xmlDoc->setAttr("passive", disableEnable[bv]);
+    if(mj_version() >= 336)
+    {
+        xmlDoc->setAttr("spring", disableEnable[bv]);
+        xmlDoc->setAttr("damper", disableEnable[bv]);
+    }
+    else
+        xmlDoc->setAttr("passive", disableEnable[bv]);
     bv = 1;
     simGetBoolProperty(sim_handle_scene, "mujoco.gravityEnable", &bv);
     xmlDoc->setAttr("gravity", disableEnable[bv]);
@@ -501,7 +507,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                     simReleaseBuffer(solrefT);
                     simReleaseBuffer(solimpT);
                 }
-                
+
                 if (_simGetObjectType(dummy1Parent) == sim_sceneobject_shape)
                 { // we have shape --> dummy -- dummy <-- shape
                     if (dummy1Handle < dummy2Handle)
