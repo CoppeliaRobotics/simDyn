@@ -131,7 +131,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
     xmlDoc->setAttr("boundmass", simGetEngineFloatParam(sim_mujoco_global_boundmass, -1, nullptr, nullptr));
     xmlDoc->setAttr("boundinertia", simGetEngineFloatParam(sim_mujoco_global_boundinertia, -1, nullptr, nullptr));
     int bv = 0;
-    simGetBoolProperty(sim_handle_scene, "mujoco.alignfree", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.alignfree", &bv);
     xmlDoc->setAttr("alignfree", bool(bv));
     _addInjections(xmlDoc, -1, "compiler"); // old
     xmlDoc->popNode();
@@ -142,7 +142,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
 
     xmlDoc->pushNewNode("size");
     int mbMemory;
-    simGetIntProperty(sim_handle_scene, "mujoco.mbmemory", &mbMemory);
+    simGetIntProperty(sim_handle_scene, "dynamics.mujoco.mbmemory", &mbMemory);
     std::string memor(std::to_string(mbMemory));
     if (mbMemory >= 0)
     {
@@ -194,34 +194,34 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
     xmlDoc->setAttr("gravity", gravity(0), gravity(1), gravity(2));
     int jacobian = -1;
     const char* jacob[] = {"auto", "dense", "sparse"};
-    simGetIntProperty(sim_handle_scene, "mujoco.jacobian", &jacobian);
+    simGetIntProperty(sim_handle_scene, "dynamics.mujoco.jacobian", &jacobian);
     xmlDoc->setAttr("jacobian", jacob[jacobian + 1]);
     double tolerance = 1e-8;
-    simGetFloatProperty(sim_handle_scene, "mujoco.tolerance", &tolerance);
+    simGetFloatProperty(sim_handle_scene, "dynamics.mujoco.tolerance", &tolerance);
     xmlDoc->setAttr("tolerance", tolerance);
     int ls_iterations = 50;
-    simGetIntProperty(sim_handle_scene, "mujoco.ls_iterations", &ls_iterations);
+    simGetIntProperty(sim_handle_scene, "dynamics.mujoco.ls_iterations", &ls_iterations);
     xmlDoc->setAttr("ls_iterations", ls_iterations);
     double ls_tolerance = 0.01;
-    simGetFloatProperty(sim_handle_scene, "mujoco.ls_tolerance", &ls_tolerance);
+    simGetFloatProperty(sim_handle_scene, "dynamics.mujoco.ls_tolerance", &ls_tolerance);
     xmlDoc->setAttr("ls_tolerance", ls_tolerance);
     int noslip_iterations = 0;
-    simGetIntProperty(sim_handle_scene, "mujoco.noslip_iterations", &noslip_iterations);
+    simGetIntProperty(sim_handle_scene, "dynamics.mujoco.noslip_iterations", &noslip_iterations);
     xmlDoc->setAttr("noslip_iterations", noslip_iterations);
     double noslip_tolerance = 1e-6;
-    simGetFloatProperty(sim_handle_scene, "mujoco.noslip_tolerance", &noslip_tolerance);
+    simGetFloatProperty(sim_handle_scene, "dynamics.mujoco.noslip_tolerance", &noslip_tolerance);
     xmlDoc->setAttr("noslip_tolerance", noslip_tolerance);
     int ccd_iterations = 50;
-    simGetIntProperty(sim_handle_scene, "mujoco.ccd_iterations", &ccd_iterations);
+    simGetIntProperty(sim_handle_scene, "dynamics.mujoco.ccd_iterations", &ccd_iterations);
     xmlDoc->setAttr("ccd_iterations", ccd_iterations);
     double ccd_tolerance = 1e-6;
-    simGetFloatProperty(sim_handle_scene, "mujoco.ccd_tolerance", &ccd_tolerance);
+    simGetFloatProperty(sim_handle_scene, "dynamics.mujoco.ccd_tolerance", &ccd_tolerance);
     xmlDoc->setAttr("ccd_tolerance", ccd_tolerance);
     int sdf_iterations = 10;
-    simGetIntProperty(sim_handle_scene, "mujoco.sdf_iterations", &sdf_iterations);
+    simGetIntProperty(sim_handle_scene, "dynamics.mujoco.sdf_iterations", &sdf_iterations);
     xmlDoc->setAttr("sdf_iterations", sdf_iterations);
     int sdf_initpoints = 40;
-    simGetIntProperty(sim_handle_scene, "mujoco.sdf_initpoints", &sdf_initpoints);
+    simGetIntProperty(sim_handle_scene, "dynamics.mujoco.sdf_initpoints", &sdf_initpoints);
     xmlDoc->setAttr("sdf_initpoints", sdf_initpoints);
 
     xmlDoc->pushNewNode("flag");
@@ -231,19 +231,19 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
     xmlDoc->setAttr("multiccd", disableEnable[simGetEngineBoolParam(sim_mujoco_global_multiccd, -1, nullptr, nullptr)]);
     xmlDoc->setAttr("override", disableEnable[simGetEngineBoolParam(sim_mujoco_global_overridecontacts, -1, nullptr, nullptr)]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.equalityEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.equalityEnable", &bv);
     xmlDoc->setAttr("equality", disableEnable[bv]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.frictionlossEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.frictionlossEnable", &bv);
     xmlDoc->setAttr("frictionloss", disableEnable[bv]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.limitEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.limitEnable", &bv);
     xmlDoc->setAttr("limit", disableEnable[bv]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.contactEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.contactEnable", &bv);
     xmlDoc->setAttr("contact", disableEnable[bv]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.passiveEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.passiveEnable", &bv);
     if(mj_version() >= 336)
     {
         xmlDoc->setAttr("spring", disableEnable[bv]);
@@ -252,37 +252,37 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
     else
         xmlDoc->setAttr("passive", disableEnable[bv]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.gravityEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.gravityEnable", &bv);
     xmlDoc->setAttr("gravity", disableEnable[bv]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.warmstartEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.warmstartEnable", &bv);
     xmlDoc->setAttr("warmstart", disableEnable[bv]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.actuationEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.actuationEnable", &bv);
     xmlDoc->setAttr("actuation", disableEnable[bv]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.refsafeEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.refsafeEnable", &bv);
     xmlDoc->setAttr("refsafe", disableEnable[bv]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.sensorEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.sensorEnable", &bv);
     xmlDoc->setAttr("sensor", disableEnable[bv]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.midphaseEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.midphaseEnable", &bv);
     xmlDoc->setAttr("midphase", disableEnable[bv]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.eulerdampEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.eulerdampEnable", &bv);
     xmlDoc->setAttr("eulerdamp", disableEnable[bv]);
     bv = 1;
-    simGetBoolProperty(sim_handle_scene, "mujoco.autoresetEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.autoresetEnable", &bv);
     xmlDoc->setAttr("autoreset", disableEnable[bv]);
     bv = 0;
-    simGetBoolProperty(sim_handle_scene, "mujoco.energyEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.energyEnable", &bv);
     xmlDoc->setAttr("energy", disableEnable[bv]);
     bv = 0;
-    simGetBoolProperty(sim_handle_scene, "mujoco.invdiscreteEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.invdiscreteEnable", &bv);
     xmlDoc->setAttr("invdiscrete", disableEnable[bv]);
     bv = 0;
-    simGetBoolProperty(sim_handle_scene, "mujoco.nativeccdEnable", &bv);
+    simGetBoolProperty(sim_handle_scene, "dynamics.mujoco.nativeccdEnable", &bv);
     xmlDoc->setAttr("nativeccd", disableEnable[bv]);
     xmlDoc->popNode();
     xmlDoc->popNode();
@@ -489,17 +489,17 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                 CXSceneObject* shape2 = (CXSceneObject*)_simGetParentObject(dummy2);
                 CXSceneObject* dummy1Parent = (CXSceneObject*)_simGetParentObject(dummy1);
                 double constrOverlap_torqueScale;
-                simGetFloatProperty(dummy1Handle, "mujoco.overlapConstrTorquescale", &constrOverlap_torqueScale);
+                simGetFloatProperty(dummy1Handle, "dynamics.mujoco.overlapConstrTorquescale", &constrOverlap_torqueScale);
                 int sv;
-                double* constrOverlap_solref = simGetFloatArrayProperty(dummy1Handle, "mujoco.overlapConstrSolref", &sv);
-                double* constrOverlap_solimp = simGetFloatArrayProperty(dummy1Handle, "mujoco.overlapConstrSolimp", &sv);
+                double* constrOverlap_solref = simGetFloatArrayProperty(dummy1Handle, "dynamics.mujoco.overlapConstrSolref", &sv);
+                double* constrOverlap_solimp = simGetFloatArrayProperty(dummy1Handle, "dynamics.mujoco.overlapConstrSolimp", &sv);
                 if (dummy2Handle != -1)
                 {
                     double tmp;
-                    simGetFloatProperty(dummy2Handle, "mujoco.overlapConstrTorquescale", &tmp);
+                    simGetFloatProperty(dummy2Handle, "dynamics.mujoco.overlapConstrTorquescale", &tmp);
                     constrOverlap_torqueScale = 0.5 * (constrOverlap_torqueScale + tmp);
-                    double* solrefT = simGetFloatArrayProperty(dummy2Handle, "mujoco.overlapConstrSolref", &sv);
-                    double* solimpT = simGetFloatArrayProperty(dummy2Handle, "mujoco.overlapConstrSolimp", &sv);
+                    double* solrefT = simGetFloatArrayProperty(dummy2Handle, "dynamics.mujoco.overlapConstrSolref", &sv);
+                    double* solimpT = simGetFloatArrayProperty(dummy2Handle, "dynamics.mujoco.overlapConstrSolimp", &sv);
                     for (size_t j = 0; j < 2; j++)
                         constrOverlap_solref[j] = 0.5 * (constrOverlap_solref[j] + solrefT[j]);
                     for (size_t j = 0; j < 5; j++)
@@ -558,11 +558,11 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                 xmlDoc->setAttr("body1", (nm + "staticCounterpart").c_str());
                 xmlDoc->setAttr("body2", nm.c_str());
                 double kinematicWeld_torqueScale;
-                simGetFloatProperty(sim_handle_scene, "mujoco.kinematicWeldTorquescale", &kinematicWeld_torqueScale);
+                simGetFloatProperty(sim_handle_scene, "dynamics.mujoco.kinematicWeldTorquescale", &kinematicWeld_torqueScale);
                 xmlDoc->setAttr("torquescale", kinematicWeld_torqueScale);
                 int sv;
-                double* solrefT = simGetFloatArrayProperty(sim_handle_scene, "mujoco.kinematicWeldSolref", &sv);
-                double* solimpT = simGetFloatArrayProperty(sim_handle_scene, "mujoco.kinematicWeldSolimp", &sv);
+                double* solrefT = simGetFloatArrayProperty(sim_handle_scene, "dynamics.mujoco.kinematicWeldSolref", &sv);
+                double* solimpT = simGetFloatArrayProperty(sim_handle_scene, "dynamics.mujoco.kinematicWeldSolimp", &sv);
                 xmlDoc->setAttr("solref", solrefT, 2);
                 xmlDoc->setAttr("solimp", solimpT, 5);
                 simReleaseBuffer(solrefT);
@@ -609,7 +609,7 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                 CXSceneObject* joint = (CXSceneObject*)_simGetObject(_allJoints[i].objectHandle);
                 const char* customXml = nullptr;
                 int m;
-                simGetIntProperty(_allJoints[i].objectHandle, "dynCtrlMode", &m);
+                simGetIntProperty(_allJoints[i].objectHandle, "dynamics.ctrlMode", &m);
                 simGetObjectInt32Param(_allJoints[i].objectHandle, sim_jointintparam_dynctrlmode, &m);
                 if (m == sim_jointdynctrl_free)
                     _allJoints[i].actMode = 0; // not actuated
@@ -664,19 +664,19 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                     xmlDoc->setAttr("name", (nm + "adh").c_str());
                     xmlDoc->setAttr("body", nm.c_str());
                     double gain;
-                    simGetFloatProperty(objectHandle, "mujoco.adhesiongain", &gain);
+                    simGetFloatProperty(objectHandle, "dynamics.mujoco.adhesiongain", &gain);
                     xmlDoc->setAttr("gain", gain);
                     int fl;
-                    simGetIntProperty(objectHandle, "mujoco.adhesionforcelimited", &fl);
+                    simGetIntProperty(objectHandle, "dynamics.mujoco.adhesionforcelimited", &fl);
                     if (fl >= 0)
                         xmlDoc->setAttr("forcelimited", bool(fl));
                     else
                         xmlDoc->setAttr("forcelimited", "auto");
                     int l;
-                    double* dv = simGetFloatArrayProperty(objectHandle, "mujoco.adhesionctrlrange", &l);
+                    double* dv = simGetFloatArrayProperty(objectHandle, "dynamics.mujoco.adhesionctrlrange", &l);
                     xmlDoc->setAttr("ctrlrange", dv, 2);
                     simReleaseBuffer(dv);
-                    dv = simGetFloatArrayProperty(objectHandle, "mujoco.adhesionforcerange", &l);
+                    dv = simGetFloatArrayProperty(objectHandle, "dynamics.mujoco.adhesionforcerange", &l);
                     xmlDoc->setAttr("forcerange", dv, 2);
                     simReleaseBuffer(dv);
                     xmlDoc->popNode(); // adhesion
@@ -2399,7 +2399,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object, CXSceneObject* par
     else
     {
         int bp = 0;
-        simGetBoolProperty(objectHandle, "mujoco.adhesion", &bp);
+        simGetBoolProperty(objectHandle, "dynamics.mujoco.adhesion", &bp);
         g.adhesion = bool(bp);
         g.itemType = shapeItem;
         if (parent == nullptr)
@@ -2470,7 +2470,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object, CXSceneObject* par
             _addGeneralInjections(xmlDoc, objectHandle);
             xmlDoc->setAttr("name", objectName.c_str());
             double gravcomp = 0.0;
-            simGetFloatProperty(objectHandle, "mujoco.gravcomp", &gravcomp);
+            simGetFloatProperty(objectHandle, "dynamics.mujoco.gravcomp", &gravcomp);
             xmlDoc->setAttr("gravcomp", gravcomp);
             _allShapes.push_back(g);
             _simSetDynamicSimulationIconCode(object, sim_dynamicsimicon_objectisdynamicallysimulated);
@@ -2924,7 +2924,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object, CXmlSer* xmlDoc, 
     int condim = simGetEngineInt32Param(sim_mujoco_body_condim, -1, object, nullptr);
     double margin = simGetEngineFloatParam(sim_mujoco_body_margin, -1, object, nullptr);
     double gap = 0.0;
-    simGetFloatProperty(objectHandle, "mujoco.gap", &gap);
+    simGetFloatProperty(objectHandle, "dynamics.mujoco.gap", &gap);
     int priority = simGetEngineInt32Param(sim_mujoco_body_priority, -1, object, nullptr);
 
     int componentListSize = _simGetGeometricCount(geomInfo);
@@ -3390,7 +3390,7 @@ void CRigidBodyContainerDyn::_handleControl(const mjModel* m, mjData* d)
                 {
                     SAdhesion item;
                     item.mjIdAdhesion = _allShapes[i].mjIdAdhesion;
-                    simGetFloatProperty(_allShapes[i].objectHandle, "mujoco.adhesionctrl", &item.ctrl);
+                    simGetFloatProperty(_allShapes[i].objectHandle, "dynamics.mujoco.adhesionctrl", &item.ctrl);
                     adhesionItems.push_back(item);
                 }
             }
