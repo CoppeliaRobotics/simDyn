@@ -15,15 +15,15 @@ void CRigidBodyDyn::init(CXShape* shape, bool forceStatic, bool forceNonResponda
 {
 }
 
-C7Vector CRigidBodyDyn::getInertiaFrameTransformation()
+CPose CRigidBodyDyn::getInertiaFrameTransformation()
 {
-    C7Vector tr;
+    CPose tr;
     return (tr);
 }
 
-C7Vector CRigidBodyDyn::getShapeFrameTransformation()
+CPose CRigidBodyDyn::getShapeFrameTransformation()
 {
-    C7Vector tr;
+    CPose tr;
     return (tr);
 }
 

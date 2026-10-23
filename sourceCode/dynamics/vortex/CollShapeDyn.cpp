@@ -54,7 +54,7 @@ CCollShapeDyn::~CCollShapeDyn()
         delete _vortexMconvexPolygons[i];
 }
 
-void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inverseLocalInertiaFrame_scaled)
+void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const CPose& inverseLocalInertiaFrame_scaled)
 { // This is the init of a collision shape wrapper. The wrapper can contain several collision objects grouped in a compound
     CCollShapeDyn_base::init(shape, willBeStatic, inverseLocalInertiaFrame_scaled);
     CXGeomWrap* geomInfo = (CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
@@ -183,9 +183,9 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
 
                     Vx::VxGeometry* vortexGeom = _createVortexSimpleGeometry(pType, s, hollowScaling, nullptr, 1.0);
 
-                    C7Vector aax;
+                    CPose aax;
                     _simGetVerticesLocalFrame(shape, sc, aax.X.data, aax.Q.data); // for pure shapes, the vertice frame also indicates the pure shape origin
-                    C7Vector xxx(inverseLocalInertiaFrame_scaled * aax);
+                    CPose xxx(inverseLocalInertiaFrame_scaled * aax);
 
                     Vx::VxTransform tm;
                     Vx::VxQuaternion quat(xxx.Q(0), xxx.Q(1), xxx.Q(2), xxx.Q(3));
@@ -219,11 +219,11 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                     hollowScaling = 0.0;
                 Vx::VxGeometry* vortexGeom = _createVortexSimpleGeometry(primType, s, hollowScaling, geomInfo, 1.0);
 
-                C7Vector aax;
+                CPose aax;
                 aax.setIdentity();
                 if (primType != sim_primitiveshape_heightfield)                         // that condition was forgotten and corrected on 16/1/2013
                     _simGetVerticesLocalFrame(shape, geomInfo, aax.X.data, aax.Q.data); // for pure shapes (except for heightfields!!), the vertice frame also indicates the pure shape origin.
-                C7Vector xxx(inverseLocalInertiaFrame_scaled * aax);
+                CPose xxx(inverseLocalInertiaFrame_scaled * aax);
 
                 Vx::VxTransform tm;
                 Vx::VxQuaternion quat(xxx.Q(0), xxx.Q(1), xxx.Q(2), xxx.Q(3));

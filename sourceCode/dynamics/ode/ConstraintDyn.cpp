@@ -17,7 +17,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
 
     dWorldID odeWorldID = CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
-    C7Vector jtr, jtr2;
+    CPose jtr, jtr2;
     _simGetObjectCumulativeTransformation(joint, jtr.X.data, jtr.Q.data, true);
     _simGetObjectCumulativeTransformation(joint, jtr2.X.data, jtr2.Q.data, false);
 
@@ -42,12 +42,12 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
         jtr2.Q = jtr2.Q * jointOffsetThing.getQuaternion() * m.getQuaternion();
     }
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     dBodyID parentRigidBody = ((CRigidBodyDyn*)bodyA)->getOdeRigidBody();
     dBodyID childRigidBody = ((CRigidBodyDyn*)bodyB)->getOdeRigidBody();
@@ -93,9 +93,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
 
         // Set the configuration of the child as if the joint was at 0 position:
         dBodyID cb = childRigidBody;
-        C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
-        C7Vector alpha(jtr2.getInverse() * cb_a);
-        C7Vector cb_b(jtr * alpha);
+        CPose cb_a(CQuaternion(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
+        CPose alpha(jtr2.getInverse() * cb_a);
+        CPose cb_b(jtr * alpha);
         dBodySetPosition(cb, cb_b.X(0), cb_b.X(1), cb_b.X(2));
         dQuaternion dQ;
         dQ[0] = cb_b.Q.data[0];
@@ -131,9 +131,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
 
         // Set the configuration of the child as if the joint was at 0 position:
         dBodyID cb = childRigidBody;
-        C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
-        C7Vector alpha(jtr2.getInverse() * cb_a);
-        C7Vector cb_b(jtr * alpha);
+        CPose cb_a(CQuaternion(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
+        CPose alpha(jtr2.getInverse() * cb_a);
+        CPose cb_b(jtr * alpha);
         dBodySetPosition(cb, cb_b.X(0), cb_b.X(1), cb_b.X(2));
         dQuaternion dQ;
         dQ[0] = cb_b.Q.data[0];
@@ -168,9 +168,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
 
         // Set the configuration of the child as if the joint was at 0 position:
         dBodyID cb = childRigidBody;
-        C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
-        C7Vector alpha(jtr2.getInverse() * cb_a);
-        C7Vector cb_b(jtr * alpha);
+        CPose cb_a(CQuaternion(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
+        CPose alpha(jtr2.getInverse() * cb_a);
+        CPose cb_b(jtr * alpha);
         dBodySetPosition(cb, cb_b.X(0), cb_b.X(1), cb_b.X(2));
         dQuaternion dQ;
         dQ[0] = cb_b.Q.data[0];
@@ -202,13 +202,13 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
 
     dWorldID odeWorldID = CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
-    C7Vector jtr;
+    CPose jtr;
     _simGetObjectCumulativeTransformation(joint, jtr.X.data, jtr.Q.data, true);
 
     // Following is DIFFERENT from the regular situation (non-looped):
-    C7Vector tmpTr1;
+    CPose tmpTr1;
     _simGetObjectCumulativeTransformation(dummyB, tmpTr1.X.data, tmpTr1.Q.data, false);
-    C7Vector jtr2(tmpTr1 * _localTrA_2.getInverse());
+    CPose jtr2(tmpTr1 * _localTrA_2.getInverse());
 
     C3X3Matrix m;
     m.setIdentity();
@@ -232,12 +232,12 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
         jtr2.Q = jtr2.Q * jointOffsetThing.getQuaternion() * m.getQuaternion();
     }
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     dBodyID parentRigidBody = ((CRigidBodyDyn*)bodyA)->getOdeRigidBody();
     dBodyID childRigidBody = ((CRigidBodyDyn*)bodyB)->getOdeRigidBody();
@@ -284,9 +284,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
 
         // Set the configuration of the child as if the joint was at 0 position:
         dBodyID cb = childRigidBody;
-        C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
-        C7Vector alpha(jtr2.getInverse() * cb_a);
-        C7Vector cb_b(jtr * alpha);
+        CPose cb_a(CQuaternion(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
+        CPose alpha(jtr2.getInverse() * cb_a);
+        CPose cb_b(jtr * alpha);
         dBodySetPosition(cb, cb_b.X(0), cb_b.X(1), cb_b.X(2));
         dQuaternion dQ;
         dQ[0] = cb_b.Q.data[0];
@@ -322,9 +322,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
 
         // Set the configuration of the child as if the joint was at 0 position:
         dBodyID cb = childRigidBody;
-        C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
-        C7Vector alpha(jtr2.getInverse() * cb_a);
-        C7Vector cb_b(jtr * alpha);
+        CPose cb_a(CQuaternion(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
+        CPose alpha(jtr2.getInverse() * cb_a);
+        CPose cb_b(jtr * alpha);
         dBodySetPosition(cb, cb_b.X(0), cb_b.X(1), cb_b.X(2));
         dQuaternion dQ;
         dQ[0] = cb_b.Q.data[0];
@@ -359,9 +359,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
 
         // Set the configuration of the child as if the joint was at 0 position:
         dBodyID cb = childRigidBody;
-        C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
-        C7Vector alpha(jtr2.getInverse() * cb_a);
-        C7Vector cb_b(jtr * alpha);
+        CPose cb_a(CQuaternion(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
+        CPose alpha(jtr2.getInverse() * cb_a);
+        CPose cb_b(jtr * alpha);
         dBodySetPosition(cb, cb_b.X(0), cb_b.X(1), cb_b.X(2));
         dQuaternion dQ;
         dQ[0] = cb_b.Q.data[0];
@@ -393,16 +393,16 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXDummy* d
     dWorldID odeWorldID = CRigidBodyContainerDyn::getDynWorld()->getWorld();
     _odeJointFeedbackStructure = nullptr; // Only used with ODE force sensors or joints
 
-    C7Vector dtr, dtr2;
+    CPose dtr, dtr2;
     _simGetObjectCumulativeTransformation(dummyA, dtr.X.data, dtr.Q.data, true);
     _simGetObjectCumulativeTransformation(dummyB, dtr2.X.data, dtr2.Q.data, true);
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector dtrRelToBodyA;
-    C7Vector dtrRelToBodyB;
+    CPose dtrRelToBodyA;
+    CPose dtrRelToBodyB;
 
     double linScaling = CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
 
@@ -416,9 +416,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXDummy* d
 
     // Set the configuration of the child as if the dummies were overlapping:
     dBodyID cb = childRigidBody;
-    C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
-    C7Vector x(cb_a.getInverse() * dtr2);
-    C7Vector cb_b(dtr * x.getInverse());
+    CPose cb_a(CQuaternion(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
+    CPose x(cb_a.getInverse() * dtr2);
+    CPose cb_b(dtr * x.getInverse());
     dBodySetPosition(cb, cb_b.X(0), cb_b.X(1), cb_b.X(2));
     dQuaternion dQ;
     dQ[0] = cb_b.Q.data[0];
@@ -446,16 +446,16 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
 
     dWorldID odeWorldID = CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
-    C7Vector jtr, jtr2;
+    CPose jtr, jtr2;
     _simGetObjectCumulativeTransformation(forceSensor, jtr.X.data, jtr.Q.data, true);
     _simGetObjectCumulativeTransformation(forceSensor, jtr2.X.data, jtr2.Q.data, false);
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     batr = bodyA->getInertiaFrameTransformation();
     jtrRelToBodyA = batr.getInverse() * jtr;
@@ -488,19 +488,19 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
 
     dWorldID odeWorldID = CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
-    C7Vector jtr;
+    CPose jtr;
     _simGetObjectCumulativeTransformation(forceSensor, jtr.X.data, jtr.Q.data, true);
     // Following is DIFFERENT from the regular situation (non-looped):
-    C7Vector tmpTr1;
+    CPose tmpTr1;
     _simGetObjectCumulativeTransformation(dummyB, tmpTr1.X.data, tmpTr1.Q.data, false);
-    C7Vector jtr2(tmpTr1 * _localTrA_2.getInverse());
+    CPose jtr2(tmpTr1 * _localTrA_2.getInverse());
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     batr = bodyA->getInertiaFrameTransformation();
     jtrRelToBodyA = batr.getInverse() * jtr;
@@ -522,9 +522,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
 
     // Set the configuration of the child as if the joint was at 0 position:
     dBodyID cb = childRigidBody;
-    C7Vector cb_a(C4Vector(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
-    C7Vector alpha(jtr2.getInverse() * cb_a);
-    C7Vector cb_b(jtr * alpha);
+    CPose cb_a(CQuaternion(((double*)dBodyGetQuaternion(cb))), C3Vector(((double*)dBodyGetPosition(cb))));
+    CPose alpha(jtr2.getInverse() * cb_a);
+    CPose cb_b(jtr * alpha);
     dBodySetPosition(cb, cb_b.X(0), cb_b.X(1), cb_b.X(2));
     dQuaternion dQ;
     dQ[0] = cb_b.Q.data[0];
@@ -775,15 +775,15 @@ void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime, int current
             absF /= forceScaling; // ********** SCALING
             C3Vector absT(_odeJointFeedbackStructure->t2[0], _odeJointFeedbackStructure->t2[1], _odeJointFeedbackStructure->t2[2]);
             absT /= torqueScaling; // ********** SCALING
-            C7Vector bodyBAbsConf(_bodyB->getInertiaFrameTransformation());
+            CPose bodyBAbsConf(_bodyB->getInertiaFrameTransformation());
 
-            C7Vector parentShapeAbsConf(_bodyA->getShapeFrameTransformation());
-            C7Vector sensorAbsConf(parentShapeAbsConf * _localTrA);
+            CPose parentShapeAbsConf(_bodyA->getShapeFrameTransformation());
+            CPose sensorAbsConf(parentShapeAbsConf * _localTrA);
 
             C3Vector absCorrectionV(sensorAbsConf.X - bodyBAbsConf.X);
             absT += absF ^ absCorrectionV;
 
-            C4Vector sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
+            CQuaternion sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
             C3Vector forces(sensorAbsInverseQ * (absF * -1.0));
             C3Vector torques(sensorAbsInverseQ * (absT * -1.0));
             if (_simGetJointType(_joint) == sim_joint_revolute)
@@ -808,15 +808,15 @@ void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime, int current
         absF /= forceScaling; // ********** SCALING
         C3Vector absT(_odeJointFeedbackStructure->t2[0], _odeJointFeedbackStructure->t2[1], _odeJointFeedbackStructure->t2[2]);
         absT /= torqueScaling; // ********** SCALING
-        C7Vector bodyBAbsConf(_bodyB->getInertiaFrameTransformation());
+        CPose bodyBAbsConf(_bodyB->getInertiaFrameTransformation());
 
-        C7Vector parentShapeAbsConf(_bodyA->getShapeFrameTransformation());
-        C7Vector sensorAbsConf(parentShapeAbsConf * _localTrA);
+        CPose parentShapeAbsConf(_bodyA->getShapeFrameTransformation());
+        CPose sensorAbsConf(parentShapeAbsConf * _localTrA);
 
         C3Vector absCorrectionV(sensorAbsConf.X - bodyBAbsConf.X);
         absT += absF ^ absCorrectionV;
 
-        C4Vector sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
+        CQuaternion sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
         forces = sensorAbsInverseQ * (absF * -1.0);
         torques = sensorAbsInverseQ * (absT * -1.0);
         _simAddForceSensorCumulativeForcesAndTorques(_forceSensor, forces.data, torques.data, totalPassesCount, simulationTime);

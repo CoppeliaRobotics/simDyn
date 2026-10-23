@@ -13,12 +13,12 @@ class CRigidBodyDyn : public CRigidBodyDyn_base
 
     NewtonBody* getNewtonRigidBody() const;
 
-    C7Vector getNewtonMatrix() const;
+    CPose getNewtonMatrix() const;
     static void TransformCallback(const NewtonBody* body, const dFloat* matrix, int threadIndex);
     static void ApplyExtenalForceCallback(const NewtonBody* body, dFloat timestep, int threadIndex);
 
-    C7Vector getInertiaFrameTransformation();
-    C7Vector getShapeFrameTransformation();
+    CPose getInertiaFrameTransformation();
+    CPose getShapeFrameTransformation();
     void reportVelocityToShape(sReal simulationTime);
     void handleAdditionalForcesAndTorques();
     void handleKinematicBody_step(sReal t, sReal cumulatedTimeStep);

@@ -37,7 +37,7 @@ bool CParticleDyn::addToEngineIfNeeded(double parameters[18], int objectID)
     localInertia.setY(im(1) * mass);
     localInertia.setZ(im(2) * mass);
 
-    C4Vector q;
+    CQuaternion q;
     q.setIdentity();
     btDefaultMotionState* myMotionState = new btDefaultMotionState(btTransform(btQuaternion(q(1), q(2), q(3), q(0)), btVector3(_currentPosition(0) * linScaling, _currentPosition(1) * linScaling, _currentPosition(2) * linScaling))); // ********** SCALING
     btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, _collShape, localInertia);

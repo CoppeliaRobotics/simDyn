@@ -26,11 +26,11 @@ void CRigidBodyDyn::init(CXShape* shape, bool forceStatic, bool forceNonResponda
     double linScaling = CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     double linVelScaling = CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn();
 
-    C7Vector cumulPart1_scaled;
+    CPose cumulPart1_scaled;
     _simGetObjectCumulativeTransformation(shape, cumulPart1_scaled.X.data, cumulPart1_scaled.Q.data, true);
 
     cumulPart1_scaled.X *= linScaling; // ********** SCALING
-    C7Vector tr(cumulPart1_scaled * _localInertiaFrame_scaled);
+    CPose tr(cumulPart1_scaled * _localInertiaFrame_scaled);
     CXGeomWrap* geomInfo = (CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
     double mass = _mass_scaled;
 
@@ -106,9 +106,9 @@ void CRigidBodyDyn::init(CXShape* shape, bool forceStatic, bool forceNonResponda
         _rigidBody->setActivationState(DISABLE_DEACTIVATION); // 11.05.2021
 }
 
-C7Vector CRigidBodyDyn::getInertiaFrameTransformation()
+CPose CRigidBodyDyn::getInertiaFrameTransformation()
 { // return value is unscaled (relative to CoppeliaSim)
-    C7Vector tr;
+    CPose tr;
     btTransform wt;
     btMotionState* ms = _rigidBody->getMotionState();
     if (ms != nullptr)
@@ -129,9 +129,9 @@ C7Vector CRigidBodyDyn::getInertiaFrameTransformation()
     return (tr);
 }
 
-C7Vector CRigidBodyDyn::getShapeFrameTransformation()
+CPose CRigidBodyDyn::getShapeFrameTransformation()
 { // return value is unscaled (relative to CoppeliaSim)
-    C7Vector tr;
+    CPose tr;
     if (_collisionShapeDyn != nullptr)
     {
         btTransform wt;
@@ -203,7 +203,7 @@ void CRigidBodyDyn::handleKinematicBody_step(double t, double cumulatedTimeStep)
 {
     if (_isStatic && _applyBodyToShapeTransf_kinematicBody)
     { // static & moved (the desired movement was large enough)
-        C7Vector tr;
+        CPose tr;
         tr.buildInterpolation(_bodyStart_kinematicBody, _bodyEnd_kinematicBody, t);
         tr.X *= CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn(); // ********** SCALING
 
@@ -221,7 +221,7 @@ void CRigidBodyDyn::handleKinematicBody_end()
 {
     if (_isStatic && _applyBodyToShapeTransf_kinematicBody)
     { // static & moved (the desired movement was large enough)
-        C7Vector tr(_bodyEnd_kinematicBody);
+        CPose tr(_bodyEnd_kinematicBody);
         tr.X *= CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn(); // ********** SCALING
 
         btQuaternion wtq(tr.Q(1), tr.Q(2), tr.Q(3), tr.Q(0));

@@ -293,7 +293,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
     NewtonWorld* world = CRigidBodyContainerDyn::getDynWorld()->getWorld();
     _newtonJointOffset = _simGetJointPosition(joint);
 
-    C7Vector jtr;
+    CPose jtr;
     _simGetObjectCumulativeTransformation(joint, jtr.X.data, jtr.Q.data, true);
 
     // in Newton the moving direction is the x-axis
@@ -352,13 +352,13 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
     NewtonWorld* world = CRigidBodyContainerDyn::getDynWorld()->getWorld();
     _newtonJointOffset = 0.0;
 
-    C7Vector jtr;
+    CPose jtr;
     _simGetObjectCumulativeTransformation(joint, jtr.X.data, jtr.Q.data, true);
 
     // Following is DIFFERENT from the regular situation (non-looped):
-    C7Vector tmpTr1;
+    CPose tmpTr1;
     _simGetObjectCumulativeTransformation(dummyB, tmpTr1.X.data, tmpTr1.Q.data, false);
-    C7Vector jtr2(tmpTr1 * _localTrA_2.getInverse());
+    CPose jtr2(tmpTr1 * _localTrA_2.getInverse());
 
     C3X3Matrix m;
     m.buildYRotation(-piValue * 0.5);
@@ -380,12 +380,12 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
     dMatrix jmatrix(GetDMatrixFromCoppeliaSimTransformation(jtr));
 
     //----
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     batr = bodyA->getInertiaFrameTransformation();
     jtrRelToBodyA = batr.getInverse() * jtr;
@@ -406,11 +406,11 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
     //    dMatrix matrixT=matrixI.Transpose4X4();
     //    C4X4Matrix mTemp;
     //    mTemp.setData(&matrixT[0][0]);
-    //    C7Vector cb_a(mTemp.getTransformation());
+    //    CPose cb_a(mTemp.getTransformation());
     dMatrix matrixT = matrixI;
-    C7Vector cb_a(GetCoppeliaSimTransformationFromDMatrix(matrixT));
-    C7Vector alpha(jtr2.getInverse() * cb_a);
-    C7Vector cb_b(jtr * alpha);
+    CPose cb_a(GetCoppeliaSimTransformationFromDMatrix(matrixT));
+    CPose alpha(jtr2.getInverse() * cb_a);
+    CPose cb_b(jtr * alpha);
     matrixT = GetDMatrixFromCoppeliaSimTransformation(cb_b);
     NewtonBodySetMatrix(cb, &matrixT[0][0]);
     //----
@@ -457,16 +457,16 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXDummy* d
     NewtonWorld* world = CRigidBodyContainerDyn::getDynWorld()->getWorld();
     _newtonJointOffset = 0.0;
 
-    C7Vector dtr, dtr2;
+    CPose dtr, dtr2;
     _simGetObjectCumulativeTransformation(dummyA, dtr.X.data, dtr.Q.data, true);
     _simGetObjectCumulativeTransformation(dummyB, dtr2.X.data, dtr2.Q.data, true);
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector dtrRelToBodyA;
-    C7Vector dtrRelToBodyB;
+    CPose dtrRelToBodyA;
+    CPose dtrRelToBodyB;
 
     NewtonBody* parentRigidBody = ((CRigidBodyDyn*)bodyA)->getNewtonRigidBody();
     NewtonBody* childRigidBody = ((CRigidBodyDyn*)bodyB)->getNewtonRigidBody();
@@ -478,11 +478,11 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXDummy* d
     //    dMatrix matrixT=matrixI.Transpose4X4();
     //    C4X4Matrix tmp;
     //    tmp.setData(&matrixT[0][0]);
-    //    C7Vector cb_a(tmp);
+    //    CPose cb_a(tmp);
     dMatrix matrixT = matrixI;
-    C7Vector cb_a(GetCoppeliaSimTransformationFromDMatrix(matrixT));
-    C7Vector x(cb_a.getInverse() * dtr2);
-    C7Vector cb_b(dtr * x.getInverse());
+    CPose cb_a(GetCoppeliaSimTransformationFromDMatrix(matrixT));
+    CPose x(cb_a.getInverse() * dtr2);
+    CPose cb_b(dtr * x.getInverse());
     matrixT = GetDMatrixFromCoppeliaSimTransformation(cb_b);
     NewtonBodySetMatrix(cb, &matrixT[0][0]);
 
@@ -504,7 +504,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
     NewtonWorld* world = CRigidBodyContainerDyn::getDynWorld()->getWorld();
     _newtonJointOffset = 0.0;
 
-    C7Vector jtr, jtr2;
+    CPose jtr, jtr2;
     _simGetObjectCumulativeTransformation(forceSensor, jtr.X.data, jtr.Q.data, true);
     _simGetObjectCumulativeTransformation(forceSensor, jtr2.X.data, jtr2.Q.data, false);
 
@@ -536,19 +536,19 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
     NewtonWorld* world = CRigidBodyContainerDyn::getDynWorld()->getWorld();
     _newtonJointOffset = 0.0;
 
-    C7Vector jtr;
+    CPose jtr;
     _simGetObjectCumulativeTransformation(forceSensor, jtr.X.data, jtr.Q.data, true);
     // Following is DIFFERENT from the regular situation (non-looped):
-    C7Vector tmpTr1;
+    CPose tmpTr1;
     _simGetObjectCumulativeTransformation(dummyB, tmpTr1.X.data, tmpTr1.Q.data, false);
-    C7Vector jtr2(tmpTr1 * _localTrA_2.getInverse());
+    CPose jtr2(tmpTr1 * _localTrA_2.getInverse());
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     batr = bodyA->getInertiaFrameTransformation();
     jtrRelToBodyA = batr.getInverse() * jtr;
@@ -566,11 +566,11 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
     //    dMatrix matrixT=matrixI.Transpose4X4();
     //    C4X4Matrix tmp;
     //    tmp.setData(&matrixT[0][0]);
-    //    C7Vector cb_a(tmp);
+    //    CPose cb_a(tmp);
     dMatrix matrixT = matrixI;
-    C7Vector cb_a(GetCoppeliaSimTransformationFromDMatrix(matrixT));
-    C7Vector alpha(jtr2.getInverse() * cb_a);
-    C7Vector cb_b(jtr * alpha);
+    CPose cb_a(GetCoppeliaSimTransformationFromDMatrix(matrixT));
+    CPose alpha(jtr2.getInverse() * cb_a);
+    CPose cb_b(jtr * alpha);
     matrixT = GetDMatrixFromCoppeliaSimTransformation(cb_b);
     NewtonBodySetMatrix(cb, &matrixT[0][0]);
     //----

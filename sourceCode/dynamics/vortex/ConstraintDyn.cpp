@@ -55,7 +55,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
     Vx::VxUniverse* vortexWorld = CRigidBodyContainerDyn::getDynWorld()->getWorld();
     _vortexDependencyJointId = -1;
 
-    C7Vector jtr, jtr2;
+    CPose jtr, jtr2;
     _simGetObjectCumulativeTransformation(joint, jtr.X.data, jtr.Q.data, true);
     _simGetObjectCumulativeTransformation(joint, jtr2.X.data, jtr2.Q.data, false);
 
@@ -72,12 +72,12 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
         jtr2.Q = jtr2.Q * jointOffsetThing.getQuaternion();
     }
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     Vx::VxPart* parentRigidBody = ((CRigidBodyDyn*)bodyA)->getVortexRigidBody();
     Vx::VxPart* childRigidBody = ((CRigidBodyDyn*)bodyB)->getVortexRigidBody();
@@ -108,9 +108,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
         Vx::VxPart* cb = childRigidBody;
         Vx::VxReal4 quat;
         cb->getOrientationQuaternion(quat);
-        C7Vector cb_a(C4Vector(quat), VxVector32C3Vector(cb->getTransform().t()));
-        C7Vector alpha(jtr2.getInverse() * cb_a);
-        C7Vector cb_b(jtr * alpha);
+        CPose cb_a(CQuaternion(quat), VxVector32C3Vector(cb->getTransform().t()));
+        CPose alpha(jtr2.getInverse() * cb_a);
+        CPose cb_b(jtr * alpha);
         cb->setPosition(C3Vector2VxVector3(cb_b.X));
         cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
@@ -130,9 +130,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
         Vx::VxPart* cb = childRigidBody;
         Vx::VxReal4 quat;
         cb->getOrientationQuaternion(quat);
-        C7Vector cb_a(C4Vector(quat), VxVector32C3Vector(cb->getTransform().t()));
-        C7Vector alpha(jtr2.getInverse() * cb_a);
-        C7Vector cb_b(jtr * alpha);
+        CPose cb_a(CQuaternion(quat), VxVector32C3Vector(cb->getTransform().t()));
+        CPose alpha(jtr2.getInverse() * cb_a);
+        CPose cb_b(jtr * alpha);
         cb->setPosition(C3Vector2VxVector3(cb_b.X));
         cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
@@ -152,9 +152,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
         Vx::VxPart* cb = childRigidBody;
         Vx::VxReal4 quat;
         cb->getOrientationQuaternion(quat);
-        C7Vector cb_a(C4Vector(quat), VxVector32C3Vector(cb->getTransform().t()));
-        C7Vector alpha(jtr2.getInverse() * cb_a);
-        C7Vector cb_b(jtr * alpha);
+        CPose cb_a(CQuaternion(quat), VxVector32C3Vector(cb->getTransform().t()));
+        CPose alpha(jtr2.getInverse() * cb_a);
+        CPose cb_b(jtr * alpha);
         cb->setPosition(C3Vector2VxVector3(cb_b.X));
         cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
@@ -180,13 +180,13 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
     Vx::VxUniverse* vortexWorld = CRigidBodyContainerDyn::getDynWorld()->getWorld();
     _vortexDependencyJointId = -1;
 
-    C7Vector jtr;
+    CPose jtr;
     _simGetObjectCumulativeTransformation(joint, jtr.X.data, jtr.Q.data, true);
 
     // Following is DIFFERENT from the regular situation (non-looped):
-    C7Vector tmpTr1;
+    CPose tmpTr1;
     _simGetObjectCumulativeTransformation(dummyB, tmpTr1.X.data, tmpTr1.Q.data, false);
-    C7Vector jtr2(tmpTr1 * _localTrA_2.getInverse());
+    CPose jtr2(tmpTr1 * _localTrA_2.getInverse());
 
     if (_simGetJointType(joint) == sim_joint_revolute)
     {
@@ -201,12 +201,12 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
         jtr2.Q = jtr2.Q * jointOffsetThing.getQuaternion();
     }
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     Vx::VxPart* parentRigidBody = ((CRigidBodyDyn*)bodyA)->getVortexRigidBody();
     Vx::VxPart* childRigidBody = ((CRigidBodyDyn*)bodyB)->getVortexRigidBody();
@@ -237,9 +237,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
         Vx::VxPart* cb = childRigidBody;
         Vx::VxReal4 quat;
         cb->getOrientationQuaternion(quat);
-        C7Vector cb_a(C4Vector(quat), VxVector32C3Vector(cb->getTransform().t()));
-        C7Vector alpha(jtr2.getInverse() * cb_a);
-        C7Vector cb_b(jtr * alpha);
+        CPose cb_a(CQuaternion(quat), VxVector32C3Vector(cb->getTransform().t()));
+        CPose alpha(jtr2.getInverse() * cb_a);
+        CPose cb_b(jtr * alpha);
         cb->setPosition(C3Vector2VxVector3(cb_b.X));
         cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
@@ -259,9 +259,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
         Vx::VxPart* cb = childRigidBody;
         Vx::VxReal4 quat;
         cb->getOrientationQuaternion(quat);
-        C7Vector cb_a(C4Vector(quat), VxVector32C3Vector(cb->getTransform().t()));
-        C7Vector alpha(jtr2.getInverse() * cb_a);
-        C7Vector cb_b(jtr * alpha);
+        CPose cb_a(CQuaternion(quat), VxVector32C3Vector(cb->getTransform().t()));
+        CPose alpha(jtr2.getInverse() * cb_a);
+        CPose cb_b(jtr * alpha);
         cb->setPosition(C3Vector2VxVector3(cb_b.X));
         cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
@@ -281,9 +281,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
         Vx::VxPart* cb = childRigidBody;
         Vx::VxReal4 quat;
         cb->getOrientationQuaternion(quat);
-        C7Vector cb_a(C4Vector(quat), VxVector32C3Vector(cb->getTransform().t()));
-        C7Vector alpha(jtr2.getInverse() * cb_a);
-        C7Vector cb_b(jtr * alpha);
+        CPose cb_a(CQuaternion(quat), VxVector32C3Vector(cb->getTransform().t()));
+        CPose alpha(jtr2.getInverse() * cb_a);
+        CPose cb_b(jtr * alpha);
         cb->setPosition(C3Vector2VxVector3(cb_b.X));
         cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
@@ -307,16 +307,16 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXDummy* d
     Vx::VxUniverse* vortexWorld = CRigidBodyContainerDyn::getDynWorld()->getWorld();
     _vortexDependencyJointId = -1;
 
-    C7Vector dtr, dtr2;
+    CPose dtr, dtr2;
     _simGetObjectCumulativeTransformation(dummyA, dtr.X.data, dtr.Q.data, true);
     _simGetObjectCumulativeTransformation(dummyB, dtr2.X.data, dtr2.Q.data, true);
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector dtrRelToBodyA;
-    C7Vector dtrRelToBodyB;
+    CPose dtrRelToBodyA;
+    CPose dtrRelToBodyB;
 
     _vortexConstraint = new Vx::VxHinge();
 
@@ -327,9 +327,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXDummy* d
     Vx::VxPart* cb = childRigidBody;
     Vx::VxReal4 quat;
     cb->getOrientationQuaternion(quat);
-    C7Vector cb_a(C4Vector(quat), VxVector32C3Vector(cb->getTransform().t()));
-    C7Vector x(cb_a.getInverse() * dtr2);
-    C7Vector cb_b(dtr * x.getInverse());
+    CPose cb_a(CQuaternion(quat), VxVector32C3Vector(cb->getTransform().t()));
+    CPose x(cb_a.getInverse() * dtr2);
+    CPose cb_b(dtr * x.getInverse());
     cb->setPosition(C3Vector2VxVector3(cb_b.X));
     cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
@@ -354,16 +354,16 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
 
     _vortexDependencyJointId = -1;
 
-    C7Vector jtr, jtr2;
+    CPose jtr, jtr2;
     _simGetObjectCumulativeTransformation(forceSensor, jtr.X.data, jtr.Q.data, true);
     _simGetObjectCumulativeTransformation(forceSensor, jtr2.X.data, jtr2.Q.data, false);
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     batr = bodyA->getInertiaFrameTransformation();
     jtrRelToBodyA = batr.getInverse() * jtr;
@@ -396,19 +396,19 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
     Vx::VxUniverse* vortexWorld = CRigidBodyContainerDyn::getDynWorld()->getWorld();
     _vortexDependencyJointId = -1;
 
-    C7Vector jtr;
+    CPose jtr;
     _simGetObjectCumulativeTransformation(forceSensor, jtr.X.data, jtr.Q.data, true);
     // Following is DIFFERENT from the regular situation (non-looped):
-    C7Vector tmpTr1;
+    CPose tmpTr1;
     _simGetObjectCumulativeTransformation(dummyB, tmpTr1.X.data, tmpTr1.Q.data, false);
-    C7Vector jtr2(tmpTr1 * _localTrA_2.getInverse());
+    CPose jtr2(tmpTr1 * _localTrA_2.getInverse());
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     batr = bodyA->getInertiaFrameTransformation();
     jtrRelToBodyA = batr.getInverse() * jtr;
@@ -425,9 +425,9 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
     Vx::VxPart* cb = childRigidBody;
     Vx::VxReal4 quat;
     cb->getOrientationQuaternion(quat);
-    C7Vector cb_a(C4Vector(quat), VxVector32C3Vector(cb->getTransform().t()));
-    C7Vector alpha(jtr2.getInverse() * cb_a);
-    C7Vector cb_b(jtr * alpha);
+    CPose cb_a(CQuaternion(quat), VxVector32C3Vector(cb->getTransform().t()));
+    CPose alpha(jtr2.getInverse() * cb_a);
+    CPose cb_b(jtr * alpha);
     cb->setPosition(C3Vector2VxVector3(cb_b.X));
     cb->setOrientationQuaternion(cb_b.Q(0), cb_b.Q(1), cb_b.Q(2), cb_b.Q(3));
 
@@ -730,25 +730,25 @@ void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime, int current
         C3Vector absF = VxVector32C3Vector(force);
         C3Vector absT = VxVector32C3Vector(torque);
 
-        C7Vector parentShapeAbsConf(_bodyA->getShapeFrameTransformation());
-        C7Vector sensorAbsConf(parentShapeAbsConf * _localTrA);
+        CPose parentShapeAbsConf(_bodyA->getShapeFrameTransformation());
+        CPose sensorAbsConf(parentShapeAbsConf * _localTrA);
 
         if (_vortexConstraint->getPart(1)->getControl() == Vx::VxPart::kControlDynamic)
         {
-            C7Vector bodyBAbsConf(_bodyB->getInertiaFrameTransformation());
+            CPose bodyBAbsConf(_bodyB->getInertiaFrameTransformation());
             C3Vector absCorrectionV(sensorAbsConf.X - bodyBAbsConf.X);
             absT += absF ^ absCorrectionV;
         }
         else
         {
-            C7Vector bodyAAbsConf(_bodyA->getInertiaFrameTransformation());
+            CPose bodyAAbsConf(_bodyA->getInertiaFrameTransformation());
             C3Vector absCorrectionV(sensorAbsConf.X - bodyAAbsConf.X);
             absT += absF ^ absCorrectionV;
             absF *= -1.0;
             absT *= -1.0;
         }
 
-        C4Vector sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
+        CQuaternion sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
         forces = sensorAbsInverseQ * (absF * -1.0);
         torques = sensorAbsInverseQ * (absT * -1.0);
         _simAddForceSensorCumulativeForcesAndTorques(_forceSensor, forces.data, torques.data, totalPassesCount, simulationTime);

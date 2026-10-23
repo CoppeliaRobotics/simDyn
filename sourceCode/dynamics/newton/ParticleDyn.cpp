@@ -21,7 +21,7 @@ bool CParticleDyn::addToEngineIfNeeded(sReal parameters[18], int objectID)
     CRigidBodyContainerDyn* rbc = (CRigidBodyContainerDyn*)(CRigidBodyContainerDyn::getDynWorld());
     NewtonWorld* const world = rbc->getWorld();
 
-    C7Vector tr;
+    CPose tr;
     tr.setIdentity();
     tr.X = _currentPosition;
     dMatrix matrix(GetDMatrixFromCoppeliaSimTransformation(tr));

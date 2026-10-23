@@ -42,8 +42,8 @@ void CConstraintDyn_base::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoi
     bodyB->reportConfigurationToShape(CRigidBodyContainerDyn::getDynWorld()->getSimulationTime());
 
     _simGetObjectLocalTransformation(joint, _localTrA.X.data, _localTrA.Q.data, true);
-    C7Vector tmpTr1;
-    C7Vector tmpTr2;
+    CPose tmpTr1;
+    CPose tmpTr2;
     _simGetObjectCumulativeTransformation(bodyB->getShape(), tmpTr1.X.data, tmpTr1.Q.data, false);
     _simGetObjectCumulativeTransformation(joint, tmpTr2.X.data, tmpTr2.Q.data, false);
     _localTrB = tmpTr1.getInverse() * tmpTr2;
@@ -114,7 +114,7 @@ void CConstraintDyn_base::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXFor
     bodyB->reportConfigurationToShape(CRigidBodyContainerDyn::getDynWorld()->getSimulationTime());
 
     _simGetObjectLocalTransformation(forceSensor, _localTrA.X.data, _localTrA.Q.data, true);
-    C7Vector tmpTr1, tmpTr2;
+    CPose tmpTr1, tmpTr2;
     _simGetObjectCumulativeTransformation(bodyB->getShape(), tmpTr1.X.data, tmpTr1.Q.data, false);
     _simGetObjectCumulativeTransformation(forceSensor, tmpTr2.X.data, tmpTr2.Q.data, false);
     _localTrB = tmpTr1.getInverse() * tmpTr2;
@@ -192,15 +192,15 @@ void CConstraintDyn_base::reportStateToCoppeliaSim(sReal simulationTime, int cur
             _simSetDynamicMotorReflectedPositionFromDynamicEngine(_joint, getPrismaticJointPosition(), simulationTime);
         if (_simGetJointType(_joint) == sim_joint_spherical)
         { // a bit more troublesome here!
-            C7Vector parentCumul(_bodyA->getShapeFrameTransformation());
-            C7Vector childCumul(_bodyB->getShapeFrameTransformation());
-            C7Vector p(parentCumul * _localTrA);
-            C7Vector c;
+            CPose parentCumul(_bodyA->getShapeFrameTransformation());
+            CPose childCumul(_bodyB->getShapeFrameTransformation());
+            CPose p(parentCumul * _localTrA);
+            CPose c;
             if (_dummyA != nullptr)
                 c = childCumul * _localTrB * _localTrA_2.getInverse(); // special case (looped)
             else
                 c = childCumul * _localTrB; // regular case (non-looped)
-            C7Vector x(p.getInverse() * c);
+            CPose x(p.getInverse() * c);
             _simSetJointSphericalTransformation(_joint, x.Q.data, simulationTime);
         }
     }

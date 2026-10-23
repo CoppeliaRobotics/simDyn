@@ -43,14 +43,14 @@ CCollShapeDyn* CRigidBodyDyn_base::getCollisionShapeDyn() const
     return (_collisionShapeDyn);
 }
 
-C7Vector CRigidBodyDyn_base::getInertiaFrameTransformation()
+CPose CRigidBodyDyn_base::getInertiaFrameTransformation()
 {
-    return (C7Vector::identityTransformation);
+    return (CPose::identityTransformation);
 }
 
-C7Vector CRigidBodyDyn_base::getShapeFrameTransformation()
+CPose CRigidBodyDyn_base::getShapeFrameTransformation()
 {
-    return (C7Vector::identityTransformation);
+    return (CPose::identityTransformation);
 }
 
 void CRigidBodyDyn_base::reportVelocityToShape(sReal simulationTime)
@@ -94,7 +94,7 @@ void CRigidBodyDyn_base::reportConfigurationToShape(sReal simulationTime)
     if (!_isStatic)
     { // dynamic
         // set the pose of non-static bodies, and set intrinsic dynamic errors of joints/force sensors linked to that shape
-        C7Vector tr(getShapeFrameTransformation());
+        CPose tr(getShapeFrameTransformation());
         _simDynReportObjectCumulativeTransformation(_shape, tr.X.data, tr.Q.data, simulationTime);
     }
 }
@@ -104,10 +104,10 @@ void CRigidBodyDyn_base::handleKinematicBody_init(sReal dt)
     if (_isStatic)
     {
         _bodyStart_kinematicBody = getInertiaFrameTransformation();
-        C7Vector aax(_localInertiaFrame_scaled);
+        CPose aax(_localInertiaFrame_scaled);
         aax.X /= CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn(); // ********** SCALING
 
-        C7Vector cumulTrp1;
+        CPose cumulTrp1;
         _simGetObjectCumulativeTransformation(_shape, cumulTrp1.X.data, cumulTrp1.Q.data, true);
         _bodyEnd_kinematicBody = cumulTrp1 * aax;
         _applyBodyToShapeTransf_kinematicBody = (((_bodyStart_kinematicBody.X - _bodyEnd_kinematicBody.X).getLength() > 0.00001) || (_bodyStart_kinematicBody.Q.getAngleBetweenQuaternions(_bodyEnd_kinematicBody.Q) > 0.05 * degToRad));
@@ -121,13 +121,13 @@ void CRigidBodyDyn_base::handleKinematicBody_init(sReal dt)
         {
             _simSetInitialDynamicVelocity(_shape, C3Vector::zeroVector.data);    // important to reset it!
             _simSetInitialDynamicAngVelocity(_shape, C3Vector::zeroVector.data); // important to reset it!
-            C7Vector tr;
+            CPose tr;
             _simGetObjectCumulativeTransformation(_shape, tr.X.data, tr.Q.data, true);
             tr.X += dx;
             if (dxa.getLength() > 0.0)
             { // following new since 25/03/2013
-                C4Vector q(dxa(0), dxa(1), dxa(2));
-                C4Vector angleAndAxis(q.getAngleAndAxis());
+                CQuaternion q(dxa(0), dxa(1), dxa(2));
+                CQuaternion angleAndAxis(q.getAngleAndAxis());
                 q.setAngleAndAxis(angleAndAxis(0) * dt, C3Vector(angleAndAxis(1), angleAndAxis(2), angleAndAxis(3)));
                 tr.Q = tr.Q * q;
             }

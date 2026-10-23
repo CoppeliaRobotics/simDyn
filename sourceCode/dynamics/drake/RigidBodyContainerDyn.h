@@ -30,8 +30,8 @@ struct SMjShape
     int mjIdStatic;   // body (static counterpart, if applies)
     int mjIdJoint;    // freejoint (if shape in free mode)
     shapeModes shapeMode;
-    C7Vector staticShapeStart;
-    C7Vector staticShapeGoal;
+    CPose staticShapeStart;
+    CPose staticShapeGoal;
     itemTypes itemType;
     bool adhesion;
     std::vector<int> geomIndices; // pointing into _allGeoms
@@ -60,8 +60,8 @@ struct SMjJoint
     int jointType;
     double jointCtrlDv;
     double jointCtrlToApply;
-    C4Vector initialBallQuat;
-    C4Vector initialBallQuat2;
+    CQuaternion initialBallQuat;
+    CQuaternion initialBallQuat2;
     int dependencyJointHandle;
     double polycoef[5];
 };
@@ -128,7 +128,7 @@ class CRigidBodyContainerDyn : public CRigidBodyContainerDyn_base
     std::string _buildMujocoWorld(double timeStep, double simTime, bool rebuild);
     bool _addObjectBranch(CXSceneObject* object, CXSceneObject* parent, CXmlSer* xmlDoc, SInfo* info);
     void _addShape(CXSceneObject* object, CXSceneObject* parent, CXmlSer* xmlDoc, SInfo* info);
-    void _addInertiaElement(CXmlSer* xmlDoc, double mass, const C7Vector& tr, const C3Vector diagI);
+    void _addInertiaElement(CXmlSer* xmlDoc, double mass, const CPose& tr, const C3Vector diagI);
 
     int _handleContact(const mjModel* m, mjData* d, int geom1, int geom2);
     void _handleControl(const mjModel* m, mjData* d);

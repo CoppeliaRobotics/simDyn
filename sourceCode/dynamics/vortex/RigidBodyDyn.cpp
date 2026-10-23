@@ -156,7 +156,7 @@ void CRigidBodyDyn::init(CXShape* shape, bool forceStatic, bool forceNonResponda
     double autoAngularDampingTensionRatio = getVortexUnsignedDouble(floatParams[32]);
 
     C3Vector primLinearAxisVector(floatParams[33], floatParams[34], floatParams[35]);
-    C7Vector trTmp(_inverseLocalInertiaFrame_scaled);
+    CPose trTmp(_inverseLocalInertiaFrame_scaled);
     trTmp.X.clear();
     primLinearAxisVector = trTmp * primLinearAxisVector;
     Vx::VxVector3 frictiondirection = C3Vector2VxVector3(primLinearAxisVector);
@@ -201,10 +201,10 @@ void CRigidBodyDyn::init(CXShape* shape, bool forceStatic, bool forceNonResponda
     if (!autoAngularDamping)
         autoAngularDampingTensionRatio = 0.0;
 
-    C7Vector cumulPart1_scaled;
+    CPose cumulPart1_scaled;
     _simGetObjectCumulativeTransformation(shape, cumulPart1_scaled.X.data, cumulPart1_scaled.Q.data, true);
 
-    C7Vector tr(cumulPart1_scaled * _localInertiaFrame_scaled);
+    CPose tr(cumulPart1_scaled * _localInertiaFrame_scaled);
     CXGeomWrap* geomInfo = (CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
     double mass = _mass_scaled;
 
@@ -307,9 +307,9 @@ void CRigidBodyDyn::init(CXShape* shape, bool forceStatic, bool forceNonResponda
     }
 }
 
-C7Vector CRigidBodyDyn::getInertiaFrameTransformation()
+CPose CRigidBodyDyn::getInertiaFrameTransformation()
 { // return value is unscaled (relative to CoppeliaSim)
-    C7Vector tr;
+    CPose tr;
 
     Vx::VxReal4 quat;
     _vortexRigidBody->getOrientationQuaternion(quat);
@@ -325,9 +325,9 @@ C7Vector CRigidBodyDyn::getInertiaFrameTransformation()
     return (tr);
 }
 
-C7Vector CRigidBodyDyn::getShapeFrameTransformation()
+CPose CRigidBodyDyn::getShapeFrameTransformation()
 { // return value is unscaled (relative to CoppeliaSim)
-    C7Vector tr;
+    CPose tr;
     if (_collisionShapeDyn != nullptr)
     {
 
@@ -386,7 +386,7 @@ void CRigidBodyDyn::handleKinematicBody_step(double t, double cumulatedTimeStep)
 {
     if (_isStatic && _applyBodyToShapeTransf_kinematicBody)
     { // static & moved (the desired movement was large enough)
-        C7Vector tr;
+        CPose tr;
         tr.buildInterpolation(_bodyStart_kinematicBody, _bodyEnd_kinematicBody, t);
 
         _vortexRigidBody->setPosition(C3Vector2VxVector3(tr.X));
@@ -396,7 +396,7 @@ void CRigidBodyDyn::handleKinematicBody_step(double t, double cumulatedTimeStep)
         C3Vector dx((_bodyEnd_kinematicBody.X - _bodyStart_kinematicBody.X));
         _vortexRigidBody->setLinearVelocity(C3Vector2VxVector3(dx) / cumulatedTimeStep);
 
-        C4Vector q(_bodyEnd_kinematicBody.Q * _bodyStart_kinematicBody.Q.getInverse());
+        CQuaternion q(_bodyEnd_kinematicBody.Q * _bodyStart_kinematicBody.Q.getInverse());
         C3Vector dEuler(q.getEulerAngles());
         _vortexRigidBody->setAngularVelocity(C3Vector2VxVector3(dEuler) / cumulatedTimeStep);
     }
@@ -406,7 +406,7 @@ void CRigidBodyDyn::handleKinematicBody_end()
 {
     if (_isStatic && _applyBodyToShapeTransf_kinematicBody)
     { // static & moved (the desired movement was large enough)
-        C7Vector tr(_bodyEnd_kinematicBody);
+        CPose tr(_bodyEnd_kinematicBody);
 
         _vortexRigidBody->setPosition(C3Vector2VxVector3(tr.X));
         _vortexRigidBody->setOrientationQuaternion(tr.Q(0), tr.Q(1), tr.Q(2), tr.Q(3));

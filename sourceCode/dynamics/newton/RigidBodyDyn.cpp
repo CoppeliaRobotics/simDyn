@@ -26,10 +26,10 @@ void CRigidBodyDyn::init(CXShape* shape, bool forceStatic, bool forceNonResponda
 
     NewtonWorld* world = CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
-    C7Vector cumulPart1_scaled;
+    CPose cumulPart1_scaled;
     _simGetObjectCumulativeTransformation(shape, cumulPart1_scaled.X.data, cumulPart1_scaled.Q.data, true);
 
-    C7Vector tr(cumulPart1_scaled * _localInertiaFrame_scaled);
+    CPose tr(cumulPart1_scaled * _localInertiaFrame_scaled);
     CXGeomWrap* geomInfo = (CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
 
     sReal mass = _isStatic ? 0.0 : _mass_scaled;
@@ -95,16 +95,16 @@ void CRigidBodyDyn::init(CXShape* shape, bool forceStatic, bool forceNonResponda
     rigidBodyContainerDyn->_notifySekeletonRebuild();
 }
 
-C7Vector CRigidBodyDyn::getInertiaFrameTransformation()
+CPose CRigidBodyDyn::getInertiaFrameTransformation()
 { // return value is unscaled (relative to CoppeliaSim)
-    C7Vector tr;
+    CPose tr;
     tr = getNewtonMatrix();
     return (tr);
 }
 
-C7Vector CRigidBodyDyn::getShapeFrameTransformation()
+CPose CRigidBodyDyn::getShapeFrameTransformation()
 { // return value is unscaled (relative to CoppeliaSim)
-    C7Vector tr;
+    CPose tr;
     if (_collisionShapeDyn != nullptr)
     {
         tr = getNewtonMatrix();
@@ -149,7 +149,7 @@ void CRigidBodyDyn::handleKinematicBody_step(sReal t, sReal cumulatedTimeStep)
 {
     if (_isStatic && _applyBodyToShapeTransf_kinematicBody)
     { // static & moved (the desired movement was large enough)
-        C7Vector tr;
+        CPose tr;
         tr.buildInterpolation(_bodyStart_kinematicBody, _bodyEnd_kinematicBody, t);
 
         dMatrix posit;
@@ -174,7 +174,7 @@ void CRigidBodyDyn::handleKinematicBody_end()
 {
     if (_isStatic && _applyBodyToShapeTransf_kinematicBody)
     { // static & moved (the desired movement was large enough)
-        C7Vector tr(_bodyEnd_kinematicBody);
+        CPose tr(_bodyEnd_kinematicBody);
 
         dVector zeroVeloc(0.0, 0.0, 0.0, 0.0);
         NewtonBodySetVelocity(_newtonBody, &zeroVeloc[0]);
@@ -182,7 +182,7 @@ void CRigidBodyDyn::handleKinematicBody_end()
     }
 }
 
-C7Vector CRigidBodyDyn::getNewtonMatrix() const
+CPose CRigidBodyDyn::getNewtonMatrix() const
 {
     dMatrix matrix;
     NewtonBodyGetMatrix(_newtonBody, &matrix[0][0]);

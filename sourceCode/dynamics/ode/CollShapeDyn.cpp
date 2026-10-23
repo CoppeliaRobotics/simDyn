@@ -25,7 +25,7 @@ CCollShapeDyn::~CCollShapeDyn()
         delete _odeMconvexPolygons[i];
 }
 
-void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inverseLocalInertiaFrame_scaled)
+void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const CPose& inverseLocalInertiaFrame_scaled)
 {
     CCollShapeDyn_base::init(shape, willBeStatic, inverseLocalInertiaFrame_scaled);
 
@@ -106,10 +106,10 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                     odeGeom = dCreateCapsule(0, r, s(2) - r * 2.0);
                     dGeomTransformSetGeom(_odeGeom, odeGeom);
                 }
-                C7Vector aax;
+                CPose aax;
                 _simGetVerticesLocalFrame(shape, sc, aax.X.data, aax.Q.data); // for pure shapes, the vertice frame also indicates the pure shape origin
                 aax.X *= linScaling;                                          // ********** SCALING
-                C7Vector xxx(inverseLocalInertiaFrame_scaled * aax);
+                CPose xxx(inverseLocalInertiaFrame_scaled * aax);
                 dGeomSetPosition(odeGeom, xxx.X(0), xxx.X(1), xxx.X(2));
                 dQuaternion dQ;
                 dQ[0] = xxx.Q.data[0];
@@ -131,7 +131,7 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
             s *= linScaling; // ********** SCALING
             dGeomID odeGeom = 0;
             dGeomID _odeGeom; // this will encapsulate odeGeom!
-            C4Vector additionalRotation_forHeightfieldOnly;
+            CQuaternion additionalRotation_forHeightfieldOnly;
             additionalRotation_forHeightfieldOnly.setIdentity();
             if ((primType == sim_primitiveshape_plane) || (primType == sim_primitiveshape_cuboid))
             {
@@ -199,7 +199,7 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                 odeGeom = dCreateHeightfield(0, _odeHeightfieldDataID, 1);
                 // Rotate so Z is up, not Y (which is the default orientation)
                 additionalRotation_forHeightfieldOnly.setEulerAngles(1.57079632, 0.0, 0.0);
-                C4Vector zRot;
+                CQuaternion zRot;
                 zRot.setEulerAngles(0.0, 0.0, 1.57079632);
                 additionalRotation_forHeightfieldOnly = zRot * additionalRotation_forHeightfieldOnly;
 
@@ -207,12 +207,12 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                 dGeomTransformSetCleanup(_odeGeom, 1);
                 dGeomTransformSetGeom(_odeGeom, odeGeom);
             }
-            C7Vector aax;
+            CPose aax;
             aax.setIdentity();
             if (primType != sim_primitiveshape_heightfield)                         // that condition was forgotten and corrected on 16/1/2013
                 _simGetVerticesLocalFrame(shape, geomInfo, aax.X.data, aax.Q.data); // for pure shapes (except for heightfields!!), the vertice frame also indicates the pure shape origin.
             aax.X *= linScaling;                                                    // ********** SCALING
-            C7Vector xxx(inverseLocalInertiaFrame_scaled * aax);
+            CPose xxx(inverseLocalInertiaFrame_scaled * aax);
             xxx.Q *= additionalRotation_forHeightfieldOnly;
 
             dGeomSetPosition(odeGeom, xxx.X(0), xxx.X(1), xxx.X(2));
@@ -259,7 +259,7 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
             dGeomTriMeshEnableTC(odeGeom, dSphereClass, false); // disable caching to avoid strange effects
             dGeomTriMeshEnableTC(odeGeom, dBoxClass, false);    // disable caching to avoid strange effects
 
-            C7Vector xxx;
+            CPose xxx;
             xxx.setIdentity();
             dGeomSetPosition(odeGeom, xxx.X(0), xxx.X(1), xxx.X(2));
             dQuaternion dQ;
@@ -303,10 +303,10 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                     }
                     c /= double(allVerticesSize / 3);
 
-                    C7Vector tr;
+                    CPose tr;
                     tr.X = c;
                     tr.Q.setIdentity();
-                    C7Vector _inverseLocalInertiaFrame2_scaled(inverseLocalInertiaFrame_scaled * tr);
+                    CPose _inverseLocalInertiaFrame2_scaled(inverseLocalInertiaFrame_scaled * tr);
 
                     for (int i = 0; i < allVerticesSize / 3; i++)
                     { // We need to take into account the position of the inertia frame
@@ -387,10 +387,10 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                 }
                 c /= double(allVerticesSize / 3);
 
-                C7Vector tr;
+                CPose tr;
                 tr.X = c;
                 tr.Q.setIdentity();
-                C7Vector _inverseLocalInertiaFrame2_scaled(inverseLocalInertiaFrame_scaled * tr);
+                CPose _inverseLocalInertiaFrame2_scaled(inverseLocalInertiaFrame_scaled * tr);
 
                 for (int i = 0; i < allVerticesSize / 3; i++)
                 { // We need to take into account the position of the inertia frame

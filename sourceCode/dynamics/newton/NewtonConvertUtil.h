@@ -5,7 +5,7 @@
 #include <simMath/7Vector.h>
 #include <dMatrix.h>
 
-inline dMatrix GetDMatrixFromCoppeliaSimTransformation(const C7Vector& tr)
+inline dMatrix GetDMatrixFromCoppeliaSimTransformation(const CPose& tr)
 {
     C3X3Matrix m(tr.Q.getMatrix());
     dMatrix matrix(dVector(m.axis[0](0), m.axis[0](1), m.axis[0](2), 0.0),
@@ -15,7 +15,7 @@ inline dMatrix GetDMatrixFromCoppeliaSimTransformation(const C7Vector& tr)
     return (matrix);
 }
 
-inline C7Vector GetCoppeliaSimTransformationFromDMatrix(const dMatrix& matrix)
+inline CPose GetCoppeliaSimTransformationFromDMatrix(const dMatrix& matrix)
 {
     C4X4Matrix m;
     for (size_t i = 0; i < 3; i++)

@@ -39,7 +39,7 @@ bool CParticleDyn::addToEngineIfNeeded(double parameters[18], int objectID)
     dBodySetMass(_odeRigidBody, &m);
 
     dBodySetPosition(_odeRigidBody, _currentPosition(0) * linScaling, _currentPosition(1) * linScaling, _currentPosition(2) * linScaling); // ********** SCALING
-    C4Vector q;
+    CQuaternion q;
     q.setIdentity();
     dQuaternion dQ;
     dQ[0] = q.data[0];

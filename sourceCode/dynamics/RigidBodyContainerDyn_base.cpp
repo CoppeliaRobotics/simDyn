@@ -815,7 +815,7 @@ void CRigidBodyContainerDyn_base::_disableShapesOutOfDynamicActivityRange()
         CXShape* shape = body->getShape();
         if (_simGetParentObject(shape) == nullptr)
         {
-            C7Vector tr;
+            CPose tr;
             _simGetObjectLocalTransformation(shape, tr.X.data, tr.Q.data, true);
             if (tr.X.getLength() > _dynamicActivityRange)
                 _simDisableDynamicTreeForManipulation(shape, true);

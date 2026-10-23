@@ -21,11 +21,11 @@ void CRigidBodyDyn::init(CXShape* shape, bool forceStatic, bool forceNonResponda
     double linScaling = CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn();
     double linVelScaling = CRigidBodyContainerDyn::getDynWorld()->getLinearVelocityScalingFactorDyn();
 
-    C7Vector cumulPart1_scaled;
+    CPose cumulPart1_scaled;
     _simGetObjectCumulativeTransformation(shape, cumulPart1_scaled.X.data, cumulPart1_scaled.Q.data, true);
 
     cumulPart1_scaled.X *= linScaling; // ********** SCALING
-    C7Vector tr(cumulPart1_scaled * _localInertiaFrame_scaled);
+    CPose tr(cumulPart1_scaled * _localInertiaFrame_scaled);
     CXGeomWrap* geomInfo = (CXGeomWrap*)_simGetGeomWrapFromGeomProxy(shape);
     double mass = _mass_scaled;
 
@@ -99,9 +99,9 @@ void CRigidBodyDyn::init(CXShape* shape, bool forceStatic, bool forceNonResponda
     }
 }
 
-C7Vector CRigidBodyDyn::getInertiaFrameTransformation()
+CPose CRigidBodyDyn::getInertiaFrameTransformation()
 { // return value is unscaled (relative to CoppeliaSim)
-    C7Vector tr;
+    CPose tr;
 
     const dReal* pos = dBodyGetPosition(_odeRigidBody);
     const dReal* quat = dBodyGetQuaternion(_odeRigidBody);
@@ -117,9 +117,9 @@ C7Vector CRigidBodyDyn::getInertiaFrameTransformation()
     return (tr);
 }
 
-C7Vector CRigidBodyDyn::getShapeFrameTransformation()
+CPose CRigidBodyDyn::getShapeFrameTransformation()
 { // return value is unscaled (relative to CoppeliaSim)
-    C7Vector tr;
+    CPose tr;
     if (_collisionShapeDyn != nullptr)
     {
 
@@ -179,7 +179,7 @@ void CRigidBodyDyn::handleKinematicBody_step(double t, double cumulatedTimeStep)
 {
     if (_isStatic && _applyBodyToShapeTransf_kinematicBody)
     { // static & moved (the desired movement was large enough)
-        C7Vector tr;
+        CPose tr;
         tr.buildInterpolation(_bodyStart_kinematicBody, _bodyEnd_kinematicBody, t);
         tr.X *= CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn(); // ********** SCALING
 
@@ -195,7 +195,7 @@ void CRigidBodyDyn::handleKinematicBody_step(double t, double cumulatedTimeStep)
         C3Vector dx((_bodyEnd_kinematicBody.X - _bodyStart_kinematicBody.X) * CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn()); // ********** SCALING
         dBodySetLinearVel(_odeRigidBody, dx(0) / cumulatedTimeStep, dx(1) / cumulatedTimeStep, dx(2) / cumulatedTimeStep);
 
-        C4Vector q(_bodyEnd_kinematicBody.Q * _bodyStart_kinematicBody.Q.getInverse());
+        CQuaternion q(_bodyEnd_kinematicBody.Q * _bodyStart_kinematicBody.Q.getInverse());
         C3Vector dEuler(q.getEulerAngles());
         dBodySetAngularVel(_odeRigidBody, dEuler(0) / cumulatedTimeStep, dEuler(1) / cumulatedTimeStep, dEuler(2) / cumulatedTimeStep);
     }
@@ -205,7 +205,7 @@ void CRigidBodyDyn::handleKinematicBody_end()
 {
     if (_isStatic && _applyBodyToShapeTransf_kinematicBody)
     { // static & moved (the desired movement was large enough)
-        C7Vector tr(_bodyEnd_kinematicBody);
+        CPose tr(_bodyEnd_kinematicBody);
         tr.X *= CRigidBodyContainerDyn::getDynWorld()->getPositionScalingFactorDyn(); // ********** SCALING
 
         dBodySetPosition(_odeRigidBody, tr.X(0), tr.X(1), tr.X(2));

@@ -9,7 +9,7 @@ class CCollShapeDyn : public CCollShapeDyn_base
     CCollShapeDyn();
     virtual ~CCollShapeDyn();
 
-    void init(CXShape* shape, bool willBeStatic, const C7Vector& inverseLocalInertiaFrame_scaled);
+    void init(CXShape* shape, bool willBeStatic, const CPose& inverseLocalInertiaFrame_scaled);
 
     btCollisionShape* getBtCollisionShape();
 

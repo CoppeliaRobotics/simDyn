@@ -34,8 +34,8 @@ struct SMjShape
     int mjIdJoint;    // freejoint (if shape in free mode)
     int mjIdAdhesion; // adhesion actuator (if enabled)
     shapeModes shapeMode;
-    C7Vector staticShapeStart;
-    C7Vector staticShapeGoal;
+    CPose staticShapeStart;
+    CPose staticShapeGoal;
     itemTypes itemType;
     bool adhesion;
     std::vector<int> geomIndices; // pointing into _allGeoms
@@ -68,8 +68,8 @@ struct SMjJoint
     double jointCtrlToApply;
     std::string customActuatorXml;
     std::string customActuatorReplStr;
-    C4Vector initialBallQuat;
-    C4Vector initialBallQuat2;
+    CQuaternion initialBallQuat;
+    CQuaternion initialBallQuat2;
     int dependencyJointHandle;
     double polycoef[5];
 };
@@ -156,7 +156,7 @@ struct SFlexcompInject
     int shapeHandle;
     std::string element;
     std::string type;
-    C7Vector pose; // relative to parent (i.e. shapeHandle)
+    CPose pose; // relative to parent (i.e. shapeHandle)
     std::string prefix;
     std::string xmlDummyString;
     size_t count[3];
@@ -199,8 +199,8 @@ class CRigidBodyContainerDyn : public CRigidBodyContainerDyn_base
     std::string getCompositeInfo(int compIndex, int what, std::vector<double>& info, int count[3]) const;
     std::string getFlexcompInfo(int flexcompIndex, int what, std::vector<double>& info, int count[3]) const;
     void particlesAdded();
-    static double computePMI(const double* vertices, int verticesSize, const int* indices, int indicesSize, C7Vector& tr, C3Vector& diagI);
-    static double computeInertia(int shapeHandle, C7Vector& tr, C3Vector& diagI, bool addRobustness = false);
+    static double computePMI(const double* vertices, int verticesSize, const int* indices, int indicesSize, CPose& tr, C3Vector& diagI);
+    static double computeInertia(int shapeHandle, CPose& tr, C3Vector& diagI, bool addRobustness = false);
     static int injectXml(const char* xml, const char* element, int objectHandle, const char* cbFunc, int cbScript, const char* cbId); // old
     static int injectCompositeXml(const char* xml, int shapeHandle, const char* element, const char* prefix, const size_t* count, const char* type, int respondableMask, double grow, const char* cbFunc, int cbScript);
     static bool removeInjection(int injectionId);
@@ -227,7 +227,7 @@ class CRigidBodyContainerDyn : public CRigidBodyContainerDyn_base
     std::string _buildMujocoWorld(double timeStep, double simTime, bool rebuild);
     bool _addObjectBranch(CXSceneObject* object, CXSceneObject* parent, CXmlSer* xmlDoc, SInfo* info);
     void _addShape(CXSceneObject* object, CXSceneObject* parent, CXmlSer* xmlDoc, SInfo* info);
-    void _addInertiaElement(CXmlSer* xmlDoc, double mass, const C7Vector& tr, const C3Vector diagI);
+    void _addInertiaElement(CXmlSer* xmlDoc, double mass, const CPose& tr, const C3Vector diagI);
     void _appendSitesToFlexcompBodies(std::string& data) const;
     void _appendGeneralInjections(std::string& data) const;
 

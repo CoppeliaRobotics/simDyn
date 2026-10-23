@@ -17,7 +17,7 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
 
     btDiscreteDynamicsWorld* bulletWorld = CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
-    C7Vector jtr, jtr2;
+    CPose jtr, jtr2;
     _simGetObjectCumulativeTransformation(joint, jtr.X.data, jtr.Q.data, true);
     _simGetObjectCumulativeTransformation(joint, jtr2.X.data, jtr2.Q.data, false);
 
@@ -45,12 +45,12 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
         jtr2.Q = jtr2.Q * jointOffsetThing.getQuaternion() * m.getQuaternion();
     }
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     btRigidBody* parentRigidBody = ((CRigidBodyDyn*)bodyA)->getBtRigidBody();
     btRigidBody* childRigidBody = ((CRigidBodyDyn*)bodyB)->getBtRigidBody();
@@ -129,13 +129,13 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
 
     btDiscreteDynamicsWorld* bulletWorld = CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
-    C7Vector jtr;
+    CPose jtr;
     _simGetObjectCumulativeTransformation(joint, jtr.X.data, jtr.Q.data, true);
 
     // Following is DIFFERENT from the regular situation (non-looped):
-    C7Vector tmpTr1;
+    CPose tmpTr1;
     _simGetObjectCumulativeTransformation(dummyB, tmpTr1.X.data, tmpTr1.Q.data, false);
-    C7Vector jtr2(tmpTr1 * _localTrA_2.getInverse());
+    CPose jtr2(tmpTr1 * _localTrA_2.getInverse());
 
     C3X3Matrix m;
     m.setIdentity();
@@ -161,12 +161,12 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXJoint* j
         jtr2.Q = jtr2.Q * jointOffsetThing.getQuaternion() * m.getQuaternion();
     }
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     btRigidBody* parentRigidBody = ((CRigidBodyDyn*)bodyA)->getBtRigidBody();
     btRigidBody* childRigidBody = ((CRigidBodyDyn*)bodyB)->getBtRigidBody();
@@ -247,16 +247,16 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXDummy* d
 
     btDiscreteDynamicsWorld* bulletWorld = CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
-    C7Vector dtr, dtr2;
+    CPose dtr, dtr2;
     _simGetObjectCumulativeTransformation(dummyA, dtr.X.data, dtr.Q.data, true);
     _simGetObjectCumulativeTransformation(dummyB, dtr2.X.data, dtr2.Q.data, true);
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector dtrRelToBodyA;
-    C7Vector dtrRelToBodyB;
+    CPose dtrRelToBodyA;
+    CPose dtrRelToBodyB;
 
     btRigidBody* parentRigidBody = ((CRigidBodyDyn*)bodyA)->getBtRigidBody();
     btRigidBody* childRigidBody = ((CRigidBodyDyn*)bodyB)->getBtRigidBody();
@@ -304,16 +304,16 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
 
     btDiscreteDynamicsWorld* bulletWorld = CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
-    C7Vector jtr, jtr2;
+    CPose jtr, jtr2;
     _simGetObjectCumulativeTransformation(forceSensor, jtr.X.data, jtr.Q.data, true);
     _simGetObjectCumulativeTransformation(forceSensor, jtr2.X.data, jtr2.Q.data, false);
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     btRigidBody* parentRigidBody = ((CRigidBodyDyn*)bodyA)->getBtRigidBody();
     btRigidBody* childRigidBody = ((CRigidBodyDyn*)bodyB)->getBtRigidBody();
@@ -357,19 +357,19 @@ void CConstraintDyn::init(CRigidBodyDyn* bodyA, CRigidBodyDyn* bodyB, CXForceSen
 
     btDiscreteDynamicsWorld* bulletWorld = CRigidBodyContainerDyn::getDynWorld()->getWorld();
 
-    C7Vector jtr;
+    CPose jtr;
     _simGetObjectCumulativeTransformation(forceSensor, jtr.X.data, jtr.Q.data, true);
     // Following is DIFFERENT from the regular situation (non-looped):
-    C7Vector tmpTr1;
+    CPose tmpTr1;
     _simGetObjectCumulativeTransformation(dummyB, tmpTr1.X.data, tmpTr1.Q.data, false);
-    C7Vector jtr2(tmpTr1 * _localTrA_2.getInverse());
+    CPose jtr2(tmpTr1 * _localTrA_2.getInverse());
 
-    C7Vector batr;
-    C7Vector bbtr;
+    CPose batr;
+    CPose bbtr;
     batr.setIdentity();
     bbtr.setIdentity();
-    C7Vector jtrRelToBodyA;
-    C7Vector jtrRelToBodyB;
+    CPose jtrRelToBodyA;
+    CPose jtrRelToBodyB;
 
     btRigidBody* parentRigidBody = ((CRigidBodyDyn*)bodyA)->getBtRigidBody();
     btRigidBody* childRigidBody = ((CRigidBodyDyn*)bodyB)->getBtRigidBody();
@@ -533,8 +533,8 @@ void CConstraintDyn::_handleJoint(CXJoint* joint, int passCnt, int totalPasses)
 
 double CConstraintDyn::getPrismaticJointPosition() const
 { // important! The slider pos is not initialized when added! (at least in debug mode, it is not! (release it is I think))
-    C7Vector p(_bodyA->getShapeFrameTransformation());
-    C7Vector c(_bodyB->getShapeFrameTransformation());
+    CPose p(_bodyA->getShapeFrameTransformation());
+    CPose c(_bodyB->getShapeFrameTransformation());
     p = p * _localTrA;
     c = c * _localTrB;
     if (_dummyAHandle != -1)
@@ -618,11 +618,11 @@ void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime, int current
                 btJointFeedback* jfb = _constraint->getJointFeedback();
                 C3Vector absF(jfb->m_appliedForceBodyB.getX(), jfb->m_appliedForceBodyB.getY(), jfb->m_appliedForceBodyB.getZ());
                 absF /= forceScaling; // ********** SCALING
-                C7Vector bodyBAbsConf(_bodyB->getInertiaFrameTransformation());
-                C7Vector parentShapeAbsConf(_bodyA->getShapeFrameTransformation());
-                C7Vector sensorAbsConf(parentShapeAbsConf * _localTrA);
+                CPose bodyBAbsConf(_bodyB->getInertiaFrameTransformation());
+                CPose parentShapeAbsConf(_bodyA->getShapeFrameTransformation());
+                CPose sensorAbsConf(parentShapeAbsConf * _localTrA);
                 C3Vector absCorrectionV(sensorAbsConf.X - bodyBAbsConf.X);
-                C4Vector sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
+                CQuaternion sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
                 C3Vector forces(sensorAbsInverseQ * (absF * -1.0));
                 forceOrTorque = forces(2);
             }
@@ -645,12 +645,12 @@ void CConstraintDyn::reportStateToCoppeliaSim(double simulationTime, int current
         absF /= forceScaling; // ********** SCALING
         C3Vector absT(jfb->m_appliedTorqueBodyB.getX(), jfb->m_appliedTorqueBodyB.getY(), jfb->m_appliedTorqueBodyB.getZ());
         absT /= torqueScaling; // ********** SCALING
-        C7Vector bodyBAbsConf(_bodyB->getInertiaFrameTransformation());
-        C7Vector parentShapeAbsConf(_bodyA->getShapeFrameTransformation());
-        C7Vector sensorAbsConf(parentShapeAbsConf * _localTrA);
+        CPose bodyBAbsConf(_bodyB->getInertiaFrameTransformation());
+        CPose parentShapeAbsConf(_bodyA->getShapeFrameTransformation());
+        CPose sensorAbsConf(parentShapeAbsConf * _localTrA);
         C3Vector absCorrectionV(sensorAbsConf.X - bodyBAbsConf.X);
         absT += absF ^ absCorrectionV;
-        C4Vector sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
+        CQuaternion sensorAbsInverseQ(sensorAbsConf.Q.getInverse());
         forces = sensorAbsInverseQ * (absF * -1.0);
         torques = sensorAbsInverseQ * (absT * -1.0);
 

@@ -16,7 +16,7 @@ CCollShapeDyn::~CCollShapeDyn()
     delete _collisionShape;
 }
 
-void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inverseLocalInertiaFrame_scaled)
+void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const CPose& inverseLocalInertiaFrame_scaled)
 {
     CCollShapeDyn_base::init(shape, willBeStatic, inverseLocalInertiaFrame_scaled);
 
@@ -109,10 +109,10 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                 // Following parameter retrieval is OLD. Use instead following functions:
                 // - simGetEngineBoolParameter
                 collShape->stickyContact = _simGetBulletStickyContact(geomInfo) != 0;
-                C7Vector aax;
+                CPose aax;
                 _simGetVerticesLocalFrame(shape, sc, aax.X.data, aax.Q.data); // for pure shapes, the vertice frame also indicates the pure shape origin
                 aax.X *= linScaling;                                          // ********** SCALING
-                C7Vector xxx(inverseLocalInertiaFrame_scaled * aax);
+                CPose xxx(inverseLocalInertiaFrame_scaled * aax);
                 btQuaternion wtq(xxx.Q(1), xxx.Q(2), xxx.Q(3), xxx.Q(0));
                 btVector3 wtx(xxx.X(0), xxx.X(1), xxx.X(2));
                 compoundShape->addChildShape(btTransform(wtq, wtx), collShape);
@@ -192,12 +192,12 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
 
             _collisionShape->stickyContact = _simGetBulletStickyContact(geomInfo) != 0;
             btCompoundShape* compoundShape = new btCompoundShape();
-            C7Vector aax;
+            CPose aax;
             aax.setIdentity();
             if (primType != sim_primitiveshape_heightfield)                         // that condition was forgotten and corrected on 16/1/2013
                 _simGetVerticesLocalFrame(shape, geomInfo, aax.X.data, aax.Q.data); // for pure shapes (except for heightfields!!), the vertice frame also indicates the pure shape origin.
             aax.X *= linScaling;                                                    // ********** SCALING
-            C7Vector xxx(inverseLocalInertiaFrame_scaled * aax);
+            CPose xxx(inverseLocalInertiaFrame_scaled * aax);
             btQuaternion wtq(xxx.Q(1), xxx.Q(2), xxx.Q(3), xxx.Q(0));
             btVector3 wtx(xxx.X(0), xxx.X(1), xxx.X(2));
             compoundShape->addChildShape(btTransform(wtq, wtx), _collisionShape);
@@ -284,10 +284,10 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                     }
                     c /= double(allVerticesSize / 3);
 
-                    C7Vector tr;
+                    CPose tr;
                     tr.setIdentity();
                     tr.X = c;
-                    C7Vector _inverseLocalInertiaFrame2_scaled(inverseLocalInertiaFrame_scaled * tr);
+                    CPose _inverseLocalInertiaFrame2_scaled(inverseLocalInertiaFrame_scaled * tr);
 
                     for (int i = 0; i < allVerticesSize / 3; i++)
                     { // We need to take into account the position of the inertia frame
@@ -378,10 +378,10 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                 }
                 c /= double(allVerticesSize / 3);
 
-                C7Vector tr;
+                CPose tr;
                 tr.setIdentity();
                 tr.X = c;
-                C7Vector _inverseLocalInertiaFrame2_scaled(inverseLocalInertiaFrame_scaled * tr);
+                CPose _inverseLocalInertiaFrame2_scaled(inverseLocalInertiaFrame_scaled * tr);
 
                 for (int i = 0; i < allVerticesSize / 3; i++)
                 { // We need to take into account the position of the inertia frame
@@ -436,7 +436,7 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                 // NO!! convexObj->setMargin(0.0);
 
                 btCompoundShape* compoundShape = new btCompoundShape();
-                C7Vector xxx(_inverseLocalInertiaFrame2_scaled);
+                CPose xxx(_inverseLocalInertiaFrame2_scaled);
                 btQuaternion wtq(xxx.Q(1), xxx.Q(2), xxx.Q(3), xxx.Q(0));
                 btVector3 wtx(xxx.X(0), xxx.X(1), xxx.X(2));
                 compoundShape->addChildShape(btTransform(wtq, wtx), convexObj);

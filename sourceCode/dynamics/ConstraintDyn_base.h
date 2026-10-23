@@ -69,9 +69,9 @@ class CConstraintDyn_base
     CRigidBodyDyn* _bodyA;
     CRigidBodyDyn* _bodyB;
 
-    C7Vector _localTrA;   // between ShapeA and its child
-    C7Vector _localTrA_2; // between joint/fSensor and dummyA
-    C7Vector _localTrB;   // between ShapeB and its child, or inv(between parent of shapeB and shape B)
+    CPose _localTrA;   // between ShapeA and its child
+    CPose _localTrA_2; // between joint/fSensor and dummyA
+    CPose _localTrB;   // between ShapeB and its child, or inv(between parent of shapeB and shape B)
 
     sReal _nonCyclicRevoluteJointPositionOffset;  // Since 18/11/2012: Needed to avoid problems with Bullet (or was it ODE?) with joint limits below/above -180/+180 degrees
                                                   // The offset allows to model Bullet and ODE joints that have symmetrical limits (i.e. +- xx degrees)

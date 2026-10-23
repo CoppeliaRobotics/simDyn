@@ -12,7 +12,7 @@ CCollShapeDyn::~CCollShapeDyn()
     NewtonDestroyCollision(_shape);
 }
 
-void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inverseLocalInertiaFrame_scaled)
+void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const CPose& inverseLocalInertiaFrame_scaled)
 {
     CCollShapeDyn_base::init(shape, willBeStatic, inverseLocalInertiaFrame_scaled);
 
@@ -45,10 +45,10 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                 _simGetPurePrimitiveSizes(sc, s.data);
                 //s*=linScaling; // ********** SCALING
 
-                C7Vector aax;
+                CPose aax;
                 // for pure shapes, the vertice frame also indicates the pure shape origin
                 _simGetVerticesLocalFrame(shape, sc, aax.X.data, aax.Q.data);
-                C7Vector xxx(inverseLocalInertiaFrame_scaled * aax);
+                CPose xxx(inverseLocalInertiaFrame_scaled * aax);
 
                 int subshapeType = _simGetPurePrimitiveType(sc);
                 NewtonCollision* childShape = nullptr;
@@ -68,7 +68,7 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                 case sim_primitiveshape_cylinder: {
                     C3X3Matrix rot;
                     rot.buildYRotation(piValue / 2.0);
-                    C7Vector ilif(xxx);
+                    CPose ilif(xxx);
                     ilif.Q *= rot.getQuaternion();
                     dMatrix localTransform(GetDMatrixFromCoppeliaSimTransformation(ilif));
                     sReal z = s(2);
@@ -90,7 +90,7 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                 case sim_primitiveshape_capsule: {
                     C3X3Matrix rot;
                     rot.buildYRotation(piValue / 2.0);
-                    C7Vector ilif(xxx);
+                    CPose ilif(xxx);
                     ilif.Q *= rot.getQuaternion();
                     dMatrix localTransform(GetDMatrixFromCoppeliaSimTransformation(ilif));
                     sReal r = (s(0) + s(1)) / 4.0;
@@ -101,7 +101,7 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                 case sim_primitiveshape_cone: {
                     C3X3Matrix rot;
                     rot.buildYRotation(-piValue / 2.0);
-                    C7Vector ilif(xxx);
+                    CPose ilif(xxx);
                     ilif.Q *= rot.getQuaternion();
                     dMatrix localTransform(GetDMatrixFromCoppeliaSimTransformation(ilif));
                     childShape = NewtonCreateCone(world, s(0) * 0.5, s(2), 0, &localTransform[0][0]);
@@ -143,7 +143,7 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
             case sim_primitiveshape_cylinder: {
                 C3X3Matrix rot;
                 rot.buildYRotation(piValue / 2.0);
-                C7Vector ilif(inverseLocalInertiaFrame_scaled);
+                CPose ilif(inverseLocalInertiaFrame_scaled);
                 ilif.Q *= rot.getQuaternion();
                 dMatrix invMatrix(GetDMatrixFromCoppeliaSimTransformation(ilif));
                 sReal z = s(2);
@@ -165,7 +165,7 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
             case sim_primitiveshape_capsule: {
                 C3X3Matrix rot;
                 rot.buildYRotation(piValue / 2.0);
-                C7Vector ilif(inverseLocalInertiaFrame_scaled);
+                CPose ilif(inverseLocalInertiaFrame_scaled);
                 ilif.Q *= rot.getQuaternion();
                 dMatrix invMatrix(GetDMatrixFromCoppeliaSimTransformation(ilif));
                 sReal r = (s(0) + s(1)) / 4.0;
@@ -176,7 +176,7 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
             case sim_primitiveshape_cone: {
                 C3X3Matrix rot;
                 rot.buildYRotation(-piValue / 2.0);
-                C7Vector ilif(inverseLocalInertiaFrame_scaled);
+                CPose ilif(inverseLocalInertiaFrame_scaled);
                 ilif.Q *= rot.getQuaternion();
                 dMatrix invMatrix(GetDMatrixFromCoppeliaSimTransformation(ilif));
                 _shape = NewtonCreateCone(world, s(0) * 0.5, s(2), 0, &invMatrix[0][0]);
@@ -201,7 +201,7 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                 rot1.buildXRotation(-piValue / 2.0);
                 C3X3Matrix rot2;
                 rot2.buildZRotation(piValue);
-                C7Vector ilif;
+                CPose ilif;
                 ilif.setIdentity();
                 ilif.Q = rot2.getQuaternion() * ilif.Q;
                 ilif.Q = rot1.getQuaternion() * ilif.Q;
@@ -298,10 +298,10 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                     }
                     c /= sReal(allVerticesSize / 3);
 
-                    C7Vector tr;
+                    CPose tr;
                     tr.setIdentity();
                     tr.X = c;
-                    C7Vector _inverseLocalInertiaFrame2_scaled(inverseLocalInertiaFrame_scaled * tr);
+                    CPose _inverseLocalInertiaFrame2_scaled(inverseLocalInertiaFrame_scaled * tr);
                     dMatrix localTransform(GetDMatrixFromCoppeliaSimTransformation(_inverseLocalInertiaFrame2_scaled));
 
                     for (int i = 0; i < allVerticesSize / 3; i++)
@@ -342,10 +342,10 @@ void CCollShapeDyn::init(CXShape* shape, bool willBeStatic, const C7Vector& inve
                 }
                 c /= sReal(allVerticesSize / 3);
 
-                C7Vector tr;
+                CPose tr;
                 tr.setIdentity();
                 tr.X = c;
-                C7Vector _inverseLocalInertiaFrame2_scaled(inverseLocalInertiaFrame_scaled * tr);
+                CPose _inverseLocalInertiaFrame2_scaled(inverseLocalInertiaFrame_scaled * tr);
                 dMatrix localTransform(GetDMatrixFromCoppeliaSimTransformation(_inverseLocalInertiaFrame2_scaled));
 
                 for (int i = 0; i < allVerticesSize / 3; i++)

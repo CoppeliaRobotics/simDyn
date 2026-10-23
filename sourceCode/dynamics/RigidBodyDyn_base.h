@@ -12,8 +12,8 @@ class CRigidBodyDyn_base
 
     virtual void init(CXShape* shape, bool forceStatic, bool forceNonRespondable);
 
-    virtual C7Vector getInertiaFrameTransformation();
-    virtual C7Vector getShapeFrameTransformation();
+    virtual CPose getInertiaFrameTransformation();
+    virtual CPose getShapeFrameTransformation();
     virtual void reportVelocityToShape(sReal simulationTime);
     virtual void handleAdditionalForcesAndTorques();
     virtual void handleKinematicBody_step(sReal t, sReal cumulatedTimeStep);
@@ -36,14 +36,14 @@ class CRigidBodyDyn_base
     bool _applyBodyToShapeTransf_kinematicBody;
 
     // Unscaled:
-    C7Vector _bodyStart_kinematicBody;
-    C7Vector _bodyEnd_kinematicBody;
+    CPose _bodyStart_kinematicBody;
+    CPose _bodyEnd_kinematicBody;
 
     // Scaled:
-    C7Vector _localInertiaFrame_scaled;
-    C7Vector _inverseLocalInertiaFrame_scaled;
+    CPose _localInertiaFrame_scaled;
+    CPose _inverseLocalInertiaFrame_scaled;
     C3Vector _diagonalInertia_scaled; // includes mass!
     sReal _mass_scaled;
 
-    C7Vector _localTransformation_old; // for old, "parent follows" functionality
+    CPose _localTransformation_old; // for old, "parent follows" functionality
 };

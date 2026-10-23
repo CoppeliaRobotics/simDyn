@@ -521,14 +521,14 @@ std::string CRigidBodyContainerDyn::_buildMujocoWorld(double timeStep, double si
                         xmlDoc->setAttr("torquescale", constrOverlap_torqueScale);
                         xmlDoc->setAttr("solref", constrOverlap_solref, 2);
                         xmlDoc->setAttr("solimp", constrOverlap_solimp, 5);
-                        C7Vector tr1, tr2;
+                        CPose tr1, tr2;
                         _simGetObjectCumulativeTransformation(dummy1Parent, tr1.X.data, tr1.Q.data, 1);
                         _simGetObjectCumulativeTransformation(dummy1, tr2.X.data, tr2.Q.data, 1);
-                        C7Vector tra(tr1.getInverse() * tr2);
+                        CPose tra(tr1.getInverse() * tr2);
                         _simGetObjectCumulativeTransformation(shape2, tr1.X.data, tr1.Q.data, 1);
                         _simGetObjectCumulativeTransformation(dummy2, tr2.X.data, tr2.Q.data, 1);
-                        C7Vector trb(tr2.getInverse() * tr1);
-                        C7Vector tr(tra * trb);
+                        CPose trb(tr2.getInverse() * tr1);
+                        CPose tr(tra * trb);
                         double v[7] = {tr.X(0), tr.X(1), tr.X(2), tr.Q(0), tr.Q(1), tr.Q(2), tr.Q(3)};
                         xmlDoc->setAttr("relpose", v, 7);
                         xmlDoc->popNode(); // weld
@@ -1631,11 +1631,11 @@ std::string CRigidBodyContainerDyn::getFlexcompInfo(int flexcompIndex, int what,
             count[1] = int(flexcomp->count[1]);
             count[2] = int(flexcomp->count[2]);
             retVal = flexcomp->type;
-            C7Vector parentTr(C7Vector::identityTransformation);
+            CPose parentTr(CPose::identityTransformation);
             if (flexcomp->parentMjId != -1)
             {
                 parentTr.X = C3Vector(_mjData->xpos[3 * flexcomp->parentMjId + 0], _mjData->xpos[3 * flexcomp->parentMjId + 1], _mjData->xpos[3 * flexcomp->parentMjId + 2]);
-                parentTr.Q = C4Vector(_mjData->xquat[4 * flexcomp->parentMjId + 0], _mjData->xquat[4 * flexcomp->parentMjId + 1], _mjData->xquat[4 * flexcomp->parentMjId + 2], _mjData->xquat[4 * flexcomp->parentMjId + 3]);
+                parentTr.Q = CQuaternion(_mjData->xquat[4 * flexcomp->parentMjId + 0], _mjData->xquat[4 * flexcomp->parentMjId + 1], _mjData->xquat[4 * flexcomp->parentMjId + 2], _mjData->xquat[4 * flexcomp->parentMjId + 3]);
             }
             std::vector<C3Vector> pts;
             if ((what == 0) || (what == 1))
@@ -2294,8 +2294,8 @@ bool CRigidBodyContainerDyn::_addObjectBranch(CXSceneObject* object, CXSceneObje
                     //-------------------
                     double pos[3];
                     double quat[4];
-                    C7Vector tr;
-                    C7Vector pTrInv, objTr;
+                    CPose tr;
+                    CPose pTrInv, objTr;
                     _simGetObjectCumulativeTransformation(parent, pTrInv.X.data, pTrInv.Q.data, true);
                     pTrInv.inverse();
                     _simGetObjectCumulativeTransformation(object, objTr.X.data, objTr.Q.data, true);
@@ -2486,18 +2486,18 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object, CXSceneObject* par
         containingShape = (CXSceneObject*)_simGetParentObject(containingShape);
     }
 
-    C7Vector objectPose; // pose of current shape (can also be a dummy shape!!)
+    CPose objectPose; // pose of current shape (can also be a dummy shape!!)
     if (xmlDoc != nullptr)
     {
         if (_simGetObjectType(object) == sim_sceneobject_dummy)
         { // we have dummy -- linkedDummy <- shape.
             // the dummy shape we create here is very special
-            C7Vector tr;
+            CPose tr;
             _simGetObjectCumulativeTransformation(object, tr.X.data, tr.Q.data, 1);
             int linkedDummyHandle = -1;
             _simGetDummyLinkType(object, &linkedDummyHandle);
             CXDummy* linkedDummy = (CXDummy*)_simGetObject(linkedDummyHandle);
-            C7Vector linkedDummyLocal;
+            CPose linkedDummyLocal;
             _simGetObjectLocalTransformation(linkedDummy, linkedDummyLocal.X.data, linkedDummyLocal.Q.data, 1);
             objectPose = tr * linkedDummyLocal.getInverse();
             // objectPose is the abs. pose for the dummy shape (that doesn't exist in CoppeliaSim)
@@ -2508,12 +2508,12 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object, CXSceneObject* par
         // ------------------
         double pos[3];
         double quat[4];
-        C7Vector tr;
+        CPose tr;
         if (parent == nullptr)
             tr = objectPose;
         else
         {
-            C7Vector pTr;
+            CPose pTr;
             _simGetObjectCumulativeTransformation(containingShape, pTr.X.data, pTr.Q.data, true);
             tr = pTr.getInverse() * objectPose;
         }
@@ -2600,10 +2600,10 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object, CXSceneObject* par
                     xmlDoc->setAttr("type", "ball");
                     double p[7];
                     simGetObjectChildPose(_simGetObjectID(joint), p);
-                    gjoint.initialBallQuat = C4Vector(p + 3, true);
+                    gjoint.initialBallQuat = CQuaternion(p + 3, true);
                     double p2[7];
                     simGetObjectPose(_simGetObjectID(joint), _simGetObjectID(containingShape), p2);
-                    gjoint.initialBallQuat2 = C4Vector(p2 + 3, true);
+                    gjoint.initialBallQuat2 = CQuaternion(p2 + 3, true);
                     gjoint.dependencyJointHandle = -1;
                 }
                 else
@@ -2632,8 +2632,8 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object, CXSceneObject* par
 
                 // ---------------------
                 double pos[3];
-                C7Vector tr;
-                C7Vector jointTr;
+                CPose tr;
+                CPose jointTr;
                 _simGetObjectCumulativeTransformation(joint, jointTr.X.data, jointTr.Q.data, true);
                 tr = objectPose.getInverse() * jointTr;
                 tr.X.getData(pos);
@@ -2671,8 +2671,8 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object, CXSceneObject* par
             // -----------------
             double pos[3];
             double quat[4];
-            C7Vector tr;
-            C7Vector sensorTr;
+            CPose tr;
+            CPose sensorTr;
             _simGetObjectCumulativeTransformation(forceSensor, sensorTr.X.data, sensorTr.Q.data, true);
             tr = objectPose.getInverse() * sensorTr;
             tr.X.getData(pos);
@@ -2699,7 +2699,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object, CXSceneObject* par
             CXDummy* linkedDummy = (CXDummy*)_simGetObject(linkedDummyHandle);
             CXSceneObject* linkedDummyParent = (CXSceneObject*)_simGetParentObject(linkedDummy);
 
-            C7Vector tr;
+            CPose tr;
             C3Vector im;
             double mass = _simGetLocalInertiaInfo(linkedDummyParent, tr.X.data, tr.Q.data, im.data); // im includes the mass!
             mass /= double(info->massDividers[linkedDummyParent]);
@@ -2712,7 +2712,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object, CXSceneObject* par
                 _simMakeDynamicAnnouncement(sim_announce_containsnonpurenonconvexshapes);
             if (g.shapeMode != shapeModes::staticMode)
             {
-                C7Vector tr;
+                CPose tr;
                 C3Vector im;
                 double mass = _simGetLocalInertiaInfo(object, tr.X.data, tr.Q.data, im.data); // im includes the mass!
                 mass /= double(info->massDividers[object]);                                   // the mass is possibly shared with a loop closure of type shape1 --> joint/fsensor --> dummy1(becomes aux. body) -- dummy2 <-- shape2
@@ -2732,7 +2732,7 @@ void CRigidBodyContainerDyn::_addShape(CXSceneObject* object, CXSceneObject* par
     }
 }
 
-void CRigidBodyContainerDyn::_addInertiaElement(CXmlSer* xmlDoc, double mass, const C7Vector& tr, const C3Vector diagI)
+void CRigidBodyContainerDyn::_addInertiaElement(CXmlSer* xmlDoc, double mass, const CPose& tr, const C3Vector diagI)
 {
     xmlDoc->pushNewNode("inertial");
     xmlDoc->setAttr("mass", mass);
@@ -2742,7 +2742,7 @@ void CRigidBodyContainerDyn::_addInertiaElement(CXmlSer* xmlDoc, double mass, co
     xmlDoc->popNode();
 }
 
-double CRigidBodyContainerDyn::computePMI(const double* vertices, int verticesL, const int* indices, int indicesL, C7Vector& tr, C3Vector& diagI)
+double CRigidBodyContainerDyn::computePMI(const double* vertices, int verticesL, const int* indices, int indicesL, CPose& tr, C3Vector& diagI)
 { // returns the diagonal mass-less inertia, for a density of 1000. Errors are silent here
     mju_user_warning = nullptr;
     mju_user_error = nullptr;
@@ -2818,7 +2818,7 @@ double CRigidBodyContainerDyn::computePMI(const double* vertices, int verticesL,
     return (mass);
 }
 
-double CRigidBodyContainerDyn::computeInertia(int shapeHandle, C7Vector& tr, C3Vector& diagI, bool addRobustness)
+double CRigidBodyContainerDyn::computeInertia(int shapeHandle, CPose& tr, C3Vector& diagI, bool addRobustness)
 { // returns the diagonal mass-less inertia, for a density of 1000
     // Errors are silent here. Function can be reentrant (max. 1 time)
     mju_user_warning = nullptr;
@@ -2931,8 +2931,8 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object, CXmlSer* xmlDoc, 
     std::vector<CXGeometric*> componentList;
     componentList.resize(componentListSize);
     _simGetAllGeometrics(geomInfo, (void**)componentList.data());
-    C7Vector objectPose;
-    objectPose = C7Vector::identityTransformation;
+    CPose objectPose;
+    objectPose = CPose::identityTransformation;
     for (size_t i = 0; i < componentList.size(); i++)
     {
         xmlDoc->pushNewNode("geom");
@@ -2963,7 +2963,7 @@ bool CRigidBodyContainerDyn::_addMeshes(CXSceneObject* object, CXmlSer* xmlDoc, 
         C3Vector s;
         _simGetPurePrimitiveSizes(sc, s.data);
 
-        C7Vector geomPose;
+        CPose geomPose;
         geomPose.setIdentity();
         if (pType == sim_primitiveshape_heightfield)
         {
@@ -3728,7 +3728,7 @@ bool CRigidBodyContainerDyn::_updateWorldFromCoppeliaSim()
                     mid = _allShapes[i].mjId;
                 int bodyId = _mjModel->body_mocapid[mid];
                 _allShapes[i].staticShapeStart.X = C3Vector(_mjData->mocap_pos[3 * bodyId + 0], _mjData->mocap_pos[3 * bodyId + 1], _mjData->mocap_pos[3 * bodyId + 2]);
-                _allShapes[i].staticShapeStart.Q = C4Vector(_mjData->mocap_quat[4 * bodyId + 0], _mjData->mocap_quat[4 * bodyId + 1], _mjData->mocap_quat[4 * bodyId + 2], _mjData->mocap_quat[4 * bodyId + 3]);
+                _allShapes[i].staticShapeStart.Q = CQuaternion(_mjData->mocap_quat[4 * bodyId + 0], _mjData->mocap_quat[4 * bodyId + 1], _mjData->mocap_quat[4 * bodyId + 2], _mjData->mocap_quat[4 * bodyId + 3]);
                 _allShapes[i].staticShapeGoal = _allShapes[i].staticShapeStart;
                 CXSceneObject* shape = (CXSceneObject*)_simGetObject(_allShapes[i].objectHandle);
                 if (shape != nullptr)
@@ -3779,7 +3779,7 @@ void CRigidBodyContainerDyn::_handleKinematicBodies_step(double t, double cumula
                     if (_allShapes[i].shapeMode == shapeModes::staticMode)
                         mid = _allShapes[i].mjId;
                     int bodyId = _mjModel->body_mocapid[mid];
-                    C7Vector tr;
+                    CPose tr;
                     tr.buildInterpolation(_allShapes[i].staticShapeStart, _allShapes[i].staticShapeGoal, t);
                     _mjData->mocap_pos[3 * bodyId + 0] = tr.X(0);
                     _mjData->mocap_pos[3 * bodyId + 1] = tr.X(1);
@@ -3819,7 +3819,7 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(double simulationTime, in
                 int vadr = _mjModel->jnt_dofadr[_allJoints[i].mjId];
                 if (_allJoints[i].jointType == sim_joint_spherical)
                 {
-                    C4Vector q(_mjData->qpos[padr + 0], _mjData->qpos[padr + 1], _mjData->qpos[padr + 2], _mjData->qpos[padr + 3]);
+                    CQuaternion q(_mjData->qpos[padr + 0], _mjData->qpos[padr + 1], _mjData->qpos[padr + 2], _mjData->qpos[padr + 3]);
                     q = _allJoints[i].initialBallQuat2.getInverse() * (q * _allJoints[i].initialBallQuat) * _allJoints[i].initialBallQuat2;
                     // Something is still not right here, in situations where the joint is involved in loop closure, and has an initialBallQuat different from the identity quaternion
                     // But this as only a visual effect on the spherical joint only (involved shapes are correctly placed)
@@ -3867,9 +3867,9 @@ void CRigidBodyContainerDyn::_reportWorldToCoppeliaSim(double simulationTime, in
                 int bodyId = _allShapes[i].mjId;
                 if (_allShapes[i].shapeMode == shapeModes::freeMode)
                 {
-                    C7Vector tr;
+                    CPose tr;
                     tr.X = C3Vector(_mjData->xpos[3 * bodyId + 0], _mjData->xpos[3 * bodyId + 1], _mjData->xpos[3 * bodyId + 2]);
-                    tr.Q = C4Vector(_mjData->xquat[4 * bodyId + 0], _mjData->xquat[4 * bodyId + 1], _mjData->xquat[4 * bodyId + 2], _mjData->xquat[4 * bodyId + 3]);
+                    tr.Q = CQuaternion(_mjData->xquat[4 * bodyId + 0], _mjData->xquat[4 * bodyId + 1], _mjData->xquat[4 * bodyId + 2], _mjData->xquat[4 * bodyId + 3]);
                     _simDynReportObjectCumulativeTransformation(shape, tr.X.data, tr.Q.data, simulationTime);
                 }
 
@@ -4152,7 +4152,7 @@ int CRigidBodyContainerDyn::addOrUpdateFlexcompInjection(CStackArray* inArgument
 
                         if (flexcompIdToUpdate == -1)
                         {
-                            flexcomp->pose = C7Vector::identityTransformation;
+                            flexcomp->pose = CPose::identityTransformation;
                             arr = map->getArray("pose");
                             if ((arr != nullptr) && (arr->getSize() == 7))
                             {
