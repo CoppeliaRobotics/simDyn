@@ -38,6 +38,7 @@ else()
     set(Vortex_default ON)
 endif()
 
+include(ExternalProject)
 include(CheckCXXCompilerFlag)
 
 # Detect CPU architecture
@@ -224,6 +225,27 @@ endif(Bullet_2_78)
 
 set(Bullet_2_83 ${Bullet_2_83_default} CACHE BOOL "")
 if(Bullet_2_83)
+set(BULLET_SOURCE_DIR ${CMAKE_BINARY_DIR}/bullet-prefix/src/bullet)
+set(BULLET_BUILD_DIR ${CMAKE_BINARY_DIR}/bullet-prefix/src/bullet-build)
+set(BULLET_INCLUDEPATH ${BULLET_SOURCE_DIR}/src)
+ExternalProject_Add(bullet
+    URL https://github.com/bulletphysics/bullet3/archive/2.89.tar.gz
+    CMAKE_ARGS
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        -DBUILD_BULLET3=OFF
+        -DUSE_DOUBLE_PRECISION=ON
+        -DBUILD_CPU_DEMOS=OFF
+        -DBUILD_OPENGL3_DEMOS=OFF
+        -DBUILD_ENET=OFF
+        -DBUILD_BULLET2_DEMOS=OFF
+        -DBUILD_CLSOCKET=OFF
+        -DBUILD_EXTRAS=OFF
+        -DBUILD_UNIT_TESTS=OFF
+        -DCMAKE_C_FLAGS=-fPIC
+        -DCMAKE_CXX_FLAGS=-fPIC
+    BUILD_COMMAND ${CMAKE_COMMAND} --build ${BULLET_BUILD_DIR} --config Release
+    INSTALL_COMMAND ""
+)
 coppeliasim_add_plugin(
     simBullet-2-83
     LEGACY
@@ -597,6 +619,23 @@ endif(Newton)
 
 set(Vortex ${Vortex_default} CACHE BOOL "")
 if(Vortex)
+if(WIN32)
+    set(VORTEX_DOWNLOAD_FILE VortexWindows.zip)
+    set(VORTEX_PACKAGE_DIR "Vortex Studio 2020a")
+elseif(UNIX AND NOT APPLE)
+    set(VORTEX_DOWNLOAD_FILE VortexLinux.tar.xz)
+    set(VORTEX_PACKAGE_DIR Vortex_Studio_2020.3.0.68_x64_gcc48)
+endif()
+ExternalProject_Add(vortex
+    DOWNLOAD_COMMAND ${CMAKE_COMMAND} -E env GH_TOKEN=$ENV{GITHUB_API_TOKEN} gh release download --skip-existing --repo CoppeliaRobotics/vortex-studio 2020 -p ${VORTEX_DOWNLOAD_FILE}
+    COMMAND tar xf ${VORTEX_DOWNLOAD_FILE}
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+)
+set(VORTEX_DIR ${CMAKE_BINARY_DIR}/vortex-prefix/src/${VORTEX_PACKAGE_DIR})
+set(VORTEX_INCLUDEPATH ${VORTEX_DIR}/include)
+set(VORTEX_LIBPATH ${VORTEX_DIR}/lib)
 coppeliasim_add_plugin(
     simVortex
     LEGACY
@@ -634,6 +673,40 @@ endif(Vortex)
 
 set(Mujoco ${Mujoco_default} CACHE BOOL "")
 if(Mujoco)
+set(MUJOCO_VERSION 3.8.1)
+set(MUJOCO_SOURCE_DIR ${CMAKE_BINARY_DIR}/mujoco-prefix/src/mujoco)
+set(MUJOCO_BUILD_DIR ${CMAKE_BINARY_DIR}/mujoco-prefix/src/mujoco-build)
+set(MUJOCO_INCLUDEPATH ${MUJOCO_SOURCE_DIR}/include)
+if(WIN32)
+    set(MUJOCO_LIBPATH ${MUJOCO_BUILD_DIR}/lib/Release)
+else()
+    set(MUJOCO_LIBPATH ${MUJOCO_BUILD_DIR}/lib)
+endif()
+if(WIN32)
+    set(MUJOCO_LIBRARY_FILENAME mujoco.dll)
+    set(MUJOCO_BUILT_LIBRARY ${MUJOCO_BUILD_DIR}/bin/Release/${MUJOCO_LIBRARY_FILENAME})
+elseif(UNIX AND NOT APPLE)
+    set(MUJOCO_LIBRARY_FILENAME libmujoco.so.${MUJOCO_VERSION})
+    set(MUJOCO_BUILT_LIBRARY ${MUJOCO_BUILD_DIR}/lib/${MUJOCO_LIBRARY_FILENAME})
+elseif(UNIX AND APPLE)
+    set(MUJOCO_LIBRARY_FILENAME libmujoco.${MUJOCO_VERSION}.dylib)
+    set(MUJOCO_BUILT_LIBRARY ${MUJOCO_BUILD_DIR}/lib/${MUJOCO_LIBRARY_FILENAME})
+endif()
+ExternalProject_Add(mujoco
+    URL https://github.com/deepmind/mujoco/archive/refs/tags/${MUJOCO_VERSION}.tar.gz
+    CMAKE_ARGS
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        -DMUJOCO_BUILD_EXAMPLES=OFF
+        -DMUJOCO_BUILD_SIMULATE=OFF
+        -DMUJOCO_BUILD_TESTS=OFF
+        -DMUJOCO_USE_SYSTEM_TINYXML2=ON
+    BUILD_COMMAND ${CMAKE_COMMAND} --build ${MUJOCO_BUILD_DIR} --config Release
+    INSTALL_COMMAND ""
+)
+install(
+    FILES ${MUJOCO_BUILT_LIBRARY}
+    DESTINATION ${COPPELIASIM_LIBRARIES_DIR}
+)
 coppeliasim_add_plugin(
     simMujoco
     LEGACY
