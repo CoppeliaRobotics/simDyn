@@ -700,6 +700,9 @@ ExternalProject_Add(mujoco
         -DMUJOCO_BUILD_SIMULATE=OFF
         -DMUJOCO_BUILD_TESTS=OFF
         -DMUJOCO_USE_SYSTEM_TINYXML2=ON
+	# on Ubuntu 26.04 + mujoco 3.8.1, new compile error appeared:
+	# engine_print.c:484:12: error: assignment discards ‘const’ qualifier from pointer target type [-Werror=discarded-qualifiers]
+	-DCMAKE_C_FLAGS="-Wno-error=discarded-qualifiers"
     BUILD_COMMAND ${CMAKE_COMMAND} --build ${MUJOCO_BUILD_DIR} --config Release
     INSTALL_COMMAND ""
 )
